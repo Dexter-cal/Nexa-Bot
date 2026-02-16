@@ -23,6 +23,36 @@ class ToolRegistry:
         """List tools by category"""
         return [t for t in self.tools.values() if t.category == category]
 
+    def register_from_code(self, code: str):
+        """Register a tool from its Python source code"""
+        import tempfile
+        import importlib.util
+        import os
+        import uuid
+        import sys
+
+        module_name = f"dynamic_tool_{uuid.uuid4().hex}"
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode='w') as f:
+                f.write(code)
+                temp_path = f.name
+
+            spec = importlib.util.spec_from_file_location(module_name, temp_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            for attr in dir(module):
+                val = getattr(module, attr)
+                if isinstance(val, type) and issubclass(val, Tool) and val is not Tool:
+                    tool_instance = val()
+                    self.register(tool_instance)
+                    return tool_instance
+            raise ValueError("No Tool class found in code")
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+
     async def load_default_tools(self):
         """Load and register built-in tools"""
         from nexa.tools.system import SystemInfoTool, ScreenshotTool
@@ -31,6 +61,7 @@ class ToolRegistry:
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
+        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -46,6 +77,9 @@ class ToolRegistry:
         self.register(PingTool())
         self.register(DNSLookupTool())
         self.register(PortScanTool())
+        self.register(ToolGeneratorTool())
+        self.register(ToolTesterTool())
+        self.register(SelfUpdaterTool())
 
 # Global registry instance
 registry = ToolRegistry()
