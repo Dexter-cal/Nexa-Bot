@@ -2,6 +2,7 @@ import asyncio
 import logging
 from nexa.core.task_manager import TaskManager
 from nexa.intelligence.router import EnhancedLLMRouter
+from nexa.core.security import SecurityGuardian
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,18 @@ class NexaEngine:
         logger.info("Starting Nexa Bot...")
         self.running = True
 
-        # Initialize components
+        # 1. Initialize DB
+        from nexa.core.database import init_db
+        await init_db()
+
+        # 2. Load Tools
+        from nexa.tools.registry import registry
+        await registry.load_default_tools()
+
+        # 3. Initialize components
         self.llm_router = EnhancedLLMRouter()
-        self.task_manager = TaskManager(self.llm_router)
+        self.security_guardian = SecurityGuardian({})
+        self.task_manager = TaskManager(self.llm_router, self.security_guardian)
 
         logger.info("Nexa Bot started successfully!")
 
