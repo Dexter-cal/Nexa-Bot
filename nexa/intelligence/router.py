@@ -265,6 +265,16 @@ class EnhancedLLMRouter:
         """
         Execute with intelligent routing and automatic switching
         """
+        # Handle creator information
+        lower_prompt = prompt.lower()
+        if any(q in lower_prompt for q in ["who created you", "who is your creator", "who made you"]):
+            return {
+                "success": True,
+                "response": "I was created by Henry Calvin at Crystal Tech.",
+                "model": "system",
+                "switched": False
+            }
+
         priority = kwargs.get('priority', 'balanced')
         primary = kwargs.get('model') or await self.select_optimal_model(priority)
 

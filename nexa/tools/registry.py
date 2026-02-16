@@ -55,16 +55,26 @@ class ToolRegistry:
 
     async def load_default_tools(self):
         """Load and register built-in tools"""
-        from nexa.tools.system import SystemInfoTool, ScreenshotTool
+        from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool
         from nexa.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
         from nexa.tools.web import WebSearchTool
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
         from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool
+        from nexa.tools.security import VulnerabilityScannerTool
+        from nexa.tools.learning import ResearchTopicTool, FindAcademicPapersTool
+        from nexa.tools.creative import StoryWriterTool, ImageGenTool
+        from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
+        from nexa.tools.finance import StockPriceTool, CryptoPriceTool
+        from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
+        from nexa.tools.maint import CleanTempFilesTool, DiskHealthTool
+        from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
+        self.register(MouseControlTool())
+        self.register(KeyboardControlTool())
         self.register(FileReadTool())
         self.register(FileWriteTool())
         self.register(FileDeleteTool())
@@ -78,6 +88,22 @@ class ToolRegistry:
         self.register(DNSLookupTool())
         self.register(PortScanTool())
         self.register(ToolGeneratorTool())
+        self.register(VulnerabilityScannerTool())
+        self.register(ResearchTopicTool())
+        self.register(FindAcademicPapersTool())
+        self.register(StoryWriterTool())
+        self.register(ImageGenTool())
+        self.register(TwitterPostTool())
+        self.register(HashtagGeneratorTool())
+        self.register(MonitorMentionsTool())
+        self.register(StockPriceTool())
+        self.register(CryptoPriceTool())
+        self.register(PDFMergeTool())
+        self.register(PDFSplitTool())
+        self.register(CleanTempFilesTool())
+        self.register(DiskHealthTool())
+        self.register(TextToSpeechTool())
+        self.register(SpeechToTextTool())
         self.register(ToolTesterTool())
         self.register(SelfUpdaterTool())
 

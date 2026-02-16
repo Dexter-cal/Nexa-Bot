@@ -3,6 +3,8 @@ import logging
 from nexa.core.task_manager import TaskManager
 from nexa.intelligence.router import EnhancedLLMRouter
 from nexa.core.security import SecurityGuardian
+from nexa.privacy.guardian import PrivacyGuardian
+from nexa.core.innovation import InnovationModule
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,8 @@ class NexaEngine:
         self.running = False
         self.task_manager = None
         self.llm_router = None
+        self.privacy_guardian = PrivacyGuardian()
+        self.innovation = InnovationModule()
         logger.info("Nexa Bot engine initialized")
 
     async def start(self):
@@ -32,6 +36,12 @@ class NexaEngine:
         self.llm_router = EnhancedLLMRouter()
         self.security_guardian = SecurityGuardian({})
         self.task_manager = TaskManager(self.llm_router, self.security_guardian)
+
+        # 4. Start Privacy monitoring
+        await self.privacy_guardian.start_monitoring()
+
+        # 5. Initialize Innovation features
+        logger.info("Innovation Module ready.")
 
         logger.info("Nexa Bot started successfully!")
 
@@ -53,7 +63,15 @@ class NexaEngine:
 
         task = await self.task_manager.create_task_from_command(command)
         await self.task_manager.process_queue()
-        return task.result
+
+        # Fetch updated task from DB to get the result
+        from nexa.core.database import AsyncSessionLocal
+        from nexa.models.core import Task
+        from sqlalchemy import select
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(Task).where(Task.id == task.id))
+            updated_task = result.scalars().first()
+            return updated_task.result
 
 # Global engine instance for convenience
 engine = NexaEngine()

@@ -7,6 +7,9 @@ from nexa.tools.registry import registry
 from nexa.core.security import SecurityGuardian, GuardrailEngine
 from nexa.models.core import Task
 from nexa.core.database import AsyncSessionLocal
+from nexa.orchestration.spawner import AgentSpawner
+from nexa.intelligence.brain import StrategicPlanner
+from nexa.intelligence.council import AICouncil
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,9 @@ class TaskManager:
         self.llm_router = llm_router or EnhancedLLMRouter()
         self.security_guardian = security_guardian or SecurityGuardian({})
         self.guardrail_engine = GuardrailEngine()
+        self.spawner = AgentSpawner()
+        self.planner = StrategicPlanner()
+        self.council = AICouncil()
         self.queue = asyncio.Queue()
         self.active_tasks: List[Task] = []
 
@@ -76,16 +82,40 @@ class TaskManager:
         """
         Plan and execute a task
         """
-        # 1. Plan the task
-        plan = await self._plan_task(task)
-        task.steps = plan.get('steps', [])
+        # 0. Handle simple direct questions/commands
+        lower_desc = task.description.lower()
+        if any(q in lower_desc for q in ["who created you", "who is your creator", "who made you"]):
+             return await self.llm_router.execute(task.description)
+
+        # Support for parallel agent spawning
+        if "spawn" in lower_desc and "agent" in lower_desc:
+             return await self._handle_spawn_command(task)
+
+        # 1. Plan the task using Strategic Planner
+        plan = await self.planner.create_plan(task.description)
+        task.steps = plan.get('primary_strategy', [])
+
+        if not task.steps and not plan.get('success', True):
+            # Fallback to simple planning if strategic planner fails
+            simple_plan = await self._plan_task_simple(task)
+            task.steps = simple_plan.get('steps', [])
 
         # 2. Execute steps
         results = []
         for step in task.steps:
+            # For critical steps, consult the council
+            if task.priority == 'critical' or step.get('risk_level') == 'high':
+                approved = await self.council.vote_on_action(step.get('description', 'Unknown action'))
+                if not approved:
+                    return {"success": False, "error": "Action rejected by AI Council", "step": step}
+
             result = await self._execute_step(step, task)
             results.append(result)
             if not result.success:
+                # Try alternative strategy if available
+                if plan.get('alternative_strategy'):
+                    logger.warning("Primary strategy failed. Attempting alternative strategy...")
+                    # Simplified: just log for now
                 return {"success": False, "error": result.error, "step_results": results}
 
         # 3. Aggregate final result
@@ -95,29 +125,19 @@ class TaskManager:
 
         return {"success": True, "response": final_response['response'], "steps": results}
 
-    async def _plan_task(self, task: Task) -> Dict[str, Any]:
-        """Use LLM to break task into steps"""
-        # Simplified planning: in a real scenario, this would be a more complex prompt
+    async def _plan_task_simple(self, task: Task) -> Dict[str, Any]:
+        """Simple planning fallback"""
         available_tools = [t.name for t in registry.list_all()]
         prompt = f"Break this task into steps using these tools: {available_tools}. Task: {task.description}. Return JSON with 'steps' list."
 
-        # For now, we mock the planning result if it's a known command
-        if "screenshot" in task.description.lower():
-            return {"steps": [{"tool": "system.screenshot", "params": {}}]}
-        elif "system info" in task.description.lower():
-            return {"steps": [{"tool": "system.info", "params": {}}]}
-
         plan_response = await self.llm_router.execute(prompt)
-        # Simplified parsing of the LLM response to get a plan
         try:
-            # Look for JSON in response
             content = plan_response['response']
             if '```json' in content:
                 content = content.split('```json')[1].split('```')[0]
             return json.loads(content)
         except:
-            # Default to a single "llm.generate" step if planning fails or is not JSON
-            return {"steps": []} # No tools needed, just LLM
+            return {"steps": []}
 
     async def _execute_step(self, step: Dict[str, Any], task: Task):
         tool_name = step.get('tool')
@@ -149,6 +169,17 @@ class TaskManager:
         self.security_guardian.log_action(tool_name, params, result, risk, task_id=task.id, user_id=task.user_id)
 
         return result
+
+    async def _handle_spawn_command(self, task: Task) -> Dict[str, Any]:
+        # Simple parsing for "spawn <role> agent"
+        parts = task.description.lower().split()
+        role = "assistant"
+        if "hacker" in parts: role = "hacker"
+        elif "developer" in parts: role = "developer"
+        elif "researcher" in parts: role = "researcher"
+
+        agent = await self.spawner.spawn_agent(role, {"description": "Subtask for spawned agent"})
+        return {"success": True, "message": f"Spawned {role} agent: {agent.id}", "agent_id": agent.id}
 
     async def cleanup(self):
         pass
