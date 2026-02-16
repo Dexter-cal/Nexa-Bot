@@ -13,11 +13,16 @@ class FileReadTool(Tool):
     }
 
     async def execute(self, path: str, **kwargs) -> ToolResult:
+        import asyncio
         try:
             if not os.path.exists(path):
                 return ToolResult(success=False, error=f"File not found: {path}")
-            with open(path, 'r') as f:
-                content = f.read()
+
+            def _read():
+                with open(path, 'r') as f:
+                    return f.read()
+
+            content = await asyncio.to_thread(_read)
             return ToolResult(success=True, output=content)
         except Exception as e:
             return ToolResult(success=False, error=str(e))
@@ -33,9 +38,13 @@ class FileWriteTool(Tool):
     }
 
     async def execute(self, path: str, content: str, **kwargs) -> ToolResult:
+        import asyncio
         try:
-            with open(path, 'w') as f:
-                f.write(content)
+            def _write():
+                with open(path, 'w') as f:
+                    f.write(content)
+
+            await asyncio.to_thread(_write)
             return ToolResult(success=True, output=f"File written: {path}")
         except Exception as e:
             return ToolResult(success=False, error=str(e))
@@ -50,10 +59,12 @@ class FileDeleteTool(Tool):
     }
 
     async def execute(self, path: str, **kwargs) -> ToolResult:
+        import asyncio
         try:
             if not os.path.exists(path):
                 return ToolResult(success=False, error=f"File not found: {path}")
-            os.remove(path)
+
+            await asyncio.to_thread(os.remove, path)
             return ToolResult(success=True, output=f"File deleted: {path}")
         except Exception as e:
             return ToolResult(success=False, error=str(e))

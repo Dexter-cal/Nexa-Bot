@@ -216,7 +216,7 @@ class RefusalPredictor:
 
 class EnhancedLLMRouter:
     """
-    Intelligent routing with automatic model switching
+    Intelligent routing with automatic model switching and cost/performance optimization
     """
 
     def __init__(self):
@@ -224,12 +224,49 @@ class EnhancedLLMRouter:
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
+        self.model_database = {
+            'gpt-4o': {
+                'provider': 'openai',
+                'cost': 9, # Score 0-10
+                'speed': 8,
+                'quality': 10
+            },
+            'claude-sonnet-4': {
+                'provider': 'anthropic',
+                'cost': 8,
+                'speed': 8,
+                'quality': 9
+            },
+            'gemini-2.0-flash': {
+                'provider': 'google',
+                'cost': 2,
+                'speed': 10,
+                'quality': 8
+            },
+            'llama-3-uncensored': {
+                'provider': 'local',
+                'cost': 0,
+                'speed': 5,
+                'quality': 7
+            }
+        }
+
+    async def select_optimal_model(self, priority='balanced'):
+        if priority == 'cost':
+            return min(self.model_database.items(), key=lambda x: x[1]['cost'])[0]
+        elif priority == 'speed':
+            return max(self.model_database.items(), key=lambda x: x[1]['speed'])[0]
+        elif priority == 'quality':
+            return max(self.model_database.items(), key=lambda x: x[1]['quality'])[0]
+        else: # balanced
+            return max(self.model_database.items(), key=lambda x: (x[1]['quality'] * 0.5 + (10 - x[1]['cost']) * 0.3 + x[1]['speed'] * 0.2))[0]
 
     async def execute(self, prompt: str, **kwargs):
         """
         Execute with intelligent routing and automatic switching
         """
-        primary = kwargs.get('model', 'gpt-4o')
+        priority = kwargs.get('priority', 'balanced')
+        primary = kwargs.get('model') or await self.select_optimal_model(priority)
 
         # 1. Predict if will refuse
         prediction = await self.predictor.will_refuse(

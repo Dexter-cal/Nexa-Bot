@@ -28,6 +28,9 @@ class ToolRegistry:
         from nexa.tools.system import SystemInfoTool, ScreenshotTool
         from nexa.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
         from nexa.tools.web import WebSearchTool
+        from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
+        from nexa.tools.productivity import NoteTakingTool, CalendarTool
+        from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -35,6 +38,14 @@ class ToolRegistry:
         self.register(FileWriteTool())
         self.register(FileDeleteTool())
         self.register(WebSearchTool())
+        self.register(ImageResizeTool())
+        self.register(ImageOCRTool())
+        self.register(ImageConvertTool())
+        self.register(NoteTakingTool())
+        self.register(CalendarTool())
+        self.register(PingTool())
+        self.register(DNSLookupTool())
+        self.register(PortScanTool())
 
 # Global registry instance
 registry = ToolRegistry()
