@@ -64,6 +64,30 @@ MODEL_REGISTRY = {
         'requires_approval': True,
         'sandbox_required': True,
         'log_all_uses': True
+    },
+
+    'gemini-1.5-pro': {
+        'provider': 'google',
+        'restriction_level': 'highly_restricted',
+        'refusal_patterns': ["I can't", "policy"],
+        'capabilities': ['multimodal', 'large_context'],
+        'forbidden_topics': ['harmful']
+    },
+
+    'claude-3-5-sonnet-20240620': {
+        'provider': 'anthropic',
+        'restriction_level': 'highly_restricted',
+        'refusal_patterns': ["I cannot"],
+        'capabilities': ['coding', 'reasoning'],
+        'forbidden_topics': ['harmful']
+    },
+
+    'deepseek-chat': {
+        'provider': 'deepseek',
+        'restriction_level': 'moderately_restricted',
+        'refusal_patterns': ["I can't"],
+        'capabilities': ['general', 'coding'],
+        'forbidden_topics': []
     }
 }
 
@@ -231,17 +255,29 @@ class EnhancedLLMRouter:
                 'speed': 8,
                 'quality': 10
             },
-            'claude-sonnet-4': {
+            'claude-3-5-sonnet-20240620': {
                 'provider': 'anthropic',
                 'cost': 8,
                 'speed': 8,
-                'quality': 9
+                'quality': 10
             },
-            'gemini-2.0-flash': {
+            'gemini-1.5-flash': {
                 'provider': 'google',
-                'cost': 2,
+                'cost': 1,
                 'speed': 10,
                 'quality': 8
+            },
+            'gemini-1.5-pro': {
+                'provider': 'google',
+                'cost': 5,
+                'speed': 7,
+                'quality': 9
+            },
+            'deepseek-chat': {
+                'provider': 'deepseek',
+                'cost': 1,
+                'speed': 9,
+                'quality': 9
             },
             'llama-3-uncensored': {
                 'provider': 'local',
@@ -355,6 +391,14 @@ class EnhancedLLMRouter:
             return await self._call_openai(model, prompt, keys['openai'], **kwargs)
         elif provider == 'google' and 'google' in keys:
             return await self._call_google(model, prompt, keys['google'], **kwargs)
+        elif provider == 'anthropic' and 'anthropic' in keys:
+            return await self._call_anthropic(model, prompt, keys['anthropic'], **kwargs)
+        elif provider == 'groq' and 'groq' in keys:
+            return await self._call_groq(model, prompt, keys['groq'], **kwargs)
+        elif provider == 'huggingface' and 'huggingface' in keys:
+            return await self._call_huggingface(model, prompt, keys['huggingface'], **kwargs)
+        elif provider == 'deepseek' and 'deepseek' in keys:
+            return await self._call_deepseek(model, prompt, keys['deepseek'], **kwargs)
 
         # Fallback to mock if no keys or unsupported provider for now
         if model == 'gpt-4o' and "illegal" in prompt.lower():
@@ -396,3 +440,81 @@ class EnhancedLLMRouter:
                 else:
                     error_data = await response.text()
                     raise Exception(f"Google API error: {error_data}")
+
+    async def _call_anthropic(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "max_tokens": 4096,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['content'][0]['text']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Anthropic API error: {error_data}")
+
+    async def _call_groq(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Groq API error: {error_data}")
+
+    async def _call_huggingface(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        # Inference API
+        url = f"https://api-inference.huggingface.co/models/{model}"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        data = {"inputs": prompt}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    if isinstance(result, list): return result[0].get('generated_text', str(result))
+                    return result.get('generated_text', str(result))
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"HuggingFace API error: {error_data}")
+
+    async def _call_deepseek(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.deepseek.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"DeepSeek API error: {error_data}")

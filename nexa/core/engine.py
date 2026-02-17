@@ -20,6 +20,12 @@ class NexaEngine:
         self.background_tasks = []
         logger.info("Nexa Bot engine initialized")
 
+    async def setup(self):
+        """Run the setup wizard"""
+        from nexa.interfaces.tui import TUISetupWizard
+        wizard = TUISetupWizard()
+        await wizard.run()
+
     async def start(self):
         """Start Nexa Bot"""
         logger.info("Starting Nexa Bot...")
