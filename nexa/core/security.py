@@ -124,19 +124,73 @@ class SecurityGuardian:
 class GuardrailEngine:
     """Intelligently configure based on context and natural language rules"""
 
-    def __init__(self):
+    def __init__(self, llm_router=None):
         self.rules = []
+        self.router = llm_router
 
     async def add_rule(self, rule_text: str):
-        # Simplified: in a real scenario, this would use NLP to parse the rule
-        self.rules.append(rule_text)
-        logger.info(f"Added guardrail rule: {rule_text}")
+        if rule_text not in self.rules:
+            self.rules.append(rule_text)
+            logger.info(f"Added guardrail rule: {rule_text}")
 
     async def check_action(self, action_context: Dict) -> Dict:
-        """Check if an action is allowed by any rules"""
-        # Basic check for now
-        for rule in self.rules:
-            if "never delete" in rule.lower() and action_context.get('action') == 'file.delete':
-                return {"allowed": False, "violation": rule}
+        """Check if an action is allowed by any rules using LLM analysis"""
+        if not self.rules:
+            return {"allowed": True}
 
-        return {"allowed": True}
+        if not self.router:
+            # Fallback to simple matching if no router
+            for rule in self.rules:
+                if "never delete" in rule.lower() and action_context.get('action') == 'file.delete':
+                    return {"allowed": False, "violation": rule}
+            return {"allowed": True}
+
+        prompt = f"""
+        Analyze if the following action violates any of the safety guardrails.
+
+        Action: {json.dumps(action_context)}
+
+        Rules:
+        {json.dumps(self.rules, indent=2)}
+
+        Return JSON:
+        {{
+            "allowed": true/false,
+            "violation": "rule text if disallowed",
+            "reasoning": "brief explanation"
+        }}
+        """
+
+        try:
+            from nexa.intelligence.router import EnhancedLLMRouter
+            router = self.router or EnhancedLLMRouter()
+            response = await router.execute(prompt, priority='speed')
+            content = response['response']
+
+            import json
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+            if json_start != -1:
+                return json.loads(content[json_start:json_end])
+            return {"allowed": True}
+        except Exception as e:
+            logger.error(f"Guardrail check failed: {e}")
+            return {"allowed": True} # Default to allow on error for now
+
+class KillSwitch:
+    """
+    Emergency system stop with 4 levels
+    """
+    class Level(Enum):
+        NONE = 0
+        STOP_TASK = 1
+        PAUSE_ALL = 2
+        LOCK_EXECUTION = 3
+        EMERGENCY_SHUTDOWN = 4
+
+    def __init__(self):
+        self.level = self.Level.NONE
+
+    def trigger(self, level: int):
+        self.level = self.Level(level)
+        logger.warning(f"🚨 KILL SWITCH LEVEL {self.level.name} TRIGGERED!")

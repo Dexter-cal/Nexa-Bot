@@ -71,3 +71,27 @@ async def list_alerts():
 @app.get("/api/v1/logs", response_model=List[Dict[str, Any]])
 async def get_logs():
     return memory_handler.get_logs()
+
+@app.get("/api/v1/tools", response_model=List[Dict[str, Any]])
+async def list_tools():
+    from nexa.tools.registry import registry
+    return [
+        {
+            "name": t.name,
+            "description": t.description,
+            "category": t.category,
+            "risk_level": t.risk_level,
+            "parameters": t.parameters
+        }
+        for t in registry.list_all()
+    ]
+
+@app.post("/api/v1/system/config")
+async def update_config(config: Dict[str, Any]):
+    # Update the engine's current state
+    if engine.task_manager:
+        if 'mode' in config:
+            engine.task_manager.mode_manager.set_mode(config['mode'])
+        if 'role' in config:
+            engine.task_manager.role_manager.set_role(config['role'])
+    return {"success": True}

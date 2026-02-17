@@ -12,6 +12,8 @@ from nexa.orchestration.spawner import AgentSpawner
 from nexa.intelligence.brain import StrategicPlanner
 from nexa.intelligence.council import AICouncil
 from nexa.features.self_healing import SelfHealingLoop
+from nexa.core.modes import ModeManager, NexaMode
+from nexa.core.roles import RoleManager
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,9 @@ class TaskManager:
     def __init__(self, llm_router=None, security_guardian=None):
         self.llm_router = llm_router or EnhancedLLMRouter()
         self.security_guardian = security_guardian or SecurityGuardian({})
-        self.guardrail_engine = GuardrailEngine()
+        self.guardrail_engine = GuardrailEngine(llm_router=self.llm_router)
+        self.mode_manager = ModeManager()
+        self.role_manager = RoleManager()
         self.spawner = AgentSpawner()
         self.planner = StrategicPlanner()
         self.council = AICouncil()
@@ -83,6 +87,10 @@ class TaskManager:
         """
         Plan and execute a task
         """
+        # Load Soul context
+        from nexa.core.engine import engine
+        soul_context = engine.soul.get_summary()
+
         # 0. Handle simple direct questions/commands
         lower_desc = task.description.lower()
         if any(q in lower_desc for q in ["who created you", "who is your creator", "who made you"]):
@@ -97,7 +105,7 @@ class TaskManager:
              return await self._handle_simulate_command(task)
 
         # 1. Plan the task using Strategic Planner
-        plan = await self.planner.create_plan(task.description)
+        plan = await self.planner.create_plan(f"User context: {soul_context}. Goal: {task.description}")
         task.execution_plan = plan.get('primary_strategy', [])
 
         if not task.execution_plan and not plan.get('success', True):
@@ -148,6 +156,10 @@ class TaskManager:
         tool_name = step.get('tool')
         params = step.get('params', {})
 
+        if self.mode_manager.current_mode == NexaMode.SHADOW:
+            logger.info(f"SHADOW MODE: Observing action {tool_name} but not executing.")
+            return ToolResult(success=True, output="Shadow mode: Action observed.")
+
         if not tool_name:
             # Fallback to LLM execution if no tool specified
             res = await self.llm_router.execute(task.description)
@@ -162,12 +174,17 @@ class TaskManager:
         if not tool:
             raise ValueError(f"Tool not found: {tool_name}")
 
-        # Security check
+        # Security & Mode check
         risk = self.security_guardian.assess_risk(tool_name, params)
-        if self.security_guardian.require_approval(tool_name, risk):
-            # In a real scenario, this would wait for user input
-            logger.info(f"APPROVAL REQUIRED for {tool_name} with risk {risk}")
-            # Mocking approval for now
+        if self.mode_manager.should_ask_approval(risk.value):
+            logger.info(f"APPROVAL REQUIRED in {self.mode_manager.current_mode.value} mode for {tool_name} (Risk: {risk.value})")
+            # In a production environment, this would trigger a UI prompt or mobile notification
+            # await alert_manager.emit("Approval Required", f"Action {tool_name} requires your approval in {self.mode_manager.current_mode.value} mode.", severity="high")
+
+        # Role-specific guardrails
+        role_guardrails = self.role_manager.get_role_guardrails()
+        for rule in role_guardrails:
+            await self.guardrail_engine.add_rule(rule)
 
         guardrail_check = await self.guardrail_engine.check_action({"action": tool_name, "params": params})
         if not guardrail_check['allowed']:

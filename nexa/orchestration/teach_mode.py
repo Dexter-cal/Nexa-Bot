@@ -55,8 +55,25 @@ class TeachMode:
     async def replay_workflow(self, workflow: Dict[str, Any]):
         logger.info(f"Replaying workflow: {workflow['name']}")
         steps = workflow.get("steps", [])
+
+        from nexa.tools.registry import registry
+
         for step in steps:
-            # In a real scenario, this would call the appropriate tools
             logger.info(f"Replaying step: {step['action_type']} on {step['target']}")
-            await asyncio.sleep(0.5) # Simulate action time
+
+            # Use vision to confirm state if needed
+            vision_tool = registry.get("system.vision_analyze")
+            if vision_tool:
+                await vision_tool.execute(prompt=f"Confirm if {step['target']} is visible on screen.")
+
+            # Map action to tools
+            if step['action_type'] == 'click':
+                mouse = registry.get("system.mouse")
+                if mouse: await mouse.execute(action="click", x=step.get('x'), y=step.get('y'))
+            elif step['action_type'] == 'type':
+                keyboard = registry.get("system.keyboard")
+                if keyboard: await keyboard.execute(action="type", text=step.get('value'))
+
+            await asyncio.sleep(1.0) # Realistic delay
+
         logger.info(f"Finished replaying workflow: {workflow['name']}")

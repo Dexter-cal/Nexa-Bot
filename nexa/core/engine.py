@@ -6,6 +6,8 @@ from nexa.core.security import SecurityGuardian
 from nexa.privacy.guardian import PrivacyGuardian
 from nexa.core.innovation import InnovationModule
 from nexa.interfaces.messaging import MessagingHub
+from nexa.memory.soul import SoulFile
+from nexa.memory.vector import VectorMemory, TimeCapsule
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,9 @@ class NexaEngine:
         self.task_manager = None
         self.llm_router = None
         self.privacy_guardian = PrivacyGuardian()
+        self.soul = SoulFile()
+        self.memory = VectorMemory()
+        self.time_capsule = TimeCapsule(self.memory)
         self.innovation = InnovationModule()
         self.messaging_hub = MessagingHub()
         self.background_tasks = []
@@ -72,10 +77,14 @@ class NexaEngine:
                 logger.error(f"Error in task processing loop: {e}")
                 await asyncio.sleep(5)
 
-    async def stop(self):
-        """Stop Nexa Bot"""
-        logger.info("Stopping Nexa Bot...")
+    async def stop(self, level: int = 0):
+        """Stop Nexa Bot with optional level"""
+        logger.info(f"Stopping Nexa Bot (Level {level})...")
         self.running = False
+
+        if level >= 3:
+            # Full system lock or emergency shutdown
+            logger.warning("EMERGENCY SHUTDOWN IN PROGRESS")
 
         # Stop background tasks
         for task in self.background_tasks:
@@ -101,6 +110,9 @@ class NexaEngine:
         if not self.task_manager:
             await self.start()
 
+        # Log to long-term memory
+        await self.memory.add(f"User command: {command}")
+
         task = await self.task_manager.create_task_from_command(command)
 
         # Wait for task completion (polling for simplicity, or use Event)
@@ -116,6 +128,9 @@ class NexaEngine:
                 result = await session.execute(select(Task).where(Task.id == task.id))
                 updated_task = result.scalars().first()
                 if updated_task.status in ['completed', 'failed']:
+                    # Learn from interaction
+                    if updated_task.status == 'completed':
+                        self.soul.learn_from_interaction(command, str(updated_task.result), True)
                     return updated_task.result
             await asyncio.sleep(0.5)
 

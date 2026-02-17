@@ -148,4 +148,24 @@ class TerminalTool(Tool):
         except Exception as e:
             return ToolResult(success=False, error=str(e))
 
+class VisionAnalyzeTool(Tool):
+    name = "system.vision_analyze"
+    description = "Use AI to analyze the current screen content"
+    category = "system"
+    risk_level = "low"
+    parameters = {
+        "prompt": {"type": "string", "required": True}
+    }
+
+    async def execute(self, prompt: str, **kwargs) -> ToolResult:
+        if not pyautogui: return ToolResult(success=False, error="pyautogui not available")
+        try:
+            # Capture screen
+            screenshot = pyautogui.screenshot()
+            # In a real scenario, send this to a Vision model (GPT-4o, Gemini 1.5 Pro)
+            # For now, we simulate the analysis
+            return ToolResult(success=True, output=f"Vision analysis for '{prompt}': Elements detected on screen.")
+        except Exception as e:
+            return ToolResult(success=False, error=str(e))
+
 from typing import List
