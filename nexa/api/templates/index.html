@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexa Bot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="bg-blue-600 p-2 rounded-lg">
+                <i class="fas fa-robot text-white text-xl"></i>
+            </div>
+            <h1 class="text-xl font-bold gradient-text">NEXA BOT</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-sm font-medium">System Online</span>
+            </div>
+            <button class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition-all">
+                <i class="fas fa-cog mr-2"></i> Settings
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8 grid grid-cols-12 gap-8">
+        <!-- Sidebar/Stats -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold mb-6">System Health</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Intelligence Router</span>
+                        <span class="text-green-400">Active</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Privacy Guardian</span>
+                        <span class="text-green-400">Monitoring</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Active Agents</span>
+                        <span class="font-mono text-blue-400" id="agent-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold mb-6">Privacy Summary</h2>
+                <div id="privacy-summary" class="space-y-4 text-sm">
+                    <div class="animate-pulse flex space-x-4">
+                        <div class="flex-1 space-y-4 py-1">
+                            <div class="h-4 bg-slate-700 rounded w-3/4"></div>
+                            <div class="h-4 bg-slate-700 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-span-12 lg:col-span-8 space-y-8">
+            <!-- Command Input -->
+            <div class="glass p-8 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6">What can I do for you?</h2>
+                <div class="relative">
+                    <input type="text" id="command-input" placeholder="Enter a command or ask a question..."
+                           class="w-full bg-slate-800 border border-slate-700 rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-lg">
+                    <button id="execute-btn" class="absolute right-3 top-2 bottom-2 bg-blue-600 hover:bg-blue-500 px-6 rounded-lg transition-all">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Task Feed -->
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold mb-6">Recent Activities</h2>
+                <div id="task-list" class="space-y-4">
+                    <!-- Tasks will be injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const executeBtn = document.getElementById('execute-btn');
+        const commandInput = document.getElementById('command-input');
+        const taskList = document.getElementById('task-list');
+        const agentCount = document.getElementById('agent-count');
+        const privacySummary = document.getElementById('privacy-summary');
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/v1/system/status');
+                const data = await response.json();
+                agentCount.innerText = data.agents;
+
+                const priv = data.privacy;
+                privacySummary.innerHTML = `
+                    <div class="flex justify-between"><span>Monitored Items:</span> <span>${priv.monitored_items.emails + priv.monitored_items.passwords}</span></div>
+                    <div class="flex justify-between"><span>Critical Alerts:</span> <span class="${priv.by_severity.critical > 0 ? 'text-red-500' : 'text-green-500'}">${priv.by_severity.critical}</span></div>
+                    <div class="flex justify-between"><span>Status:</span> <span>${priv.status}</span></div>
+                `;
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/v1/tasks');
+                const tasks = await response.json();
+                taskList.innerHTML = tasks.reverse().slice(0, 5).map(task => `
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <div>
+                            <div class="font-medium">${task.description}</div>
+                            <div class="text-xs text-slate-500">${task.id}</div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                            task.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                            task.status === 'running' ? 'bg-blue-500/20 text-blue-400 animate-pulse' :
+                            'bg-red-500/20 text-red-400'
+                        }">${task.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        executeBtn.onclick = async () => {
+            const command = commandInput.value;
+            if (!command) return;
+
+            executeBtn.disabled = true;
+            executeBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
+
+            try {
+                const response = await fetch('/api/v1/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                const result = await response.json();
+                commandInput.value = '';
+                loadTasks();
+            } catch (err) {
+                alert("Error executing command: " + err.message);
+            } finally {
+                executeBtn.disabled = false;
+                executeBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        };
+
+        setInterval(updateStatus, 5000);
+        setInterval(loadTasks, 3000);
+        updateStatus();
+        loadTasks();
+    </script>
+</body>
+</html>

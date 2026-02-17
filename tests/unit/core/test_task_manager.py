@@ -45,4 +45,5 @@ class TestTaskManager:
         # Task manager should plan this to use system.info tool
         result = await task_manager.execute_task(task)
         assert result["success"] is True
-        assert any(step.success for step in result["steps"])
+        # steps are now dictionaries after serialization fix
+        assert any(step.get("success") for step in result["steps"])

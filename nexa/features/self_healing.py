@@ -96,6 +96,26 @@ class SelfHealingLoop:
 
         logger.info("🧠 Asking AI to analyze and fix the error...")
 
-        # This is a stub for where we would call the engine to reformulate the plan or fix the code
-        # In a real implementation, we'd pass the stack trace to the router
-        return False
+        prompt = f"""
+        The following task failed with an error:
+        Task Arguments: {args}
+        Task Keyword Arguments: {kwargs}
+
+        Stack Trace:
+        {stack_trace}
+
+        Please provide a concise explanation of what went wrong and a suggested fix in JSON format:
+        {{
+            "explanation": "...",
+            "suggested_fix": "...",
+            "can_auto_fix": true/false
+        }}
+        """
+
+        try:
+            response = await self.engine.execute(prompt, priority='quality')
+            # For now we just log it, auto-fixing logic would be more complex
+            logger.info(f"AI Suggestion: {response['response']}")
+            return False # Auto-fix not fully implemented yet
+        except:
+            return False

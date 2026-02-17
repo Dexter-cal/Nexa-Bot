@@ -352,14 +352,14 @@ class UniversalAPIKeyManager:
 
     async def _multi_select(self, options):
         from rich.console import Console
+        from rich.prompt import Prompt
         console = Console()
         console.print("\nAvailable providers:")
         for i, opt in enumerate(options):
             status = "[green](detected)[/]" if opt.get('default') else ""
             console.print(f" {i+1}. {opt['label']} {status}")
 
-        console.print("\nEnter numbers separated by space (e.g. 1 3):")
-        indices = input("> ")
+        indices = Prompt.ask("\nEnter numbers separated by space (e.g. 1 3)")
         selected = []
         try:
             for idx in indices.split():

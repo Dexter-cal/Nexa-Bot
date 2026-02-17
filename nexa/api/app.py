@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from nexa.core.engine import engine
@@ -7,6 +9,9 @@ from nexa.core.database import AsyncSessionLocal
 from sqlalchemy import select
 
 app = FastAPI(title="Nexa Bot API", version="1.0.0")
+
+app.mount("/static", StaticFiles(directory="nexa/api/static"), name="static")
+templates = Jinja2Templates(directory="nexa/api/templates")
 
 class CommandRequest(BaseModel):
     command: str
@@ -25,8 +30,8 @@ async def shutdown_event():
     await engine.stop()
 
 @app.get("/")
-async def root():
-    return {"message": "Welcome to Nexa Bot API"}
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/v1/execute", response_model=Dict[str, Any])
 async def execute_command(request: CommandRequest):

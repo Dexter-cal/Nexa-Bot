@@ -57,7 +57,7 @@ class ToolRegistry:
         """Load and register built-in tools"""
         from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool
         from nexa.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
-        from nexa.tools.web import WebSearchTool
+        from nexa.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
@@ -79,6 +79,8 @@ class ToolRegistry:
         self.register(FileWriteTool())
         self.register(FileDeleteTool())
         self.register(WebSearchTool())
+        self.register(WebScrapeTool())
+        self.register(WebScreenshotTool())
         self.register(ImageResizeTool())
         self.register(ImageOCRTool())
         self.register(ImageConvertTool())

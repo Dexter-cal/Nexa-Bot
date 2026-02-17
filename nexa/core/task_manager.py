@@ -4,6 +4,7 @@ import json
 from typing import List, Dict, Any, Optional
 from nexa.intelligence.router import EnhancedLLMRouter
 from nexa.tools.registry import registry
+from nexa.tools.base import ToolResult
 from nexa.core.security import SecurityGuardian, GuardrailEngine
 from nexa.models.core import Task
 from nexa.core.database import AsyncSessionLocal
@@ -25,7 +26,7 @@ class TaskManager:
         self.spawner = AgentSpawner()
         self.planner = StrategicPlanner()
         self.council = AICouncil()
-        self.healing_loop = SelfHealingLoop(engine=None) # Will be linked later if needed
+        self.healing_loop = SelfHealingLoop(engine=self.llm_router)
         self.queue = asyncio.Queue()
         self.active_tasks: List[Task] = []
 
@@ -95,16 +96,16 @@ class TaskManager:
 
         # 1. Plan the task using Strategic Planner
         plan = await self.planner.create_plan(task.description)
-        task.steps = plan.get('primary_strategy', [])
+        task.execution_plan = plan.get('primary_strategy', [])
 
-        if not task.steps and not plan.get('success', True):
+        if not task.execution_plan and not plan.get('success', True):
             # Fallback to simple planning if strategic planner fails
             simple_plan = await self._plan_task_simple(task)
-            task.steps = simple_plan.get('steps', [])
+            task.execution_plan = simple_plan.get('steps', [])
 
         # 2. Execute steps
         results = []
-        for step in task.steps:
+        for step in (task.execution_plan or []):
             # For critical steps, consult the council
             if task.priority == 'critical' or step.get('risk_level') == 'high':
                 approved = await self.council.vote_on_action(step.get('description', 'Unknown action'))
@@ -112,7 +113,7 @@ class TaskManager:
                     return {"success": False, "error": "Action rejected by AI Council", "step": step}
 
             result = await self._execute_step(step, task)
-            results.append(result)
+            results.append(result.model_dump())
             if not result.success:
                 # Try alternative strategy if available
                 if plan.get('alternative_strategy'):
@@ -122,7 +123,7 @@ class TaskManager:
 
         # 3. Aggregate final result
         final_response = await self.llm_router.execute(
-            f"Task: {task.description}\nSteps executed: {json.dumps(results, default=str)}\nSummarize final result."
+            f"Task: {task.description}\nSteps executed: {json.dumps(results)}\nSummarize final result."
         )
 
         return {"success": True, "response": final_response['response'], "steps": results}
@@ -141,13 +142,19 @@ class TaskManager:
         except:
             return {"steps": []}
 
-    async def _execute_step(self, step: Dict[str, Any], task: Task):
+    async def _execute_step(self, step: Dict[str, Any], task: Task) -> ToolResult:
         tool_name = step.get('tool')
         params = step.get('params', {})
 
         if not tool_name:
             # Fallback to LLM execution if no tool specified
-            return await self.llm_router.execute(task.description)
+            res = await self.llm_router.execute(task.description)
+            return ToolResult(
+                success=res.get('success', False),
+                output=res.get('response'),
+                error=res.get('reason'),
+                metadata={'model': res.get('model')}
+            )
 
         tool = registry.get(tool_name)
         if not tool:

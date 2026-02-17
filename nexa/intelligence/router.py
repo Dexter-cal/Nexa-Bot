@@ -88,6 +88,14 @@ MODEL_REGISTRY = {
         'refusal_patterns': ["I can't"],
         'capabilities': ['general', 'coding'],
         'forbidden_topics': []
+    },
+
+    'gemini-1.5-flash': {
+        'provider': 'google',
+        'restriction_level': 'highly_restricted',
+        'refusal_patterns': ["I can't"],
+        'capabilities': ['fast', 'general'],
+        'forbidden_topics': ['harmful']
     }
 }
 
