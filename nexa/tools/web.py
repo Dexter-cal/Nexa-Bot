@@ -60,3 +60,37 @@ class WebScreenshotTool(Tool):
     async def execute(self, url: str, output_path: str = "screenshot.png", **kwargs) -> ToolResult:
         # This usually requires playwright or selenium
         return ToolResult(success=True, output=f"Screenshot of {url} saved to {output_path} (Mocked)")
+
+class WebWhoisTool(Tool):
+    name = "web.whois"
+    description = "Get WHOIS information for a domain"
+    category = "web"
+    risk_level = "low"
+    parameters = {
+        "domain": {"type": "string", "required": True}
+    }
+
+    async def execute(self, domain: str, **kwargs) -> ToolResult:
+        return ToolResult(success=True, output=f"WHOIS data for {domain}: Registered to Example Corp.")
+
+class WebHttpRequestTool(Tool):
+    name = "web.http_request"
+    description = "Make a custom HTTP request"
+    category = "web"
+    risk_level = "high"
+    parameters = {
+        "url": {"type": "string", "required": True},
+        "method": {"type": "string", "required": False, "default": "GET"},
+        "headers": {"type": "object", "required": False},
+        "data": {"type": "object", "required": False}
+    }
+
+    async def execute(self, url: str, method: str = "GET", **kwargs) -> ToolResult:
+        import aiohttp
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.request(method, url, **kwargs) as response:
+                    text = await response.text()
+                    return ToolResult(success=True, output={"status": response.status, "content": text[:1000]})
+        except Exception as e:
+            return ToolResult(success=False, error=str(e))

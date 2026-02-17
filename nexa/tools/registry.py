@@ -55,13 +55,13 @@ class ToolRegistry:
 
     async def load_default_tools(self):
         """Load and register built-in tools"""
-        from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool
+        from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool
         from nexa.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
-        from nexa.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool
+        from nexa.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool, WebWhoisTool, WebHttpRequestTool
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
-        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool
+        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool
         from nexa.tools.security import VulnerabilityScannerTool
         from nexa.tools.learning import ResearchTopicTool, FindAcademicPapersTool
         from nexa.tools.creative import StoryWriterTool, ImageGenTool
@@ -70,17 +70,22 @@ class ToolRegistry:
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
         from nexa.tools.maint import CleanTempFilesTool, DiskHealthTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
+        from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
         self.register(MouseControlTool())
         self.register(KeyboardControlTool())
+        self.register(ProcessListTool())
+        self.register(NetworkStatsTool())
         self.register(FileReadTool())
         self.register(FileWriteTool())
         self.register(FileDeleteTool())
         self.register(WebSearchTool())
         self.register(WebScrapeTool())
         self.register(WebScreenshotTool())
+        self.register(WebWhoisTool())
+        self.register(WebHttpRequestTool())
         self.register(ImageResizeTool())
         self.register(ImageOCRTool())
         self.register(ImageConvertTool())
@@ -106,8 +111,14 @@ class ToolRegistry:
         self.register(DiskHealthTool())
         self.register(TextToSpeechTool())
         self.register(SpeechToTextTool())
+        self.register(TelegramSendTool())
+        self.register(EmailSendTool())
+        self.register(AlertPushTool())
+        self.register(GmailSearchTool())
+        self.register(WhatsAppSendTool())
         self.register(ToolTesterTool())
         self.register(SelfUpdaterTool())
+        self.register(MirrorWorldSimulateTool())
 
 # Global registry instance
 registry = ToolRegistry()

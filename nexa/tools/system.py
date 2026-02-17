@@ -98,4 +98,28 @@ class KeyboardControlTool(Tool):
         except Exception as e:
             return ToolResult(success=False, error=str(e))
 
+class ProcessListTool(Tool):
+    name = "system.process_list"
+    description = "Get list of running processes"
+    category = "system"
+    risk_level = "medium"
+    parameters = {}
+
+    async def execute(self, **kwargs) -> ToolResult:
+        processes = []
+        for proc in psutil.process_iter(['pid', 'name', 'username']):
+            processes.append(proc.info)
+        return ToolResult(success=True, output=processes[:20])
+
+class NetworkStatsTool(Tool):
+    name = "system.network_stats"
+    description = "Get network interface statistics"
+    category = "system"
+    risk_level = "low"
+    parameters = {}
+
+    async def execute(self, **kwargs) -> ToolResult:
+        stats = psutil.net_io_counters(pernic=True)
+        return ToolResult(success=True, output={k: v._asdict() for k, v in stats.items()})
+
 from typing import List

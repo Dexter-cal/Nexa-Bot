@@ -7,6 +7,7 @@ import asyncio
 from typing import List, Dict, Any, Optional
 from nexa.tools.base import Tool, ToolResult
 from nexa.intelligence.router import EnhancedLLMRouter
+from nexa.features.mirror_world import MirrorWorldSandbox
 
 logger = logging.getLogger(__name__)
 
@@ -132,3 +133,18 @@ class SelfUpdaterTool(Tool):
             return ToolResult(success=True, output=status)
         except Exception as e:
             return ToolResult(success=False, error=f"Failed to update component: {str(e)}")
+
+class MirrorWorldSimulateTool(Tool):
+    name = "meta.mirror_world_simulate"
+    description = "Simulate a task in Mirror-World to predict outcomes"
+    category = "meta"
+    risk_level = "low"
+    parameters = {
+        "task": {"type": "string", "required": True},
+        "plan": {"type": "list", "required": True}
+    }
+
+    async def execute(self, task: str, plan: List[Dict[str, Any]], **kwargs) -> ToolResult:
+        sandbox = MirrorWorldSandbox()
+        result = await sandbox.simulate_task(task, plan)
+        return ToolResult(success=True, output=result)

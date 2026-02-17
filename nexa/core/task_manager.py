@@ -52,34 +52,32 @@ class TaskManager:
         return task
 
     async def process_queue(self):
-        if self.queue.empty():
-            return
-
-        task = await self.queue.get()
-        async with AsyncSessionLocal() as session:
-            task = await session.merge(task)
-            task.status = "running"
-            await session.commit()
-            persistent_task = task
-            self.active_tasks.append(persistent_task)
-
-        try:
-            result = await self.execute_task(persistent_task)
+        while not self.queue.empty():
+            task = await self.queue.get()
             async with AsyncSessionLocal() as session:
-                task = await session.merge(persistent_task)
-                task.result = result
-                task.status = "completed"
+                task = await session.merge(task)
+                task.status = "running"
                 await session.commit()
-        except Exception as e:
-            logger.exception(f"Task failed: {e}")
-            async with AsyncSessionLocal() as session:
-                task = await session.merge(persistent_task)
-                task.status = "failed"
-                task.result = {"success": False, "error": str(e)}
-                await session.commit()
-        finally:
-            if persistent_task in self.active_tasks:
-                self.active_tasks.remove(persistent_task)
+                persistent_task = task
+                self.active_tasks.append(persistent_task)
+
+            try:
+                result = await self.execute_task(persistent_task)
+                async with AsyncSessionLocal() as session:
+                    task = await session.merge(persistent_task)
+                    task.result = result
+                    task.status = "completed"
+                    await session.commit()
+            except Exception as e:
+                logger.exception(f"Task failed: {e}")
+                async with AsyncSessionLocal() as session:
+                    task = await session.merge(persistent_task)
+                    task.status = "failed"
+                    task.result = {"success": False, "error": str(e)}
+                    await session.commit()
+            finally:
+                if persistent_task in self.active_tasks:
+                    self.active_tasks.remove(persistent_task)
 
     async def execute_task(self, task: Task) -> Dict[str, Any]:
         """
@@ -93,6 +91,10 @@ class TaskManager:
         # Support for parallel agent spawning
         if "spawn" in lower_desc and "agent" in lower_desc:
              return await self._handle_spawn_command(task)
+
+        # Mirror-World Simulation command
+        if lower_desc.startswith("simulate task"):
+             return await self._handle_simulate_command(task)
 
         # 1. Plan the task using Strategic Planner
         plan = await self.planner.create_plan(task.description)
@@ -178,6 +180,16 @@ class TaskManager:
         self.security_guardian.log_action(tool_name, params, result, risk, task_id=task.id, user_id=task.user_id)
 
         return result
+
+    async def _handle_simulate_command(self, task: Task) -> Dict[str, Any]:
+        task_to_sim = task.description[len("simulate task "):].strip()
+        plan = await self.planner.create_plan(task_to_sim)
+
+        from nexa.features.mirror_world import MirrorWorldSandbox
+        sandbox = MirrorWorldSandbox(self.llm_router)
+        report = await sandbox.simulate_task(task_to_sim, plan.get('primary_strategy', []))
+
+        return {"success": True, "response": report, "plan": plan}
 
     async def _handle_spawn_command(self, task: Task) -> Dict[str, Any]:
         # Simple parsing for "spawn <role> agent"

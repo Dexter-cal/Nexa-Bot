@@ -5,6 +5,7 @@ from nexa.intelligence.router import EnhancedLLMRouter
 from nexa.core.security import SecurityGuardian
 from nexa.privacy.guardian import PrivacyGuardian
 from nexa.core.innovation import InnovationModule
+from nexa.interfaces.messaging import MessagingHub
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class NexaEngine:
         self.llm_router = None
         self.privacy_guardian = PrivacyGuardian()
         self.innovation = InnovationModule()
+        self.messaging_hub = MessagingHub()
         self.background_tasks = []
         logger.info("Nexa Bot engine initialized")
 
@@ -47,13 +49,26 @@ class NexaEngine:
         # 4. Start Privacy monitoring
         await self.privacy_guardian.start_monitoring()
 
-        # 5. Initialize Innovation features
+        # 5. Start Messaging interfaces
+        await self.messaging_hub.start_all()
+
+        # 6. Start Task processing loop
+        self.background_tasks.append(asyncio.create_task(self._task_processing_loop()))
+
+        # 7. Initialize Innovation features
         logger.info("Innovation Module ready.")
 
         logger.info("Nexa Bot started successfully!")
 
-        # Run main loop in the background if needed,
-        # but for CLI use we might just call it explicitly
+    async def _task_processing_loop(self):
+        """Continuous task processing loop"""
+        while self.running:
+            try:
+                await self.task_manager.process_queue()
+                await asyncio.sleep(1) # Prevent busy waiting
+            except Exception as e:
+                logger.error(f"Error in task processing loop: {e}")
+                await asyncio.sleep(5)
 
     async def stop(self):
         """Stop Nexa Bot"""
@@ -74,24 +89,35 @@ class NexaEngine:
         # Stop privacy guardian
         await self.privacy_guardian.stop()
 
+        # Stop messaging interfaces
+        await self.messaging_hub.stop_all()
+
         logger.info("Nexa Bot stopped")
 
     async def execute_command(self, command: str):
-        """Execute a command"""
+        """Execute a command and wait for result"""
         if not self.task_manager:
             await self.start()
 
         task = await self.task_manager.create_task_from_command(command)
-        await self.task_manager.process_queue()
 
-        # Fetch updated task from DB to get the result
+        # Wait for task completion (polling for simplicity, or use Event)
         from nexa.core.database import AsyncSessionLocal
         from nexa.models.core import Task
         from sqlalchemy import select
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(select(Task).where(Task.id == task.id))
-            updated_task = result.scalars().first()
-            return updated_task.result
+
+        max_wait = 60 # seconds
+        start_time = asyncio.get_event_loop().time()
+
+        while asyncio.get_event_loop().time() - start_time < max_wait:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(select(Task).where(Task.id == task.id))
+                updated_task = result.scalars().first()
+                if updated_task.status in ['completed', 'failed']:
+                    return updated_task.result
+            await asyncio.sleep(0.5)
+
+        return {"success": False, "error": "Task timed out"}
 
 # Global engine instance for convenience
 engine = NexaEngine()

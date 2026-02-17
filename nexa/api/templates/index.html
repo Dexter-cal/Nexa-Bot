@@ -54,6 +54,13 @@
             </div>
 
             <div class="glass p-6 rounded-2xl">
+                <h2 class="text-lg font-semibold mb-6">System Alerts</h2>
+                <div id="alert-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    <div class="text-slate-500 text-sm italic">No recent alerts</div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
                 <h2 class="text-lg font-semibold mb-6">Privacy Summary</h2>
                 <div id="privacy-summary" class="space-y-4 text-sm">
                     <div class="animate-pulse flex space-x-4">
@@ -68,6 +75,36 @@
 
         <!-- Main Content -->
         <div class="col-span-12 lg:col-span-8 space-y-8">
+            <!-- Tabs -->
+            <div class="flex space-x-4 mb-2">
+                <button onclick="switchTab('main')" class="tab-btn active px-6 py-2 rounded-t-xl font-semibold bg-blue-600/20 text-blue-400 border-b-2 border-blue-500">Dashboard</button>
+                <button onclick="switchTab('mirror')" class="tab-btn px-6 py-2 rounded-t-xl font-semibold text-slate-400 hover:bg-slate-800 transition-all">Mirror-World</button>
+                <button onclick="switchTab('logs')" class="tab-btn px-6 py-2 rounded-t-xl font-semibold text-slate-400 hover:bg-slate-800 transition-all">Console</button>
+            </div>
+
+            <!-- Tab Content: Main -->
+            <div id="tab-main" class="tab-content space-y-8">
+            <!-- Communication Hub -->
+            <div class="glass p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold">Communication Hub</h2>
+                    <div class="flex space-x-2">
+                        <span class="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded border border-blue-500/20">Telegram</span>
+                        <span class="px-2 py-1 bg-slate-500/10 text-slate-400 text-xs rounded border border-slate-500/20">Gmail</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-sm font-medium mb-1">Telegram Bot</div>
+                        <div class="text-xs text-slate-400" id="telegram-status">Waiting for config...</div>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <div class="text-sm font-medium mb-1">Email Bridge</div>
+                        <div class="text-xs text-slate-400">Offline</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Command Input -->
             <div class="glass p-8 rounded-2xl shadow-xl">
                 <h2 class="text-2xl font-bold mb-6">What can I do for you?</h2>
@@ -87,6 +124,32 @@
                     <!-- Tasks will be injected here -->
                 </div>
             </div>
+            </div>
+
+            <!-- Tab Content: Mirror World -->
+            <div id="tab-mirror" class="tab-content hidden space-y-8">
+                <div class="glass p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold mb-4">🔮 Mirror-World Simulator</h2>
+                    <p class="text-slate-400 mb-6">Predict the outcome and security impact of any task before execution.</p>
+                    <textarea id="simulate-input" placeholder="Describe the task to simulate..." class="w-full h-32 bg-slate-800 border border-slate-700 rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all mb-4"></textarea>
+                    <button id="simulate-btn" class="bg-purple-600 hover:bg-purple-500 px-8 py-3 rounded-xl font-bold transition-all">Simulate Outcome</button>
+
+                    <div id="simulation-result" class="mt-8 hidden p-6 bg-slate-900 rounded-xl border border-purple-500/30">
+                        <h3 class="font-bold text-purple-400 mb-4">Simulation Report</h3>
+                        <div id="sim-report-content" class="space-y-3 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Logs -->
+            <div id="tab-logs" class="tab-content hidden h-full">
+                <div class="glass p-6 rounded-2xl h-[600px] flex flex-col">
+                    <h2 class="text-lg font-semibold mb-4">System Console</h2>
+                    <div id="log-terminal" class="bg-black/50 p-4 rounded-xl font-mono text-xs flex-1 overflow-y-auto space-y-1">
+                        <!-- Logs will be injected here -->
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -94,14 +157,18 @@
         const executeBtn = document.getElementById('execute-btn');
         const commandInput = document.getElementById('command-input');
         const taskList = document.getElementById('task-list');
+        const logTerminal = document.getElementById('log-terminal');
+        const alertList = document.getElementById('alert-list');
         const agentCount = document.getElementById('agent-count');
         const privacySummary = document.getElementById('privacy-summary');
+        const telegramStatus = document.getElementById('telegram-status');
 
         async function updateStatus() {
             try {
                 const response = await fetch('/api/v1/system/status');
                 const data = await response.json();
                 agentCount.innerText = data.agents;
+                telegramStatus.innerText = data.messaging.telegram ? "Online" : "Offline/No Token";
 
                 const priv = data.privacy;
                 privacySummary.innerHTML = `
@@ -132,6 +199,83 @@
             } catch (err) { console.error(err); }
         }
 
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500');
+                b.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const btn = event.currentTarget;
+            btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500');
+            btn.classList.remove('text-slate-400');
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/v1/logs');
+                const logs = await response.json();
+                logTerminal.innerHTML = logs.map(log => `
+                    <div class="flex space-x-3">
+                        <span class="text-slate-500">[${log.timestamp.split('T')[1].split('.')[0]}]</span>
+                        <span class="${log.level === 'ERROR' ? 'text-red-400' : (log.level === 'WARNING' ? 'text-yellow-400' : 'text-blue-400')}">${log.level}</span>
+                        <span class="text-slate-300 italic">(${log.module})</span>
+                        <span class="text-white">${log.message}</span>
+                    </div>
+                `).join('');
+                logTerminal.scrollTop = logTerminal.scrollHeight;
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('simulate-btn').onclick = async () => {
+            const task = document.getElementById('simulate-input').value;
+            if (!task) return;
+
+            const btn = document.getElementById('simulate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i> Simulating...';
+
+            try {
+                const response = await fetch('/api/v1/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `simulate task ${task}` })
+                });
+                const data = await response.json();
+                const report = data.response; // Assuming response is the JSON report
+
+                document.getElementById('simulation-result').classList.remove('hidden');
+                document.getElementById('sim-report-content').innerHTML = `
+                    <div class="bg-black/30 p-4 rounded border border-slate-700 whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</div>
+                `;
+            } catch (err) {
+                alert("Simulation failed");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Simulate Outcome';
+            }
+        };
+
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/v1/alerts');
+                const alerts = await response.json();
+                if (alerts.length > 0) {
+                    alertList.innerHTML = alerts.reverse().map(alert => `
+                        <div class="p-3 rounded-lg border-l-4 ${
+                            alert.severity === 'critical' ? 'bg-red-500/10 border-red-500 text-red-200' :
+                            alert.severity === 'high' ? 'bg-orange-500/10 border-orange-500 text-orange-200' :
+                            'bg-blue-500/10 border-blue-500 text-blue-200'
+                        }">
+                            <div class="font-bold text-xs">${alert.title}</div>
+                            <div class="text-[11px] opacity-80">${alert.message}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error(err); }
+        }
+
         executeBtn.onclick = async () => {
             const command = commandInput.value;
             if (!command) return;
@@ -148,6 +292,7 @@
                 const result = await response.json();
                 commandInput.value = '';
                 loadTasks();
+                loadAlerts();
             } catch (err) {
                 alert("Error executing command: " + err.message);
             } finally {
@@ -158,8 +303,12 @@
 
         setInterval(updateStatus, 5000);
         setInterval(loadTasks, 3000);
+        setInterval(loadAlerts, 5000);
+        setInterval(loadLogs, 2000);
         updateStatus();
         loadTasks();
+        loadAlerts();
+        loadLogs();
     </script>
 </body>
 </html>
