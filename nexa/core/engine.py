@@ -17,6 +17,7 @@ class NexaEngine:
         self.llm_router = None
         self.privacy_guardian = PrivacyGuardian()
         self.innovation = InnovationModule()
+        self.background_tasks = []
         logger.info("Nexa Bot engine initialized")
 
     async def start(self):
@@ -52,8 +53,21 @@ class NexaEngine:
         """Stop Nexa Bot"""
         logger.info("Stopping Nexa Bot...")
         self.running = False
+
+        # Stop background tasks
+        for task in self.background_tasks:
+            task.cancel()
+
+        if self.background_tasks:
+            await asyncio.gather(*self.background_tasks, return_exceptions=True)
+            self.background_tasks = []
+
         if self.task_manager:
             await self.task_manager.cleanup()
+
+        # Stop privacy guardian
+        await self.privacy_guardian.stop()
+
         logger.info("Nexa Bot stopped")
 
     async def execute_command(self, command: str):

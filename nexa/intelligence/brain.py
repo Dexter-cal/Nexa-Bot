@@ -66,20 +66,25 @@ class StrategicPlanner:
         content = response['response']
 
         try:
-            if '```json' in content:
-                content = content.split('```json')[1].split('```')[0]
-            elif '```' in content:
-                content = content.split('```')[1].split('```')[0]
+            # Extract JSON more robustly
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+            if json_start != -1 and json_end != -1:
+                content = content[json_start:json_end]
 
             plan = json.loads(content.strip())
             logger.info(f"Strategic Planner: Plan generated with {len(plan.get('primary_strategy', []))} steps.")
             return plan
         except Exception as e:
             logger.error(f"Strategic Planner: Failed to parse plan JSON: {e}")
+            # Fallback strategy
             return {
-                "success": False,
-                "error": "Failed to generate structured plan",
-                "raw_response": content
+                "success": True, # Still try to return something usable
+                "primary_strategy": [
+                    {"step": 1, "description": "Execute task directly via LLM", "tool": None, "params": {}}
+                ],
+                "risk_assessment": "Unknown (JSON Parse Error)",
+                "error": str(e)
             }
 
     async def evaluate_strategy(self, strategy: List[Dict[str, Any]]) -> float:

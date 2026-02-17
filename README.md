@@ -12,6 +12,8 @@ Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, securi
 - **Privacy Guardian**: 24/7 dark web monitoring, breach detection, and digital life scanning.
 - **Teach Mode**: Record and replay your own custom workflows.
 - **120+ Built-in Tools**: Comprehensive toolset for system control, multimedia, network, and productivity.
+- **Autonomous Tool Discovery**: Dynamically discovers and installs missing libraries or dependencies on the fly.
+- **Self-Healing Loop**: Automatically detects task failures, analyzes errors, and attempts fixes to ensure goal completion.
 - **Secure by Design**: AES-256 encryption for all sensitive configurations and audit logs.
 - **Multi-Interface**: CLI, TUI, and REST API for GUI/Mobile integration.
 

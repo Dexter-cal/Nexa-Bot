@@ -10,6 +10,7 @@ from nexa.core.database import AsyncSessionLocal
 from nexa.orchestration.spawner import AgentSpawner
 from nexa.intelligence.brain import StrategicPlanner
 from nexa.intelligence.council import AICouncil
+from nexa.features.self_healing import SelfHealingLoop
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class TaskManager:
         self.spawner = AgentSpawner()
         self.planner = StrategicPlanner()
         self.council = AICouncil()
+        self.healing_loop = SelfHealingLoop(engine=None) # Will be linked later if needed
         self.queue = asyncio.Queue()
         self.active_tasks: List[Task] = []
 
@@ -162,8 +164,8 @@ class TaskManager:
         if not guardrail_check['allowed']:
             raise PermissionError(f"Action blocked by guardrail: {guardrail_check['violation']}")
 
-        # Execute tool
-        result = await tool.execute(**params)
+        # Execute tool with self-healing
+        result = await self.healing_loop.run_with_healing(tool.execute, **params)
 
         # Log action
         self.security_guardian.log_action(tool_name, params, result, risk, task_id=task.id, user_id=task.user_id)

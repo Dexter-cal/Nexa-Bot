@@ -22,3 +22,16 @@ adb-shell
 beautifulsoup4
 lxml
 python-dateutil
+pyperclip
+sqlalchemy
+aiosqlite
+pytest
+pytest-asyncio
+pytest-mock
+anyio
+faker
+fastapi
+uvicorn
+jinja2
+python-multipart
+websockets
