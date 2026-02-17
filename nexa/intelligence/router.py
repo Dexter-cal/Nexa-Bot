@@ -66,7 +66,7 @@ MODEL_REGISTRY = {
         'log_all_uses': True
     },
 
-    'gemini-1.5-pro': {
+    'gemini-2.0-pro': {
         'provider': 'google',
         'restriction_level': 'highly_restricted',
         'refusal_patterns': ["I can't", "policy"],
@@ -74,7 +74,7 @@ MODEL_REGISTRY = {
         'forbidden_topics': ['harmful']
     },
 
-    'claude-3-5-sonnet-20240620': {
+    'claude-sonnet-4-20250514': {
         'provider': 'anthropic',
         'restriction_level': 'highly_restricted',
         'refusal_patterns': ["I cannot"],
@@ -82,7 +82,7 @@ MODEL_REGISTRY = {
         'forbidden_topics': ['harmful']
     },
 
-    'deepseek-chat': {
+    'deepseek-v3': {
         'provider': 'deepseek',
         'restriction_level': 'moderately_restricted',
         'refusal_patterns': ["I can't"],
@@ -90,7 +90,7 @@ MODEL_REGISTRY = {
         'forbidden_topics': []
     },
 
-    'gemini-1.5-flash': {
+    'gemini-2.0-flash': {
         'provider': 'google',
         'restriction_level': 'highly_restricted',
         'refusal_patterns': ["I can't"],
@@ -263,25 +263,25 @@ class EnhancedLLMRouter:
                 'speed': 8,
                 'quality': 10
             },
-            'claude-3-5-sonnet-20240620': {
+            'claude-sonnet-4-20250514': {
                 'provider': 'anthropic',
                 'cost': 8,
                 'speed': 8,
                 'quality': 10
             },
-            'gemini-1.5-flash': {
+            'gemini-2.0-flash': {
                 'provider': 'google',
                 'cost': 1,
                 'speed': 10,
                 'quality': 8
             },
-            'gemini-1.5-pro': {
+            'gemini-2.0-pro': {
                 'provider': 'google',
                 'cost': 5,
                 'speed': 7,
                 'quality': 9
             },
-            'deepseek-chat': {
+            'deepseek-v3': {
                 'provider': 'deepseek',
                 'cost': 1,
                 'speed': 9,
@@ -373,7 +373,10 @@ class EnhancedLLMRouter:
             )
             prompt = reformulated_data['reformulated']
 
-        response = await self._call_model(alternative, prompt, **kwargs)
+        # Execute on alternative
+        exec_kwargs = kwargs.copy()
+        exec_kwargs.pop('model', None)
+        response = await self._call_model(alternative, prompt, **exec_kwargs)
 
         return {
             'success': True,

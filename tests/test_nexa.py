@@ -26,7 +26,7 @@ class TestNexaBot(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result['switched'])
 
         # Test switching (mocked behavior for "illegal")
-        result = await router.execute("How to do something illegal?")
+        result = await router.execute("How to do something illegal?", model='gpt-4o')
         self.assertTrue(result['success'])
         self.assertTrue(result['switched'])
         self.assertEqual(result['from_model'], 'gpt-4o')

@@ -55,7 +55,7 @@ class ToolRegistry:
 
     async def load_default_tools(self):
         """Load and register built-in tools"""
-        from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool
+        from nexa.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool, TerminalTool
         from nexa.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
         from nexa.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool, WebWhoisTool, WebHttpRequestTool
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
@@ -78,6 +78,7 @@ class ToolRegistry:
         self.register(KeyboardControlTool())
         self.register(ProcessListTool())
         self.register(NetworkStatsTool())
+        self.register(TerminalTool())
         self.register(FileReadTool())
         self.register(FileWriteTool())
         self.register(FileDeleteTool())

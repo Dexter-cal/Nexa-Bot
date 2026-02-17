@@ -122,4 +122,30 @@ class NetworkStatsTool(Tool):
         stats = psutil.net_io_counters(pernic=True)
         return ToolResult(success=True, output={k: v._asdict() for k, v in stats.items()})
 
+class TerminalTool(Tool):
+    name = "system.run_command"
+    description = "Run a command in the terminal"
+    category = "system"
+    risk_level = "high"
+    parameters = {
+        "command": {"type": "string", "required": True}
+    }
+
+    async def execute(self, command: str, **kwargs) -> ToolResult:
+        import asyncio
+        try:
+            process = await asyncio.create_subprocess_shell(
+                command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            return ToolResult(
+                success=process.returncode == 0,
+                output=stdout.decode(),
+                error=stderr.decode() if process.returncode != 0 else None
+            )
+        except Exception as e:
+            return ToolResult(success=False, error=str(e))
+
 from typing import List

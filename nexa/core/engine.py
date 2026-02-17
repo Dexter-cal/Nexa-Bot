@@ -30,6 +30,8 @@ class NexaEngine:
 
     async def start(self):
         """Start Nexa Bot"""
+        if self.running:
+            return
         logger.info("Starting Nexa Bot...")
         self.running = True
 
