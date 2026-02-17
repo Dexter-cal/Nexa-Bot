@@ -71,6 +71,7 @@ class ToolRegistry:
         from nexa.tools.maint import CleanTempFilesTool, DiskHealthTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
+        from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -118,6 +119,10 @@ class ToolRegistry:
         self.register(AlertPushTool())
         self.register(GmailSearchTool())
         self.register(WhatsAppSendTool())
+        self.register(AndroidControlTool())
+        self.register(GPIOControlTool())
+        self.register(BluetoothManagerTool())
+        self.register(WiFiManagerTool())
         self.register(ToolTesterTool())
         self.register(SelfUpdaterTool())
         self.register(MirrorWorldSimulateTool())

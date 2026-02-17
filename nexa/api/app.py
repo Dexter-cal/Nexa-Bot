@@ -52,14 +52,15 @@ async def list_tasks():
 
 @app.get("/api/v1/system/status")
 async def get_status():
-    from nexa.core.alerts import alert_manager
     return {
         "status": "active" if engine.running else "inactive",
-        "agents": len(engine.task_manager.spawner.spawned_agents),
-        "privacy": await engine.privacy_guardian.get_summary(),
+        "agents": len(engine.task_manager.spawner.spawned_agents) if engine.task_manager else 0,
+        "privacy": await engine.privacy_guardian.get_summary() if engine.privacy_guardian else {},
+        "neural_sync": engine.neural_sync.get_insights() if engine.neural_sync else [],
+        "blockchain": engine.security_guardian.blockchain.get_history(10) if engine.security_guardian and engine.security_guardian.blockchain else [],
         "messaging": {
-            "telegram": engine.messaging_hub.telegram.running,
-            "email": engine.messaging_hub.email.running
+            "telegram": engine.messaging_hub.telegram.running if engine.messaging_hub else False,
+            "email": engine.messaging_hub.email.running if engine.messaging_hub else False
         }
     }
 

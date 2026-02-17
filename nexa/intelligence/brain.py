@@ -1,5 +1,6 @@
 import logging
 import json
+import time
 from typing import List, Dict, Any, Optional
 from nexa.intelligence.router import EnhancedLLMRouter
 from nexa.tools.registry import registry
@@ -13,6 +14,7 @@ class StrategicPlanner:
     """
     def __init__(self):
         self.router = EnhancedLLMRouter()
+        self.reasoning_logs = []
 
     async def create_plan(self, goal: str) -> Dict[str, Any]:
         """
@@ -64,6 +66,15 @@ class StrategicPlanner:
 
         response = await self.router.execute(prompt, priority='quality')
         content = response['response']
+
+        # Log reasoning
+        self.reasoning_logs.append({
+            "timestamp": time.time(),
+            "goal": goal,
+            "prompt": prompt,
+            "response": content,
+            "model": response.get('model')
+        })
 
         try:
             # Extract JSON more robustly

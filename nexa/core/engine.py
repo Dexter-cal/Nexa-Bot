@@ -8,6 +8,7 @@ from nexa.core.innovation import InnovationModule
 from nexa.interfaces.messaging import MessagingHub
 from nexa.memory.soul import SoulFile
 from nexa.memory.vector import VectorMemory, TimeCapsule
+from nexa.core.neural_sync import NeuralSync
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class NexaEngine:
         self.soul = SoulFile()
         self.memory = VectorMemory()
         self.time_capsule = TimeCapsule(self.memory)
+        self.neural_sync = NeuralSync()
         self.innovation = InnovationModule()
         self.messaging_hub = MessagingHub()
         self.background_tasks = []
@@ -56,7 +58,10 @@ class NexaEngine:
         # 4. Start Privacy monitoring
         await self.privacy_guardian.start_monitoring()
 
-        # 5. Start Messaging interfaces
+        # 5. Start Neural Sync
+        await self.neural_sync.start()
+
+        # 6. Start Messaging interfaces
         await self.messaging_hub.start_all()
 
         # 6. Start Task processing loop
@@ -99,6 +104,9 @@ class NexaEngine:
 
         # Stop privacy guardian
         await self.privacy_guardian.stop()
+
+        # Stop neural sync
+        await self.neural_sync.stop()
 
         # Stop messaging interfaces
         await self.messaging_hub.stop_all()

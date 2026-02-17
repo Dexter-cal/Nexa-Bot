@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from enum import Enum
@@ -12,6 +13,8 @@ class RiskLevel(str, Enum):
     HIGH = "high"
     CRITICAL = "critical"
 
+from nexa.core.blockchain import AuditBlockchain
+
 class SecurityGuardian:
     """Enforces security policies and guardrails"""
 
@@ -19,6 +22,7 @@ class SecurityGuardian:
         self.config = config
         self.policies = config.get('security', {})
         self.audit_log = []
+        self.blockchain = AuditBlockchain()
 
     def assess_risk(self, action: str, params: Dict[str, Any]) -> RiskLevel:
         """Assess risk level of an action"""
@@ -74,6 +78,10 @@ class SecurityGuardian:
 
     def log_action(self, action: str, params: Dict, result: Any, risk: RiskLevel, task_id: Optional[str] = None, user_id: Optional[str] = None):
         """Log action to audit trail"""
+        # Log to Neural Sync
+        from nexa.core.engine import engine
+        if engine.neural_sync:
+            asyncio.create_task(engine.neural_sync.log_event("action_execution", {"action": action, "risk": risk.value}))
 
         log_entry = {
             'timestamp': datetime.now().isoformat(),
@@ -86,8 +94,10 @@ class SecurityGuardian:
 
         self.audit_log.append(log_entry)
 
+        # Add to immutable blockchain
+        self.blockchain.add_block(log_entry)
+
         # Async persist to DB
-        import asyncio
         from nexa.models.extended import Action
         from nexa.core.database import AsyncSessionLocal
 

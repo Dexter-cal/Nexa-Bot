@@ -104,6 +104,10 @@ class TaskManager:
         if lower_desc.startswith("simulate task"):
              return await self._handle_simulate_command(task)
 
+        # Kill Switch Command
+        if lower_desc.startswith("/kill"):
+             return await self._handle_kill_command(task)
+
         # 1. Plan the task using Strategic Planner
         plan = await self.planner.create_plan(f"User context: {soul_context}. Goal: {task.description}")
         task.execution_plan = plan.get('primary_strategy', [])
@@ -206,7 +210,12 @@ class TaskManager:
         sandbox = MirrorWorldSandbox(self.llm_router)
         report = await sandbox.simulate_task(task_to_sim, plan.get('primary_strategy', []))
 
-        return {"success": True, "response": report, "plan": plan}
+        return {
+            "success": True,
+            "response": report,
+            "plan": plan,
+            "reasoning": self.planner.reasoning_logs[-1] if self.planner.reasoning_logs else None
+        }
 
     async def _handle_spawn_command(self, task: Task) -> Dict[str, Any]:
         # Simple parsing for "spawn <role> agent"
@@ -218,6 +227,17 @@ class TaskManager:
 
         agent = await self.spawner.spawn_agent(role, {"description": "Subtask for spawned agent"})
         return {"success": True, "message": f"Spawned {role} agent: {agent.id}", "agent_id": agent.id}
+
+    async def _handle_kill_command(self, task: Task) -> Dict[str, Any]:
+        parts = task.description.lower().split()
+        level = 1
+        if "level 2" in task.description.lower(): level = 2
+        elif "level 3" in task.description.lower(): level = 3
+        elif "level 4" in task.description.lower(): level = 4
+
+        from nexa.core.engine import engine
+        await engine.stop(level=level)
+        return {"success": True, "message": f"KILL SWITCH LEVEL {level} ACTIVATED."}
 
     async def cleanup(self):
         pass
