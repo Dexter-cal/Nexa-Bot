@@ -13,6 +13,8 @@ pillow
 pytesseract
 opencv-python
 pyautogui
+python-whois
+psutil
 pynput
 mss
 bcrypt

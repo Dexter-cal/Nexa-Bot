@@ -13,3 +13,8 @@ nexa.db
 dist/
 build/
 *.egg-info/
+.pytest_cache/
+*.pyc
+__pycache__/
+logs/
+*.log

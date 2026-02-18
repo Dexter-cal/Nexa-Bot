@@ -52,8 +52,8 @@ class NexaEngine:
 
         # 3. Initialize components
         self.llm_router = EnhancedLLMRouter()
-        self.security_guardian = SecurityGuardian({})
-        self.task_manager = TaskManager(self.llm_router, self.security_guardian)
+        self.security_guardian = SecurityGuardian({}, neural_sync=self.neural_sync)
+        self.task_manager = TaskManager(self.llm_router, self.security_guardian, soul=self.soul)
 
         # 4. Start Privacy monitoring
         await self.privacy_guardian.start_monitoring()

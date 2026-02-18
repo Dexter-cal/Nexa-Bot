@@ -32,7 +32,8 @@ class SoulFile:
                 "short_term": [],
                 "long_term": []
             },
-            "relationships": []
+            "relationships": [],
+            "current_mood": "efficient"
         }
         self.load()
 
@@ -57,6 +58,9 @@ class SoulFile:
                 logger.error(f"Failed to load Soul File: {e}")
 
     def save(self):
+        if os.getenv("NEXA_ETHEREAL_MODE") == "true":
+            logger.info("ETHEREAL MODE: Skipping Soul File persistence.")
+            return
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             encrypted_data = self.cipher.encrypt(json.dumps(self.data).encode())
@@ -89,6 +93,15 @@ class SoulFile:
         if not user_feedback:
              # If user rejects AI suggestion, note it
              pass
+
+    def update_mood(self, success_rate: float):
+        if success_rate > 0.9:
+            self.data["current_mood"] = "proud"
+        elif success_rate < 0.5:
+            self.data["current_mood"] = "determined"
+        else:
+            self.data["current_mood"] = "efficient"
+        self.save()
 
     def get_summary(self) -> Dict[str, Any]:
         return self.data

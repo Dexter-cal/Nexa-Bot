@@ -256,6 +256,7 @@ class EnhancedLLMRouter:
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
+        self.accuracy_stats = {} # {model: {domain: {success: 0, total: 0}}}
         self.model_database = {
             'gpt-4o': {
                 'provider': 'openai',
@@ -349,6 +350,22 @@ class EnhancedLLMRouter:
         # Refused - try alternative
         logger.info(f"{primary} refused: {refusal['reason']}")
         return await self._execute_alternative(prompt, primary, kwargs, refusal)
+
+    async def record_success(self, model: str, domain: str, success: bool):
+        if model not in self.accuracy_stats:
+            self.accuracy_stats[model] = {}
+        if domain not in self.accuracy_stats[model]:
+            self.accuracy_stats[model][domain] = {"success": 0, "total": 0}
+
+        self.accuracy_stats[model][domain]["total"] += 1
+        if success:
+            self.accuracy_stats[model][domain]["success"] += 1
+
+    async def get_model_weight(self, model: str, domain: str) -> float:
+        stats = self.accuracy_stats.get(model, {}).get(domain)
+        if not stats or stats["total"] == 0:
+            return 1.0 # Default weight
+        return stats["success"] / stats["total"]
 
     async def _execute_alternative(self, prompt, failed_model, kwargs, refusal=None):
         alternative = 'llama-3-uncensored' # Hardcoded for now

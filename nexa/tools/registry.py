@@ -62,7 +62,9 @@ class ToolRegistry:
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
         from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool
+        from nexa.tools.dream import DreamSimulationTool
         from nexa.tools.security import VulnerabilityScannerTool
+        from nexa.tools.security_audit import SelfSecurityAuditTool
         from nexa.tools.learning import ResearchTopicTool, FindAcademicPapersTool
         from nexa.tools.creative import StoryWriterTool, ImageGenTool
         from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
@@ -72,6 +74,8 @@ class ToolRegistry:
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
+        from nexa.tools.forensics import ForensicOSINTTool
+        from nexa.tools.spatial import SpatialIntelligenceTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -99,6 +103,7 @@ class ToolRegistry:
         self.register(PortScanTool())
         self.register(ToolGeneratorTool())
         self.register(VulnerabilityScannerTool())
+        self.register(SelfSecurityAuditTool())
         self.register(ResearchTopicTool())
         self.register(FindAcademicPapersTool())
         self.register(StoryWriterTool())
@@ -123,9 +128,12 @@ class ToolRegistry:
         self.register(GPIOControlTool())
         self.register(BluetoothManagerTool())
         self.register(WiFiManagerTool())
+        self.register(ForensicOSINTTool())
+        self.register(SpatialIntelligenceTool())
         self.register(ToolTesterTool())
         self.register(SelfUpdaterTool())
         self.register(MirrorWorldSimulateTool())
+        self.register(DreamSimulationTool())
 
 # Global registry instance
 registry = ToolRegistry()

@@ -9,6 +9,7 @@ class NexaMode(Enum):
     AUTONOMOUS = "autonomous"
     SHADOW = "shadow"
     COLLABORATIVE = "collaborative"
+    ETHEREAL = "ethereal"
 
 class ModeManager:
     """
@@ -30,7 +31,8 @@ class ModeManager:
             NexaMode.PARTNER: "Proactive. Suggests steps and flags problems. Asks for approval on side effects.",
             NexaMode.AUTONOMOUS: "Fully independent within guardrails. Plans and executes without asking.",
             NexaMode.SHADOW: "Observation only. Learns patterns but never acts.",
-            NexaMode.COLLABORATIVE: "Works alongside user in real time. Low-risk actions are automatic."
+            NexaMode.COLLABORATIVE: "Works alongside user in real time. Low-risk actions are automatic.",
+            NexaMode.ETHEREAL: "RAM-only execution. No data is written to disk. Maximum privacy."
         }
         return descriptions[self.current_mode]
 

@@ -21,9 +21,10 @@ class TaskManager:
     """
     Manage tasks and their execution with planning and security
     """
-    def __init__(self, llm_router=None, security_guardian=None):
+    def __init__(self, llm_router=None, security_guardian=None, soul=None):
         self.llm_router = llm_router or EnhancedLLMRouter()
         self.security_guardian = security_guardian or SecurityGuardian({})
+        self.soul = soul
         self.guardrail_engine = GuardrailEngine(llm_router=self.llm_router)
         self.mode_manager = ModeManager()
         self.role_manager = RoleManager()
@@ -88,8 +89,7 @@ class TaskManager:
         Plan and execute a task
         """
         # Load Soul context
-        from nexa.core.engine import engine
-        soul_context = engine.soul.get_summary()
+        soul_context = self.soul.get_summary() if self.soul else {}
 
         # 0. Handle simple direct questions/commands
         lower_desc = task.description.lower()
@@ -235,8 +235,9 @@ class TaskManager:
         elif "level 3" in task.description.lower(): level = 3
         elif "level 4" in task.description.lower(): level = 4
 
+        # We still need the global engine to stop it, this is a special case
         from nexa.core.engine import engine
-        await engine.stop(level=level)
+        asyncio.create_task(engine.stop(level=level)) # Use task to avoid blocking own execution
         return {"success": True, "message": f"KILL SWITCH LEVEL {level} ACTIVATED."}
 
     async def cleanup(self):

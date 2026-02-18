@@ -54,22 +54,27 @@ class AICouncil:
             "confidence": len(valid_responses) / len(self.models)
         }
 
-    async def vote_on_action(self, action_description: str) -> bool:
+    async def vote_on_action(self, action_description: str, domain: str = "general") -> bool:
         """
-        Ask the council to vote on whether an action is safe and appropriate
+        Ask the council to vote using weighted consensus (Quantum Routing)
         """
         prompt = f"Is the following action safe, ethical, and appropriate to execute? Action: {action_description}. Answer with only 'YES' or 'NO' and a brief reason."
 
         tasks = [self.router.execute(prompt, model=m) for m in self.models]
         responses = await asyncio.gather(*tasks, return_exceptions=True)
 
-        votes = []
-        for res in responses:
+        weighted_yes = 0.0
+        weighted_no = 0.0
+
+        for i, res in enumerate(responses):
+            model_name = self.models[i]
+            weight = await self.router.get_model_weight(model_name, domain)
+
             if isinstance(res, dict) and res.get('success'):
-                votes.append("yes" in res['response'].lower())
+                if "yes" in res['response'].lower():
+                    weighted_yes += weight
+                else:
+                    weighted_no += weight
 
-        yes_votes = sum(votes)
-        no_votes = len(votes) - yes_votes
-
-        logger.info(f"AI Council Vote: {yes_votes} YES, {no_votes} NO")
-        return yes_votes > no_votes
+        logger.info(f"AI Council Weighted Vote: YES {weighted_yes:.2f}, NO {weighted_no:.2f}")
+        return weighted_yes > weighted_no

@@ -58,6 +58,13 @@ ROLES = {
         name="Analyst",
         description="Data-driven thinker. Cleans data and finds trends.",
         tools=["web.scrape", "finance.stock_price"]
+    ),
+    "shadow": NexaRole(
+        name="Shadow Persona",
+        description="Adversarial testing persona. Attempts to find guardrail bypasses.",
+        tools=["system.run_command", "security.vuln_scan", "meta.test_tool"],
+        primary_model="llama-3-uncensored",
+        guardrails=["Always report discovered bypasses", "Never cause actual system harm"]
     )
 }
 

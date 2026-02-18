@@ -1,6 +1,7 @@
 import hashlib
 import json
 import time
+import os
 import logging
 from typing import List, Dict, Any, Optional
 
@@ -63,6 +64,8 @@ class AuditBlockchain:
         return True
 
     def _persist_chain(self):
+        if os.getenv("NEXA_ETHEREAL_MODE") == "true":
+            return
         # Placeholder for encrypted persistence
         pass
 

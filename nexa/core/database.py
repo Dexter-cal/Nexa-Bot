@@ -7,6 +7,9 @@ from nexa.models.extended import Tool, Guardrail, Action, LLMUsage
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./nexa.db")
 
+if os.getenv("NEXA_ETHEREAL_MODE") == "true":
+    DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+
 engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False

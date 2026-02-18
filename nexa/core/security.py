@@ -18,11 +18,12 @@ from nexa.core.blockchain import AuditBlockchain
 class SecurityGuardian:
     """Enforces security policies and guardrails"""
 
-    def __init__(self, config: Dict):
+    def __init__(self, config: Dict, neural_sync=None):
         self.config = config
         self.policies = config.get('security', {})
         self.audit_log = []
         self.blockchain = AuditBlockchain()
+        self.neural_sync = neural_sync
 
     def assess_risk(self, action: str, params: Dict[str, Any]) -> RiskLevel:
         """Assess risk level of an action"""
@@ -79,9 +80,8 @@ class SecurityGuardian:
     def log_action(self, action: str, params: Dict, result: Any, risk: RiskLevel, task_id: Optional[str] = None, user_id: Optional[str] = None):
         """Log action to audit trail"""
         # Log to Neural Sync
-        from nexa.core.engine import engine
-        if engine.neural_sync:
-            asyncio.create_task(engine.neural_sync.log_event("action_execution", {"action": action, "risk": risk.value}))
+        if self.neural_sync:
+            asyncio.create_task(self.neural_sync.log_event("action_execution", {"action": action, "risk": risk.value}))
 
         log_entry = {
             'timestamp': datetime.now().isoformat(),
