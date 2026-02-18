@@ -15,7 +15,7 @@ class AgentSpawner:
     def __init__(self, parent_id: str = "main"):
         self.parent_id = parent_id
         self.spawned_agents: Dict[str, Agent] = {}
-        self.max_agents = 10
+        self.max_agents = 50
         from nexa.core.resource_manager import AgentResourceManager
         self.resource_manager = AgentResourceManager(self)
 

@@ -1,121 +1,136 @@
 import asyncio
 import logging
 import os
-from typing import Optional, Dict, Any
+import json
+from typing import Optional, Dict, Any, List
 from nexa.intelligence.api_manager import UniversalAPIKeyManager
 
 logger = logging.getLogger(__name__)
 
-class TelegramInterface:
-    """
-    Telegram Bot interface for Nexa Bot
-    """
-    def __init__(self, token: Optional[str] = None):
-        self.token = token
-        self.application = None
+class PlatformBridge:
+    def __init__(self, name: str):
+        self.name = name
         self.running = False
 
     async def start(self):
+        self.running = True
+        logger.info(f"{self.name} bridge started")
+
+    async def stop(self):
+        self.running = False
+        logger.info(f"{self.name} bridge stopped")
+
+    async def send_message(self, text: str, recipient: str = None):
+        logger.info(f"[{self.name}] To {recipient or 'All'}: {text}")
+
+class TelegramBridge(PlatformBridge):
+    def __init__(self, token: str = None):
+        super().__init__("Telegram")
+        self.token = token
+        self.application = None
+
+    async def start(self):
         if not self.token:
-            # Try to get from API manager
             api_manager = UniversalAPIKeyManager()
             keys = await api_manager.auto_detect_keys()
             self.token = keys.get('telegram')
 
         if not self.token:
-            logger.warning("Telegram token not found. Interface disabled.")
+            logger.warning("Telegram token missing. Bridge disabled.")
             return
 
         try:
             from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-
             self.application = ApplicationBuilder().token(self.token).build()
-
-            # Add handlers
-            self.application.add_handler(CommandHandler("start", self._start_handler))
-            self.application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), self._message_handler))
+            self.application.add_handler(CommandHandler("start", self._handle_start))
+            self.application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), self._handle_message))
 
             await self.application.initialize()
             await self.application.start_polling()
-
             self.running = True
-            logger.info("Telegram interface started")
+            logger.info("Telegram bridge active.")
         except Exception as e:
-            logger.error(f"Failed to start Telegram interface: {e}")
+            logger.error(f"Telegram start error: {e}")
 
-    async def stop(self):
-        if self.application:
-            await self.application.stop()
-            self.running = False
-            logger.info("Telegram interface stopped")
+    async def _handle_start(self, update, context):
+        await update.message.reply_text("⚡ NEXA BOT active on Telegram. I am Bill, your assistant.")
 
-    async def _start_handler(self, update, context):
-        await update.message.reply_text("👋 Hello! I'm Nexa Bot. Send me a command or ask a question.")
-
-    async def _message_handler(self, update, context):
-        text = update.message.text
-        logger.info(f"Received Telegram command: {text}")
-
-        # Send typing action
-        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-
-        # Execute command via engine
+    async def _handle_message(self, update, context):
         from nexa.core.engine import engine
-        result = await engine.execute_command(text)
+        user_text = update.message.text
+        # Pass context if needed
+        result = await engine.execute_command(user_text)
+        await update.message.reply_text(result.get('response', "Command processed."))
 
-        if result['success']:
-            response = result['response']
-        else:
-            response = f"❌ Error: {result.get('error', 'Unknown error')}"
+class DiscordBridge(PlatformBridge):
+    def __init__(self, token: str = None):
+        super().__init__("Discord")
+        self.token = token
 
-        await update.message.reply_text(response)
+class WhatsAppBridge(PlatformBridge):
+    def __init__(self, api_key: str = None):
+        super().__init__("WhatsApp")
+        self.api_key = api_key
 
-class EmailInterface:
-    """
-    Email interface (IMAP) for Nexa Bot
-    """
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or {}
-        self.running = False
-        self._task = None
+class SlackBridge(PlatformBridge):
+    def __init__(self, token: str = None):
+        super().__init__("Slack")
+        self.token = token
 
-    async def start(self):
-        if not self.config.get('email'):
-            # Placeholder for config loading
-            return
+class TeamsBridge(PlatformBridge):
+    def __init__(self):
+        super().__init__("Microsoft Teams")
 
-        self.running = True
-        self._task = asyncio.create_task(self._poll_loop())
-        logger.info("Email interface started")
+class EmailBridge(PlatformBridge):
+    def __init__(self):
+        super().__init__("Email")
 
-    async def stop(self):
-        self.running = False
-        if self._task:
-            self._task.cancel()
-        logger.info("Email interface stopped")
-
-    async def _poll_loop(self):
-        while self.running:
-            try:
-                # Mock IMAP polling
-                # In real implementation, use imaplib or aioimaplib
-                await asyncio.sleep(60)
-            except Exception as e:
-                logger.error(f"Email poll error: {e}")
-                await asyncio.sleep(60)
+class SMSBridge(PlatformBridge):
+    def __init__(self):
+        super().__init__("SMS")
 
 class MessagingHub:
     """
-    Coordinator for all messaging interfaces
+    Central hub for multi-platform communication
     """
     def __init__(self):
-        self.telegram = TelegramInterface()
-        self.email = EmailInterface()
+        self.bridges: Dict[str, PlatformBridge] = {
+            "telegram": TelegramBridge(),
+            "discord": DiscordBridge(),
+            "slack": SlackBridge(),
+            "whatsapp": WhatsAppBridge(),
+            "teams": TeamsBridge(),
+            "sms": SMSBridge(),
+            "email": EmailBridge()
+        }
 
     async def start_all(self):
-        await self.telegram.start()
-        await self.email.start()
+        for bridge in self.bridges.values():
+            try:
+                await bridge.start()
+            except Exception as e:
+                logger.error(f"Failed to start {bridge.name}: {e}")
 
     async def stop_all(self):
-        await self.telegram.stop()
-        await self.email.stop()
+        for bridge in self.bridges.values():
+            await bridge.stop()
+
+    async def notify(self, text: str, recipient: str = None, platforms: List[str] = None):
+        """
+        Send a notification to one or more platforms
+        """
+        target_platforms = platforms or ["telegram", "email", "sms"]
+        for p in target_platforms:
+            if p in self.bridges:
+                await self.bridges[p].send_message(text, recipient)
+
+    async def broadcast(self, text: str):
+        """
+        Broadcast to all active bridges
+        """
+        for bridge in self.bridges.values():
+            if bridge.running:
+                await bridge.send_message(text)
+
+# Singleton instance
+messaging_hub = MessagingHub()

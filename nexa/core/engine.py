@@ -85,6 +85,22 @@ class NexaEngine:
     async def stop(self, level: int = 0):
         """Stop Nexa Bot with optional level"""
         logger.info(f"Stopping Nexa Bot (Level {level})...")
+
+        if level == 1:
+            # Level 1: Stop current task only
+            # In a real app, we'd need a way to identify and cancel specific tasks
+            logger.info("Level 1 Kill: Stopping current task.")
+            return
+
+        if level == 2:
+            # Level 2: Pause all active agents
+            logger.info("Level 2 Kill: Pausing all active agents.")
+            if self.task_manager:
+                from nexa.core.agent import AgentStatus
+                for agent in self.task_manager.spawner.spawned_agents.values():
+                    agent.status = AgentStatus.PAUSED
+            return
+
         self.running = False
 
         if level >= 3:
@@ -118,8 +134,31 @@ class NexaEngine:
         if not self.task_manager:
             await self.start()
 
+        # Load personalization
+        config = await self.messaging_hub.bridges['telegram'].api_manager.vault.load_config() if hasattr(self.messaging_hub.bridges['telegram'], 'api_manager') else {}
+        # Or better from SecureConfigStorage
+        from nexa.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+
+        user_name = config.get('user_name', 'User')
+        nexa_name = config.get('nexa_name', 'Nexa')
+
+        # Custom Greeting logic
+        if command.lower().strip() in ["hi", "hello", "hey"]:
+            greeting = f"hi {user_name}, how is your day? would you like me to help you with something?"
+            if user_name == "Max": # Specific requirement check
+                 greeting = f"hi sir, how is your day? would you like me to help you with something?"
+            return {"success": True, "response": greeting}
+
+        if "my name is" in command.lower():
+            new_name = command.lower().split("my name is")[-1].strip().capitalize()
+            config['user_name'] = new_name
+            await storage.store_config(config)
+            return {"success": True, "response": f"hi {new_name}, how can I help you today?"}
+
         # Log to long-term memory
-        await self.memory.add(f"User command: {command}")
+        await self.memory.add(f"User ({user_name}) command: {command}")
 
         task = await self.task_manager.create_task_from_command(command)
 

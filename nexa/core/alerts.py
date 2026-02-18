@@ -39,16 +39,15 @@ class AlertManager:
         """
         Automatically route high severity alerts to communication channels
         """
-        push_tool = registry.get("communication.push_alert")
-        if push_tool:
+        from nexa.core.engine import engine
+        if engine.messaging_hub:
             try:
-                await push_tool.execute(
-                    title=alert.title,
-                    message=alert.message,
-                    severity=alert.severity
-                )
+                msg = f"🔔 [{alert.severity.upper()}] {alert.title}: {alert.message}"
+                # Route critical to all, high to Telegram/SMS
+                platforms = ["telegram", "sms"] if alert.severity == "high" else ["telegram", "discord", "slack", "sms", "email"]
+                await engine.messaging_hub.broadcast(msg, platforms=platforms)
             except Exception as e:
-                logger.error(f"Failed to route alert: {e}")
+                logger.error(f"Failed to route alert via hub: {e}")
 
     async def get_recent(self, count: int = 10) -> List[Dict[str, Any]]:
         return [
