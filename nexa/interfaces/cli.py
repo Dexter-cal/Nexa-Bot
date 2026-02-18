@@ -12,13 +12,19 @@ async def async_main():
     parser.add_argument("--role", help="Set agent role")
     parser.add_argument("--spawn", help="Spawn a specialized agent with role")
     parser.add_argument("--chat", action="store_true", help="Start interactive neural chat")
+    parser.add_argument("--visuals", action="store_true", help="Display visual mockups of Nexa interfaces")
 
     args = parser.parse_args()
 
     if args.setup:
         wizard = TUISetupWizard()
         await wizard.run()
-    elif args.chat or (not args.prompt and len(sys.argv) == 1 and not args.spawn):
+    elif args.visuals:
+        from nexa.tools.visualizer import GenerateMockupsTool
+        tool = GenerateMockupsTool()
+        result = await tool.execute()
+        print(result.output)
+    elif args.chat or (not args.prompt and len(sys.argv) == 1 and not args.spawn and not args.visuals):
         await start_chat_loop()
     elif args.spawn:
         result = await engine.execute_command(f"spawn {args.spawn} agent")

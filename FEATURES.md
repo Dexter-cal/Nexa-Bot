@@ -8,6 +8,8 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
 - **Refusal Detector & Predictor**: Detects and bypasses AI refusals automatically.
 - **Autonomous Tool Synthesis**: Nexa can *write and register its own tools* on the fly if a capability is missing.
+- **Shadow Autonomy**: Nexa can continue working on tasks even when you are offline. Ask for a "return report" to see what I did.
+- **Signal Monitor**: Nexa can watch for specific files or triggers while you are away and react immediately.
 - **Task Rewind (State Checkpointing)**: Built-in state management allows agents to "rewind" to previous steps if an error occurs, enabling robust time-travel debugging.
 
 ## 🛠️ 2. THE TOOL BELT (130+ Tools)
@@ -23,6 +25,7 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Vector Memory**: Long-term searchable context using embeddings.
 - **Time Capsule**: Periodic summaries and "memories" of past interactions.
 - **Sentiment Awareness**: Real-time adjustment of response tone and strategy based on user mood (Empathetic, Enthusiastic, Professional).
+- **Self-Evolution**: Nexa can autonomously propose and apply code upgrades to its own core modules.
 
 ## 🛡️ 4. SECURITY & TRANSPARENCY
 - **Blockchain Audit Trail**: Immutable log of every action executed by the bot.

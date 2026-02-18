@@ -79,6 +79,9 @@ class ToolRegistry:
         from nexa.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
         from nexa.tools.automation import InternetInteractorTool, AccountCreatorTool
         from nexa.tools.visualizer import GenerateMockupsTool
+        from nexa.tools.monitoring import SignalMonitorTool
+        from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
+        from nexa.tools.evolution import SelfEvolutionTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -136,6 +139,10 @@ class ToolRegistry:
         self.register(SignUpAutomationTool())
         self.register(InternetInteractorTool())
         self.register(AccountCreatorTool())
+        self.register(SignalMonitorTool())
+        self.register(MemoryIndexingTool())
+        self.register(MemorySearchTool())
+        self.register(SelfEvolutionTool())
         self.register(GenerateMockupsTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())

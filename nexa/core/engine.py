@@ -64,6 +64,14 @@ class NexaEngine:
         # 6. Start Messaging interfaces
         await self.messaging_hub.start_all()
 
+        # Check for Return Reports on startup
+        from nexa.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+        if config.get('return_reports'):
+            logger.info("Found pending Return Reports. Notification sent.")
+            await self.messaging_hub.broadcast(f"Welcome back, {config.get('user_name', 'User')}! I have completed background tasks for you. Ask for a 'return report' to see what I did.")
+
         # 6. Start Task processing loop
         self.background_tasks.append(asyncio.create_task(self._task_processing_loop()))
 
@@ -168,6 +176,25 @@ class NexaEngine:
 
         if "create a tool" in command.lower() or "build a tool" in command.lower():
             command = f"Generate a spec and build a tool for: {command}"
+
+        if "ghost mode" in command.lower() or "run in background" in command.lower():
+            task = await self.task_manager.create_task_from_command(command.replace("ghost mode", "").replace("run in background", "").strip())
+            self.task_manager.shadow_tasks.append(task.id)
+            return {"success": True, "response": f"Ghost Mode Activated. I will continue working on '{task.description}' in the background. See you when you return!"}
+
+        if "return report" in command.lower() or "what did i miss" in command.lower():
+            reports = config.get('return_reports', [])
+            if not reports:
+                return {"success": True, "response": "You haven't missed anything! No background tasks have completed since your last check."}
+
+            report_text = "# 📋 NEXA RETURN REPORT\n\nWhile you were away, I completed the following tasks:\n\n"
+            for r in reports:
+                report_text += f"### 🔹 {r['task_description']}\n- **Summary**: {r['summary']}\n- **Time**: {r['timestamp']}\n\n"
+
+            # Clear reports after showing
+            config['return_reports'] = []
+            await storage.store_config(config)
+            return {"success": True, "response": report_text}
 
         # Log to long-term memory
         await self.memory.add(f"User ({user_name}) command: {command}")

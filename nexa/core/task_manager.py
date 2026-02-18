@@ -35,6 +35,7 @@ class TaskManager:
         self.queue = asyncio.Queue()
         self.active_tasks: List[Task] = []
         self.task_checkpoints: Dict[int, List[Dict[str, Any]]] = {} # task_id -> list of states
+        self.shadow_tasks: List[int] = [] # List of task IDs running in "Shadow Autonomy" mode
 
     async def create_task_from_command(self, command: str) -> Task:
         async with AsyncSessionLocal() as session:
@@ -151,7 +152,28 @@ class TaskManager:
             f"Task: {task.description}\nSteps executed: {json.dumps(results)}\nSummarize final result."
         )
 
+        # If it was a shadow task, log it for the "Return Report"
+        if task.id in self.shadow_tasks:
+            await self._log_to_return_report(task, final_response['response'])
+            self.shadow_tasks.remove(task.id)
+
         return {"success": True, "response": final_response['response'], "steps": results}
+
+    async def _log_to_return_report(self, task: Task, summary: str):
+        """Log background task completion for the Return Report"""
+        from nexa.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+
+        reports = config.get('return_reports', [])
+        reports.append({
+            "timestamp": str(asyncio.get_event_loop().time()),
+            "task_description": task.description,
+            "summary": summary,
+            "status": task.status
+        })
+        config['return_reports'] = reports
+        await storage.store_config(config)
 
     async def _plan_task_simple(self, task: Task) -> Dict[str, Any]:
         """Simple planning fallback"""
