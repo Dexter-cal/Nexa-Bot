@@ -78,6 +78,7 @@ class ToolRegistry:
         from nexa.tools.spatial import SpatialIntelligenceTool
         from nexa.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
         from nexa.tools.automation import InternetInteractorTool, AccountCreatorTool
+        from nexa.tools.visualizer import GenerateMockupsTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -135,6 +136,7 @@ class ToolRegistry:
         self.register(SignUpAutomationTool())
         self.register(InternetInteractorTool())
         self.register(AccountCreatorTool())
+        self.register(GenerateMockupsTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())
         self.register(ToolTesterTool())

@@ -191,6 +191,19 @@ class RefusalDetector:
             return 'redirect'
         return 'unknown'
 
+    def analyze_sentiment(self, text: str) -> str:
+        """Simple heuristic sentiment analysis"""
+        positive = ['happy', 'great', 'awesome', 'good', 'thanks', 'thank', 'excellent', 'love', 'perfect', 'yes', 'ok']
+        negative = ['bad', 'error', 'fail', 'stupid', 'hate', 'wrong', 'no', 'worst', 'angry', 'annoyed', 'slow']
+
+        words = text.lower().split()
+        pos_count = sum(1 for w in words if w in positive)
+        neg_count = sum(1 for w in words if w in negative)
+
+        if pos_count > neg_count: return "positive"
+        if neg_count > pos_count: return "negative"
+        return "neutral"
+
     def _extract_reason(self, response: str) -> str:
         """Extract reason for refusal"""
         # Common reason patterns

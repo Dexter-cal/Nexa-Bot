@@ -36,6 +36,7 @@ async def start_chat_loop():
     from rich.console import Console
     from rich.panel import Panel
     from rich.markdown import Markdown
+    from rich.text import Text
     from nexa.foundation.storage import SecureConfigStorage
 
     storage = SecureConfigStorage()
@@ -44,6 +45,12 @@ async def start_chat_loop():
     nexa_name = config.get('nexa_name', 'Nexa')
 
     console = Console()
+
+    banner = Text(r"""
+ ⚡ NEXA BOT - NEURAL ORCHESTRATION ENGINE ⚡
+    """, style="bold cyan")
+
+    console.print(banner)
     console.print(Panel(f"[bold sky_blue1]Neural Chat Interface Initialized[/]\n[italic text_slate_500]{nexa_name.upper()} BOT is ready for task orchestration. Type 'exit' or 'quit' to end session.[/]", border_style="sky_blue1"))
 
     while True:

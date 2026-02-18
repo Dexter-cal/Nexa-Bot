@@ -144,6 +144,15 @@ class NexaEngine:
         user_name = config.get('user_name', 'User')
         nexa_name = config.get('nexa_name', 'Nexa')
 
+        # Sentiment-Aware adjustment
+        sentiment = self.llm_router.refusal_detector.analyze_sentiment(command)
+        if sentiment == "negative":
+            logger.info("Detected negative sentiment, switching to empathetic mode.")
+            # We could inject this into the soul context
+            self.soul.update_personality("current_tone", "empathetic")
+        elif sentiment == "positive":
+            self.soul.update_personality("current_tone", "enthusiastic")
+
         # Custom Greeting logic
         if command.lower().strip() in ["hi", "hello", "hey"]:
             greeting = f"hi {user_name}, how is your day? would you like me to help you with something?"
@@ -156,6 +165,9 @@ class NexaEngine:
             config['user_name'] = new_name
             await storage.store_config(config)
             return {"success": True, "response": f"hi {new_name}, how can I help you today?"}
+
+        if "create a tool" in command.lower() or "build a tool" in command.lower():
+            command = f"Generate a spec and build a tool for: {command}"
 
         # Log to long-term memory
         await self.memory.add(f"User ({user_name}) command: {command}")

@@ -50,6 +50,7 @@ class StrategicPlanner:
         Tasks:
         1. Break this goal into concrete, sequential steps.
         2. Assign the most appropriate tool for each step.
+           If NO appropriate tool exists for a necessary action, suggest creating a NEW tool by specifying the tool as "meta.generate_tool" and providing a "spec" in the params.
         3. Identify potential risks or dependencies.
         4. Provide an alternative strategy if the primary one fails.
 

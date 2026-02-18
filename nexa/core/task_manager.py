@@ -34,6 +34,7 @@ class TaskManager:
         self.healing_loop = SelfHealingLoop(engine=self.llm_router)
         self.queue = asyncio.Queue()
         self.active_tasks: List[Task] = []
+        self.task_checkpoints: Dict[int, List[Dict[str, Any]]] = {} # task_id -> list of states
 
     async def create_task_from_command(self, command: str) -> Task:
         async with AsyncSessionLocal() as session:
@@ -119,7 +120,17 @@ class TaskManager:
 
         # 2. Execute steps
         results = []
+        self.task_checkpoints[task.id] = []
+
         for step in (task.execution_plan or []):
+            # Create checkpoint
+            checkpoint = {
+                "step_index": len(results),
+                "results_so_far": results.copy(),
+                "timestamp": asyncio.get_event_loop().time()
+            }
+            self.task_checkpoints[task.id].append(checkpoint)
+
             # For critical steps, consult the council
             if task.priority == 'critical' or step.get('risk_level') == 'high':
                 approved = await self.council.vote_on_action(step.get('description', 'Unknown action'))
@@ -196,6 +207,17 @@ class TaskManager:
 
         # Execute tool with self-healing
         result = await self.healing_loop.run_with_healing(tool.execute, **params)
+
+        # Handle autonomous tool registration if it was a generation task
+        if tool_name == "meta.generate_tool" and result.success:
+            try:
+                new_tool_code = result.output
+                logger.info("Autonomous Tool Creation: Registering new tool...")
+                new_tool = registry.register_from_code(new_tool_code)
+                result.logs.append(f"Successfully synthesized and registered new tool: {new_tool.name}")
+            except Exception as e:
+                logger.error(f"Failed to register autonomously generated tool: {e}")
+                result.logs.append(f"Tool synthesis failed registration: {e}")
 
         # Log action
         self.security_guardian.log_action(tool_name, params, result, risk, task_id=task.id, user_id=task.user_id)
