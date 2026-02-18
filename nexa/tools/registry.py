@@ -88,6 +88,7 @@ class ToolRegistry:
         from nexa.tools.plugins import PluginLoaderTool
         from nexa.tools.swarm_evolution import EvolveSwarmTool
         from nexa.tools.soundscape import NeuralSoundscapeTool
+        from nexa.tools.legendary_ext import LinodeDeployTool, HuggingFaceHubTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -155,6 +156,8 @@ class ToolRegistry:
         self.register(PluginLoaderTool())
         self.register(EvolveSwarmTool())
         self.register(NeuralSoundscapeTool())
+        self.register(LinodeDeployTool())
+        self.register(HuggingFaceHubTool())
         self.register(GenerateMockupsTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())

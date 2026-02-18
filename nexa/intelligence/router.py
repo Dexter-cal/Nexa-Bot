@@ -328,7 +328,7 @@ class EnhancedLLMRouter:
         if any(q in lower_prompt for q in ["who created you", "who is your creator", "who made you"]):
             return {
                 "success": True,
-                "response": "I was created by Henry Calvin at Crystal Tech.",
+                "response": "I was created by Henry Calvin.",
                 "model": "system",
                 "switched": False
             }

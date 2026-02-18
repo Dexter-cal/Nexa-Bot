@@ -52,6 +52,18 @@ Once setup is complete, start chatting:
 nexa chat
 ```
 
+## 🏠 Local LLM Support (Ollama)
+Nexa supports local execution for 100% privacy:
+1. Install Ollama: [ollama.com](https://ollama.com)
+2. Pull a model: `ollama run llama3.1`
+3. Nexa will automatically detect Ollama during setup.
+
+## ☁️ Cloud Deployment (Linode)
+Deploy Nexa as a 24/7 background agent:
+1. Create a Linode (Ubuntu 22.04 LTS recommended).
+2. Run `nexa tool system.linode_deploy` to get the Docker config.
+3. Use `nexa chat --command "ghost mode ..."` to trigger persistent tasks.
+
 ## 🌐 Web Dashboard
 
 To launch the GUI:
