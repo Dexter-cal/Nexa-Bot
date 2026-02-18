@@ -8,17 +8,22 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
 - **Refusal Detector & Predictor**: Detects and bypasses AI refusals automatically.
 - **Autonomous Tool Synthesis**: Nexa can *write and register its own tools* on the fly if a capability is missing.
+- **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
 - **Shadow Autonomy**: Nexa can continue working on tasks even when you are offline. Ask for a "return report" to see what I did.
 - **Signal Monitor**: Nexa can watch for specific files or triggers while you are away and react immediately.
 - **Task Rewind (State Checkpointing)**: Built-in state management allows agents to "rewind" to previous steps if an error occurs, enabling robust time-travel debugging.
+- **Aura Persona Switching**: Nexa dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
 
-## 🛠️ 2. THE TOOL BELT (130+ Tools)
+## 🛠️ 2. THE TOOL BELT (140+ Tools)
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access.
 - **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
 - **Multimedia**: Image OCR, conversion, 3D spatial mapping, vision analysis.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management.
-- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators.
+- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders.
+- **Specialized Forensics**: Steganography detection/hiding within images.
+- **Swarm Evolution**: Coordinators that autonomously optimize sub-agent code.
+- **Neural Frequency**: Voice-category soundscapes based on system state.
 
 ## 💾 3. MEMORY & IDENTITY
 - **The Soul File**: Encrypted Digital Twin containing user preferences, personality, and history.

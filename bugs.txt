@@ -1,0 +1,374 @@
+File: nexa/privacy/guardian.py
+  - Undefined Name: source
+  - Undefined Name: k
+  - Undefined Name: data_type
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: v
+File: nexa/privacy/darkweb_monitor.py
+  - Undefined Name: monitored_data
+File: nexa/privacy/breach_detector.py
+  - Undefined Name: password
+  - Undefined Name: emails
+File: nexa/privacy/digital_scanner.py
+  - Undefined Name: ImportError
+File: nexa/privacy/auto_response.py
+  - Undefined Name: __name__
+  - Undefined Name: finding
+File: nexa/orchestration/spawner.py
+  - Undefined Name: i
+  - Undefined Name: role
+  - Undefined Name: goal
+  - Undefined Name: RuntimeError
+  - Undefined Name: task
+  - Undefined Name: role_task_pairs
+  - Undefined Name: count
+  - Undefined Name: __name__
+  - Undefined Name: mode
+  - Undefined Name: tuple
+File: nexa/orchestration/teach_mode.py
+  - Undefined Name: step
+  - Undefined Name: __name__
+  - Undefined Name: name
+File: nexa/orchestration/swarm.py
+  - Undefined Name: __name__
+  - Undefined Name: message
+  - Undefined Name: agent
+  - Undefined Name: item
+File: nexa/interfaces/tui.py
+  - Undefined Name: __name__
+File: nexa/interfaces/cli.py
+  - Undefined Name: KeyboardInterrupt
+  - Undefined Name: start_chat_loop
+  - Undefined Name: async_main
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/interfaces/messaging.py
+  - Undefined Name: platforms
+  - Undefined Name: update
+  - Undefined Name: text
+  - Undefined Name: recipient
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/features/playback_engine.py
+  - Undefined Name: speed
+  - Undefined Name: workflow
+File: nexa/features/screen_capture.py
+  - Undefined Name: ImportError
+File: nexa/features/teach_mode.py
+  - Undefined Name: workflow_name
+  - Undefined Name: name
+File: nexa/features/tool_discovery.py
+  - Undefined Name: code
+  - Undefined Name: package_name
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/features/mirror_world.py
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: execution_plan
+  - Undefined Name: task_description
+File: nexa/features/dream_engine.py
+  - Undefined Name: iterations
+  - Undefined Name: goal
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/features/self_healing.py
+  - Undefined Name: ImportError
+  - Undefined Name: kwargs
+  - Undefined Name: error
+  - Undefined Name: ModuleNotFoundError
+  - Undefined Name: args
+  - Undefined Name: func
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/features/input_monitor.py
+  - Undefined Name: AttributeError
+  - Undefined Name: ImportError
+  - Undefined Name: on_click
+  - Undefined Name: on_key
+File: nexa/intelligence/importer.py
+  - Undefined Name: __name__
+File: nexa/intelligence/detector.py
+  - Undefined Name: sorted
+  - Undefined Name: __name__
+  - Undefined Name: x
+  - Undefined Name: m
+File: nexa/intelligence/api_manager.py
+  - Undefined Name: options
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/intelligence/council.py
+  - Undefined Name: m
+  - Undefined Name: action_description
+  - Undefined Name: domain
+  - Undefined Name: prompt
+  - Undefined Name: __name__
+File: nexa/intelligence/profiles.py
+  - Undefined Name: __name__
+  - Undefined Name: p
+  - Undefined Name: name
+File: nexa/intelligence/defaults.py
+  - Undefined Name: __name__
+File: nexa/intelligence/router.py
+  - Undefined Name: word
+  - Undefined Name: model
+  - Undefined Name: success
+  - Undefined Name: failed_model
+  - Undefined Name: api_key
+  - Undefined Name: refusal_reason
+  - Undefined Name: priority
+  - Undefined Name: task
+  - Undefined Name: x
+  - Undefined Name: domain
+  - Undefined Name: response
+  - Undefined Name: confidence_threshold
+  - Undefined Name: kwargs
+  - Undefined Name: __name__
+  - Undefined Name: q
+File: nexa/intelligence/brain.py
+  - Undefined Name: goal
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: t
+File: nexa/api/app.py
+  - Undefined Name: config
+  - Undefined Name: t
+  - Undefined Name: e
+  - Undefined Name: request
+File: nexa/core/neural_sync.py
+  - Undefined Name: m
+  - Undefined Name: event_type
+  - Undefined Name: details
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/core/modes.py
+  - Undefined Name: __name__
+File: nexa/core/resource_manager.py
+  - Undefined Name: a
+File: nexa/core/engine.py
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: level
+  - Undefined Name: command
+File: nexa/core/alerts.py
+  - Undefined Name: title
+  - Undefined Name: message
+  - Undefined Name: category
+  - Undefined Name: a
+  - Undefined Name: count
+  - Undefined Name: severity
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/core/security.py
+  - Undefined Name: rule_text
+  - Undefined Name: cmd
+  - Undefined Name: sp
+  - Undefined Name: persist
+  - Undefined Name: rp
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: action_context
+File: nexa/core/innovation.py
+  - Undefined Name: __name__
+  - Undefined Name: action
+  - Undefined Name: text
+File: nexa/core/task_manager.py
+  - Undefined Name: PermissionError
+  - Undefined Name: summary
+  - Undefined Name: t
+  - Undefined Name: command
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: q
+File: nexa/core/kill_switch.py
+  - Undefined Name: __name__
+File: nexa/core/roles.py
+  - Undefined Name: __name__
+File: nexa/core/blockchain.py
+  - Undefined Name: b
+  - Undefined Name: __name__
+File: nexa/core/agent.py
+  - Undefined Name: initial_task
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/tools/monitoring.py
+  - Undefined Name: trigger
+  - Undefined Name: timeout
+  - Undefined Name: action
+  - Undefined Name: __name__
+  - Undefined Name: target
+File: nexa/tools/security_audit.py
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: focus_area
+File: nexa/tools/voice.py
+  - Undefined Name: text
+File: nexa/tools/productivity.py
+  - Undefined Name: title
+  - Undefined Name: append
+  - Undefined Name: event
+  - Undefined Name: os
+  - Undefined Name: action
+  - Undefined Name: content
+  - Undefined Name: date
+  - Undefined Name: e
+File: nexa/tools/memory_ops.py
+  - Undefined Name: __name__
+  - Undefined Name: recursive
+  - Undefined Name: query
+  - Undefined Name: path
+  - Undefined Name: e
+File: nexa/tools/forensics.py
+  - Undefined Name: target
+  - Undefined Name: e
+File: nexa/tools/meta.py
+  - Undefined Name: new_code
+  - Undefined Name: spec
+  - Undefined Name: reload
+  - Undefined Name: task
+  - Undefined Name: test_cases
+  - Undefined Name: plan
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: component_path
+File: nexa/tools/hardware.py
+  - Undefined Name: state
+  - Undefined Name: device_id
+  - Undefined Name: pin
+  - Undefined Name: action
+  - Undefined Name: ssid
+  - Undefined Name: command
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/tools/pdf.py
+  - Undefined Name: output_dir
+  - Undefined Name: path
+  - Undefined Name: paths
+  - Undefined Name: output_path
+File: nexa/tools/base.py
+  - Undefined Name: k
+File: nexa/tools/security.py
+  - Undefined Name: software
+  - Undefined Name: e
+File: nexa/tools/automation.py
+  - Undefined Name: data
+  - Undefined Name: url
+  - Undefined Name: action
+  - Undefined Name: user_info
+  - Undefined Name: platform
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/tools/registry.py
+  - Undefined Name: t
+File: nexa/tools/multimedia.py
+  - Undefined Name: height
+  - Undefined Name: width
+  - Undefined Name: lang
+  - Undefined Name: output_path
+  - Undefined Name: path
+  - Undefined Name: e
+  - Undefined Name: format
+File: nexa/tools/creative.py
+  - Undefined Name: genre
+  - Undefined Name: prompt
+File: nexa/tools/network.py
+  - Undefined Name: res
+  - Undefined Name: ports
+  - Undefined Name: count
+  - Undefined Name: domain
+  - Undefined Name: e
+  - Undefined Name: host
+File: nexa/tools/system.py
+  - Undefined Name: save_path
+  - Undefined Name: clicks
+  - Undefined Name: y
+  - Undefined Name: k
+  - Undefined Name: action
+  - Undefined Name: command
+  - Undefined Name: x
+  - Undefined Name: text
+  - Undefined Name: keys
+  - Undefined Name: prompt
+  - Undefined Name: e
+  - Undefined Name: v
+File: nexa/tools/evolution.py
+  - Undefined Name: objective
+  - Undefined Name: __name__
+  - Undefined Name: component_path
+File: nexa/tools/automation_finance.py
+  - Undefined Name: email
+  - Undefined Name: __name__
+  - Undefined Name: action
+  - Undefined Name: platform
+File: nexa/tools/social.py
+  - Undefined Name: word
+  - Undefined Name: message
+  - Undefined Name: keyword
+  - Undefined Name: topic
+File: nexa/tools/finance.py
+  - Undefined Name: coin
+  - Undefined Name: currency
+  - Undefined Name: symbol
+File: nexa/tools/spatial.py
+  - Undefined Name: coordinates
+  - Undefined Name: item_name
+File: nexa/tools/web.py
+  - Undefined Name: method
+  - Undefined Name: url
+  - Undefined Name: output_path
+  - Undefined Name: query
+  - Undefined Name: domain
+  - Undefined Name: kwargs
+  - Undefined Name: e
+File: nexa/tools/learning.py
+  - Undefined Name: query
+  - Undefined Name: depth
+  - Undefined Name: e
+  - Undefined Name: topic
+File: nexa/tools/visualizer.py
+  - Undefined Name: interface
+  - Undefined Name: __name__
+File: nexa/tools/dream.py
+  - Undefined Name: iterations
+  - Undefined Name: goal
+File: nexa/tools/maint.py
+  - Undefined Name: drive
+File: nexa/tools/communication.py
+  - Undefined Name: title
+  - Undefined Name: message
+  - Undefined Name: subject
+  - Undefined Name: phone_number
+  - Undefined Name: body
+  - Undefined Name: to_email
+  - Undefined Name: chat_id
+  - Undefined Name: max_results
+  - Undefined Name: query
+  - Undefined Name: severity
+  - Undefined Name: kwargs
+  - Undefined Name: __name__
+  - Undefined Name: e
+  - Undefined Name: token
+File: nexa/tools/file.py
+  - Undefined Name: path
+  - Undefined Name: e
+File: nexa/foundation/sandbox.py
+  - Undefined Name: code
+  - Undefined Name: params
+  - Undefined Name: tool_name
+  - Undefined Name: e
+File: nexa/foundation/storage.py
+  - Undefined Name: config
+File: nexa/memory/soul.py
+  - Undefined Name: bytes
+  - Undefined Name: __name__
+  - Undefined Name: e
+File: nexa/memory/vector.py
+  - Undefined Name: r
+  - Undefined Name: m
+  - Undefined Name: limit
+  - Undefined Name: metadata
+  - Undefined Name: x
+  - Undefined Name: query
+  - Undefined Name: text
+  - Undefined Name: __name__

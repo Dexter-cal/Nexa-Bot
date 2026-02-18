@@ -1,3 +1,4 @@
+import os
 from nexa.tools.base import Tool, ToolResult
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
@@ -56,5 +57,3 @@ class CalendarTool(Tool):
             return ToolResult(success=True, output=f"Event '{event}' deleted.")
         else:
             return ToolResult(success=False, error=f"Unknown action: {action}")
-
-import os

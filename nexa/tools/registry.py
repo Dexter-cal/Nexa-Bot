@@ -82,6 +82,12 @@ class ToolRegistry:
         from nexa.tools.monitoring import SignalMonitorTool
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
         from nexa.tools.evolution import SelfEvolutionTool
+        from nexa.tools.chronos import ChronosBranchTool
+        from nexa.tools.neural_graph import NeuralGraphTool
+        from nexa.tools.stego import SteganographyTool
+        from nexa.tools.plugins import PluginLoaderTool
+        from nexa.tools.swarm_evolution import EvolveSwarmTool
+        from nexa.tools.soundscape import NeuralSoundscapeTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -143,6 +149,12 @@ class ToolRegistry:
         self.register(MemoryIndexingTool())
         self.register(MemorySearchTool())
         self.register(SelfEvolutionTool())
+        self.register(ChronosBranchTool())
+        self.register(NeuralGraphTool())
+        self.register(SteganographyTool())
+        self.register(PluginLoaderTool())
+        self.register(EvolveSwarmTool())
+        self.register(NeuralSoundscapeTool())
         self.register(GenerateMockupsTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())

@@ -1,0 +1,4 @@
+/app/nexa/models/core.py:5: SAWarning: This declarative base already contains a class with the same class name and module name as nexa.models.core.User, and will be replaced in the string-lookup table.
+  class User(Base, TimestampMixin):
+/app/nexa/models/extended.py:4: SAWarning: This declarative base already contains a class with the same class name and module name as nexa.models.extended.Tool, and will be replaced in the string-lookup table.
+  class Tool(Base, TimestampMixin):

@@ -1,0 +1,72 @@
+File: nexa/privacy/guardian.py
+  - Undefined Name: e
+File: nexa/orchestration/spawner.py
+  - Undefined Name: tuple
+File: nexa/interfaces/cli.py
+  - Undefined Name: start_chat_loop
+  - Undefined Name: e
+File: nexa/interfaces/messaging.py
+  - Undefined Name: e
+File: nexa/features/tool_discovery.py
+  - Undefined Name: e
+File: nexa/features/mirror_world.py
+  - Undefined Name: e
+File: nexa/features/dream_engine.py
+  - Undefined Name: e
+File: nexa/features/self_healing.py
+  - Undefined Name: e
+File: nexa/intelligence/detector.py
+  - Undefined Name: sorted
+File: nexa/intelligence/api_manager.py
+  - Undefined Name: e
+File: nexa/intelligence/brain.py
+  - Undefined Name: e
+File: nexa/api/app.py
+  - Undefined Name: e
+File: nexa/core/neural_sync.py
+  - Undefined Name: e
+File: nexa/core/engine.py
+  - Undefined Name: e
+File: nexa/core/alerts.py
+  - Undefined Name: e
+File: nexa/core/security.py
+  - Undefined Name: e
+File: nexa/core/task_manager.py
+  - Undefined Name: e
+File: nexa/core/agent.py
+  - Undefined Name: e
+File: nexa/tools/security_audit.py
+  - Undefined Name: e
+File: nexa/tools/productivity.py
+  - Undefined Name: os
+  - Undefined Name: e
+File: nexa/tools/memory_ops.py
+  - Undefined Name: e
+File: nexa/tools/forensics.py
+  - Undefined Name: e
+File: nexa/tools/meta.py
+  - Undefined Name: e
+File: nexa/tools/hardware.py
+  - Undefined Name: e
+File: nexa/tools/security.py
+  - Undefined Name: e
+File: nexa/tools/automation.py
+  - Undefined Name: e
+File: nexa/tools/multimedia.py
+  - Undefined Name: e
+File: nexa/tools/network.py
+  - Undefined Name: e
+File: nexa/tools/system.py
+  - Undefined Name: e
+File: nexa/tools/web.py
+  - Undefined Name: e
+File: nexa/tools/learning.py
+  - Undefined Name: e
+File: nexa/tools/communication.py
+  - Undefined Name: e
+File: nexa/tools/file.py
+  - Undefined Name: e
+File: nexa/foundation/sandbox.py
+  - Undefined Name: e
+File: nexa/memory/soul.py
+  - Undefined Name: e

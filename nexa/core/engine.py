@@ -155,11 +155,11 @@ class NexaEngine:
         # Sentiment-Aware adjustment
         sentiment = self.llm_router.refusal_detector.analyze_sentiment(command)
         if sentiment == "negative":
-            logger.info("Detected negative sentiment, switching to empathetic mode.")
-            # We could inject this into the soul context
-            self.soul.update_personality("current_tone", "empathetic")
+            logger.info("Detected negative sentiment, activating Empathetic Aura.")
+            self.soul.set_aura("empathetic")
         elif sentiment == "positive":
-            self.soul.update_personality("current_tone", "enthusiastic")
+            logger.info("Detected positive sentiment, activating Witty Aura.")
+            self.soul.set_aura("witty")
 
         # Custom Greeting logic
         if command.lower().strip() in ["hi", "hello", "hey"]:

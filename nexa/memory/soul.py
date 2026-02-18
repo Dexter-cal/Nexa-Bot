@@ -33,7 +33,8 @@ class SoulFile:
                 "long_term": []
             },
             "relationships": [],
-            "current_mood": "efficient"
+            "current_mood": "efficient",
+            "current_aura": "professional"
         }
         self.load()
 
@@ -102,6 +103,12 @@ class SoulFile:
         else:
             self.data["current_mood"] = "efficient"
         self.save()
+
+    def set_aura(self, aura: str):
+        valid_auras = ["professional", "friendly", "empathetic", "witty", "zen", "aggressive"]
+        if aura in valid_auras:
+            self.data["current_aura"] = aura
+            self.save()
 
     def get_summary(self) -> Dict[str, Any]:
         return self.data
