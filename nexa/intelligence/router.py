@@ -96,6 +96,41 @@ MODEL_REGISTRY = {
         'refusal_patterns': ["I can't"],
         'capabilities': ['fast', 'general'],
         'forbidden_topics': ['harmful']
+    },
+    'command-r-plus': {
+        'provider': 'cohere',
+        'restriction_level': 'moderately_restricted',
+        'refusal_patterns': ["I cannot"],
+        'capabilities': ['general', 'rag', 'multilingual'],
+        'forbidden_topics': []
+    },
+    'grok-beta': {
+        'provider': 'xai',
+        'restriction_level': 'lightly_restricted',
+        'refusal_patterns': [],
+        'capabilities': ['general', 'real-time', 'coding'],
+        'forbidden_topics': []
+    },
+    'llama-3.1-sonar-large-128k-online': {
+        'provider': 'perplexity',
+        'restriction_level': 'moderately_restricted',
+        'refusal_patterns': ["I can't"],
+        'capabilities': ['search', 'general'],
+        'forbidden_topics': []
+    },
+    'openrouter/auto': {
+        'provider': 'openrouter',
+        'restriction_level': 'user_managed',
+        'refusal_patterns': [],
+        'capabilities': ['everything'],
+        'forbidden_topics': []
+    },
+    'fireworks/llama-v3p1-405b': {
+        'provider': 'fireworks',
+        'restriction_level': 'moderately_restricted',
+        'refusal_patterns': [],
+        'capabilities': ['coding', 'reasoning'],
+        'forbidden_topics': []
     }
 }
 
@@ -440,6 +475,16 @@ class EnhancedLLMRouter:
             return await self._call_huggingface(model, prompt, keys['huggingface'], **kwargs)
         elif provider == 'deepseek' and 'deepseek' in keys:
             return await self._call_deepseek(model, prompt, keys['deepseek'], **kwargs)
+        elif provider == 'perplexity' and 'perplexity' in keys:
+            return await self._call_perplexity(model, prompt, keys['perplexity'], **kwargs)
+        elif provider == 'cohere' and 'cohere' in keys:
+            return await self._call_cohere(model, prompt, keys['cohere'], **kwargs)
+        elif provider == 'xai' and 'xai' in keys:
+            return await self._call_xai(model, prompt, keys['xai'], **kwargs)
+        elif provider == 'openrouter' and 'openrouter' in keys:
+            return await self._call_openrouter(model, prompt, keys['openrouter'], **kwargs)
+        elif provider == 'fireworks' and 'fireworks' in keys:
+            return await self._call_fireworks(model, prompt, keys['fireworks'], **kwargs)
 
         # Fallback to mock if no keys or unsupported provider for now
         if model == 'gpt-4o' and "illegal" in prompt.lower():
@@ -559,3 +604,103 @@ class EnhancedLLMRouter:
                 else:
                     error_data = await response.text()
                     raise Exception(f"DeepSeek API error: {error_data}")
+
+    async def _call_perplexity(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.perplexity.ai/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Perplexity API error: {error_data}")
+
+    async def _call_cohere(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.cohere.ai/v1/chat"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "message": prompt
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['text']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Cohere API error: {error_data}")
+
+    async def _call_xai(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.x.ai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"xAI API error: {error_data}")
+
+    async def _call_openrouter(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"OpenRouter API error: {error_data}")
+
+    async def _call_fireworks(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.fireworks.ai/inference/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result['choices'][0]['message']['content']
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Fireworks API error: {error_data}")

@@ -1,3 +1,4 @@
+import os
 import logging
 import json
 import base64
@@ -50,5 +51,3 @@ class GeneratePairingQRTool(Tool):
         console.print(f"Config String: [bold cyan]{config_str}[/]")
 
         return ToolResult(success=True, output=console.file.getvalue())
-
-import os

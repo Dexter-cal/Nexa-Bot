@@ -14,10 +14,10 @@ class QuantumRouter(EnhancedLLMRouter):
     def __init__(self):
         super().__init__()
         self.weights = {
-            'coding': {'gpt-4o': 0.9, 'deepseek-v3': 0.85, 'claude-sonnet-4': 0.8},
-            'creative': {'claude-sonnet-4': 0.9, 'gpt-4o': 0.7},
+            'coding': {'gpt-4o': 0.9, 'deepseek-v3': 0.85, 'claude-sonnet-4': 0.8, 'grok-beta': 0.8},
+            'creative': {'claude-sonnet-4': 0.9, 'gpt-4o': 0.7, 'command-r-plus': 0.85},
             'security': {'llama-3-uncensored': 0.95, 'nous-hermes-2': 0.8},
-            'general': {'gemini-2.0-flash': 0.8, 'gpt-4o': 0.85}
+            'general': {'gemini-2.0-flash': 0.8, 'gpt-4o': 0.85, 'llama-3.1-sonar-large-128k-online': 0.9}
         }
 
     async def execute_with_consensus(self, prompt: str, domain: str = 'general', **kwargs) -> Dict[str, Any]:

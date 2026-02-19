@@ -157,6 +157,80 @@ class UniversalAPIKeyManager:
                 'get_key_url': 'https://www.twilio.com/console',
                 'free_tier': True,
                 'free_limit': 'Trial credit'
+            },
+            'openrouter': {
+                'name': 'OpenRouter',
+                'key_format': 'sk-or-...',
+                'test_endpoint': 'https://openrouter.ai/api/v1/models',
+                'get_key_url': 'https://openrouter.ai/keys',
+                'free_tier': True,
+                'cost': 'Pay per use',
+                'models': 'All models via one API'
+            },
+            'perplexity': {
+                'name': 'Perplexity AI',
+                'key_format': 'pplx-...',
+                'test_endpoint': 'https://api.perplexity.ai/chat/completions',
+                'get_key_url': 'https://www.perplexity.ai/settings/api',
+                'free_tier': False,
+                'cost': '$$',
+                'models': ['llama-3.1-sonar-large-128k-online']
+            },
+            'cohere': {
+                'name': 'Cohere',
+                'key_format': '...',
+                'test_endpoint': 'https://api.cohere.ai/v1/models',
+                'get_key_url': 'https://dashboard.cohere.com/api-keys',
+                'free_tier': True,
+                'free_limit': 'Trial keys available',
+                'cost': '$$',
+                'models': ['command-r', 'command-r-plus']
+            },
+            'xai': {
+                'name': 'xAI (Grok)',
+                'key_format': 'xai-...',
+                'test_endpoint': 'https://api.x.ai/v1/models',
+                'get_key_url': 'https://console.x.ai/',
+                'free_tier': False,
+                'cost': '$$$',
+                'models': ['grok-beta', 'grok-vision-beta']
+            },
+            'voyage': {
+                'name': 'Voyage AI',
+                'key_format': 'pa-...',
+                'test_endpoint': 'https://api.voyageai.com/v1/embeddings',
+                'get_key_url': 'https://dashboard.voyageai.com/',
+                'free_tier': True,
+                'cost': '$',
+                'models': ['voyage-large-2']
+            },
+            'fireworks': {
+                'name': 'Fireworks AI',
+                'key_format': '...',
+                'test_endpoint': 'https://api.fireworks.ai/inference/v1/models',
+                'get_key_url': 'https://fireworks.ai/account/api-keys',
+                'free_tier': True,
+                'free_limit': '$1 token credit',
+                'cost': '$',
+                'models': '70+ models'
+            },
+            'novita': {
+                'name': 'Novita AI',
+                'key_format': '...',
+                'test_endpoint': 'https://api.novita.ai/v3/models',
+                'get_key_url': 'https://novita.ai/settings/key',
+                'free_tier': True,
+                'cost': '$',
+                'models': 'Stable Diffusion, LLMs'
+            },
+            'jina': {
+                'name': 'Jina AI',
+                'key_format': 'jina_...',
+                'test_endpoint': 'https://api.jina.ai/v1/embeddings',
+                'get_key_url': 'https://jina.ai/embeddings/',
+                'free_tier': True,
+                'free_limit': '1M tokens free',
+                'cost': '$'
             }
         }
 
@@ -175,7 +249,15 @@ class UniversalAPIKeyManager:
             'telegram': ['TELEGRAM_BOT_TOKEN'],
             'mistral': ['MISTRAL_API_KEY'],
             'together': ['TOGETHER_API_KEY'],
-            'replicate': ['REPLICATE_API_TOKEN']
+            'replicate': ['REPLICATE_API_TOKEN'],
+            'openrouter': ['OPENROUTER_API_KEY'],
+            'perplexity': ['PERPLEXITY_API_KEY'],
+            'cohere': ['COHERE_API_KEY'],
+            'xai': ['XAI_API_KEY'],
+            'voyage': ['VOYAGE_API_KEY'],
+            'fireworks': ['FIREWORKS_API_KEY'],
+            'novita': ['NOVITA_API_KEY'],
+            'jina': ['JINA_API_KEY']
         }
 
         for provider, patterns in env_patterns.items():
@@ -343,6 +425,18 @@ class UniversalAPIKeyManager:
                     async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
                         return r.status == 200
                 elif provider == 'deepseek':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'openrouter':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'cohere':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'xai':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'fireworks':
                     async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
                         return r.status == 200
                 return False

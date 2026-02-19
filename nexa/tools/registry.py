@@ -86,6 +86,7 @@ class ToolRegistry:
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
         from nexa.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
         from nexa.tools.final_legendary import SystemAuditTool, SecurityHardeningTool, DeepOSINTTool
+        from nexa.tools.model_zoo import ModelZooExplorerTool
         from nexa.tools.pairing import GeneratePairingQRTool
         from nexa.tools.evolution import SelfEvolutionTool, LogicRefactorTool
         from nexa.tools.security import FirewallOverrideTool
@@ -185,6 +186,7 @@ class ToolRegistry:
         self.register(ChronosBranchTool())
         self.register(NeuralGraphTool())
         self.register(SystemAuditTool())
+        self.register(ModelZooExplorerTool())
         self.register(SteganographyTool())
         self.register(PluginLoaderTool())
         self.register(EvolveSwarmTool())

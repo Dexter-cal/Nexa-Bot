@@ -2,6 +2,8 @@ import logging
 from nexa.tools.base import Tool, ToolResult
 from typing import Optional, Dict, Any, List
 
+logger = logging.getLogger(__name__)
+
 class VulnerabilityScannerTool(Tool):
     name = "security.check_vuln"
     description = "Check for known vulnerabilities in a software component"
