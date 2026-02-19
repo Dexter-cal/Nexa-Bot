@@ -1,4 +1,4 @@
-# 🚀 NEXA BOT - ZERO-FRICTION INSTALLATION GUIDE (v2.5)
+# 🚀 NEXA BOT - ZERO-FRICTION INSTALLATION GUIDE (v3.5)
 
 Welcome to the future of AI orchestration. Follow these steps to get Nexa Bot running in under 60 seconds.
 
@@ -27,6 +27,15 @@ Simply type:
 nexa
 ```
 This will launch the **Interactive Setup Wizard**.
+
+## 🔑 Easy API Key Setup
+You can add API keys instantly through the CLI without entering a wizard:
+```bash
+nexa --key openai sk-123...
+nexa --key google AIza...
+nexa --key anthropic sk-ant...
+```
+These keys are encrypted at rest using AES-256 in your local secure vault.
 
 ## 🏠 Local LLM Support (Ollama)
 Nexa supports local execution for 100% privacy:

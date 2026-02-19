@@ -1,3 +1,4 @@
+import logging
 from nexa.tools.base import Tool, ToolResult
 from typing import Optional, Dict, Any, List
 

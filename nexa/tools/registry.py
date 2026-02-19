@@ -85,6 +85,7 @@ class ToolRegistry:
         from nexa.tools.monitoring import SignalMonitorTool
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
         from nexa.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
+        from nexa.tools.final_legendary import SystemAuditTool, SecurityHardeningTool, DeepOSINTTool
         from nexa.tools.pairing import GeneratePairingQRTool
         from nexa.tools.evolution import SelfEvolutionTool, LogicRefactorTool
         from nexa.tools.security import FirewallOverrideTool
@@ -144,6 +145,7 @@ class ToolRegistry:
         self.register(RegistryRepairTool())
         self.register(DeepScrubTool())
         self.register(AutoRepairWizardTool())
+        self.register(SecurityHardeningTool())
         self.register(DiskUsageAnalyzerTool())
         self.register(BootRepairTool())
         self.register(DriverManagerTool())
@@ -166,6 +168,7 @@ class ToolRegistry:
         self.register(SignUpAutomationTool())
         self.register(InternetInteractorTool())
         self.register(OmniSearchTool())
+        self.register(DeepOSINTTool())
         self.register(AccountCreatorTool())
         self.register(SignalMonitorTool())
         self.register(MemoryIndexingTool())
@@ -181,6 +184,7 @@ class ToolRegistry:
         self.register(EtherealSyncTool())
         self.register(ChronosBranchTool())
         self.register(NeuralGraphTool())
+        self.register(SystemAuditTool())
         self.register(SteganographyTool())
         self.register(PluginLoaderTool())
         self.register(EvolveSwarmTool())

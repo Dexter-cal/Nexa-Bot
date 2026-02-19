@@ -1,10 +1,10 @@
-# 🏗️ NEXA BOT - SYSTEM CAPABILITIES & FEATURES (v2.5 LEGENDARY)
+# 🏗️ NEXA BOT - SYSTEM CAPABILITIES & FEATURES (v3.5 FINAL)
 
 Nexa Bot is the most advanced AI Agent Orchestration framework, designed for absolute flexibility, safety, and power.
 
 ## 🧠 1. INTELLIGENCE ENGINE
+- **Strategic Brain**: Decomposes complex goals into multi-step executable plans with risk assessment.
 - **Quantum Router**: Dynamic multi-model consensus that weights responses from HuggingFace, Gemini, and local Ollama for the most accurate results.
-- **Strategic Planner**: Decomposes complex goals into multi-step executable plans.
 - **AI Council**: Multi-model consensus for high-risk decisions.
 - **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
@@ -13,15 +13,15 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Omni-Search**: Unified search across local files, the web, and all connected peers simultaneously.
 - **Zero-Friction Bootstrap**: A single-file `nexa_run.py` that handles complete system setup in seconds.
 
-## 🛠️ 2. THE TOOL BELT (170+ Tools)
-- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and the **Auto-Repair Wizard** for vague issues.
+## 🛠️ 2. THE TOOL BELT (180+ Tools)
+- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and **Security Hardening**.
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok), and **QR Sync** for instant device pairing.
-- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, HuggingFace Hub integration.
+- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, **Deep OSINT**, HuggingFace Hub integration.
 - **Social Media**: Discord webhooks, Telegram bot management, WhatsApp gateways, Twitter posting, trending hashtag generation.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
-- **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management, and **Unified IoT Control** for smart home orchestration.
+- **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management, and **Unified IoT Control**.
 - **Dev Tools**: Autonomous neural code review, automatic documentation generation (AutoDoc).
-- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders, logic refactoring.
+- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders, logic refactoring, and **System Audit**.
 
 ## 📱 3. CONNECTING YOUR DEVICES
 Nexa Bot is designed to be a unified presence across all your hardware:
@@ -39,18 +39,19 @@ Nexa Bot is designed to be a unified presence across all your hardware:
 - **AI Immune System**: Background behavioral analysis to quarantine rogue or unstable autonomous tools.
 - **Ethereal Sync**: RAM-only cross-device state synchronization for maximum security.
 
-## 💾 4. MEMORY & IDENTITY
+## 💾 5. MEMORY & IDENTITY
 - **The Soul File**: Encrypted Digital Twin containing user preferences, personality, and history.
 - **Deep Memory (RAG)**: Enhanced vector memory with directory indexing, allowing Nexa to 'remember' and search local file contexts.
 - **Sentiment Awareness**: Real-time adjustment of response tone based on user mood (Empathetic, Zen, Witty).
 
-## 🛡️ 5. SECURITY & TRANSPARENCY
+## 🛡️ 6. SECURITY & TRANSPARENCY
 - **Blockchain Audit Trail**: Immutable log of every action executed by the bot.
 - **4-Level Kill Switch**: Emergency stop commands from simple task cancellation to full system lock.
 - **AES-256 Vault**: All API keys and personal data are encrypted at rest.
+- **Biometric Guard**: Simulated multi-factor authentication for critical system actions.
 
-## 🎨 6. INTERFACES
-- **CLI v2.5**: Powerful command-line interface with high-fidelity ASCII art, visuals command, and prompt assistant.
+## 🎨 7. INTERFACES
+- **CLI v3.5**: Powerful command-line interface with high-fidelity ASCII art, visuals command, and prompt assistant.
 - **TUI**: Beautiful terminal setup for server-side management.
 - **GUI**: Modern web dashboard for real-time monitoring and agent management.
 

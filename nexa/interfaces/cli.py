@@ -14,6 +14,7 @@ async def async_main():
     parser.add_argument("--chat", action="store_true", help="Start interactive neural chat")
     parser.add_argument("--visuals", action="store_true", help="Display visual mockups of Nexa interfaces")
     parser.add_argument("--quick-setup", action="store_true", help="Fast-track setup with automatic defaults")
+    parser.add_argument("--key", nargs=2, metavar=('PROVIDER', 'VALUE'), help="Quickly set an API key (e.g. --key openai sk-...)")
 
     args = parser.parse_args()
 
@@ -22,6 +23,8 @@ async def async_main():
         await wizard.run()
     elif args.quick_setup:
         await run_quick_setup()
+    elif args.key:
+        await set_api_key(args.key[0], args.key[1])
     elif args.visuals:
         from nexa.tools.visualizer import GenerateMockupsTool
         tool = GenerateMockupsTool()
@@ -95,6 +98,17 @@ async def start_chat_loop():
             break
         except Exception as e:
             console.print(f"\n[bold red]System Error:[/] {e}")
+
+async def set_api_key(provider: str, value: str):
+    from rich.console import Console
+    from nexa.foundation.storage import SecureConfigStorage
+    console = Console()
+    storage = SecureConfigStorage()
+    config = await storage.load_config()
+    if 'api_keys' not in config: config['api_keys'] = {}
+    config['api_keys'][provider.lower()] = value
+    await storage.store_config(config)
+    console.print(f"[bold green]✓ API Key for '{provider}' has been saved securely.[/]")
 
 async def run_quick_setup():
     from rich.console import Console
