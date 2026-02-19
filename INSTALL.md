@@ -47,6 +47,12 @@ Once setup is complete, start chatting:
 nexa chat
 ```
 
+## 📱 Mobile App Connection
+To connect your phone:
+1. Download the Nexa Mobile app.
+2. Run `nexa tool system.generate_pairing_qr` on your main PC.
+3. Scan the QR code with your phone to instantly sync memory and tools.
+
 ## 🖼 Visual Mockups
 To see the architecture in action:
 ```bash

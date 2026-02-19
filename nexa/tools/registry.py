@@ -71,6 +71,7 @@ class ToolRegistry:
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
         from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool
+        from nexa.tools.auto_repair import AutoRepairWizardTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
@@ -78,12 +79,15 @@ class ToolRegistry:
         from nexa.tools.spatial import SpatialIntelligenceTool
         from nexa.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
         from nexa.tools.automation import InternetInteractorTool, AccountCreatorTool
+        from nexa.tools.omni_search import OmniSearchTool
         from nexa.tools.visualizer import GenerateMockupsTool
         from nexa.tools.monitoring import SignalMonitorTool
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
         from nexa.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
+        from nexa.tools.pairing import GeneratePairingQRTool
         from nexa.tools.evolution import SelfEvolutionTool, LogicRefactorTool
         from nexa.tools.security import FirewallOverrideTool
+        from nexa.tools.advanced_hardware import BiometricAuthTool, IoTControlTool
         from nexa.tools.ethereal_sync import EtherealSyncTool
         from nexa.tools.chronos import ChronosBranchTool
         from nexa.tools.neural_graph import NeuralGraphTool
@@ -135,6 +139,7 @@ class ToolRegistry:
         self.register(SystemOptimizerTool())
         self.register(RegistryRepairTool())
         self.register(DeepScrubTool())
+        self.register(AutoRepairWizardTool())
         self.register(DiskUsageAnalyzerTool())
         self.register(BootRepairTool())
         self.register(DriverManagerTool())
@@ -154,15 +159,19 @@ class ToolRegistry:
         self.register(SpatialIntelligenceTool())
         self.register(SignUpAutomationTool())
         self.register(InternetInteractorTool())
+        self.register(OmniSearchTool())
         self.register(AccountCreatorTool())
         self.register(SignalMonitorTool())
         self.register(MemoryIndexingTool())
         self.register(MemorySearchTool())
         self.register(TunnelManagerTool())
         self.register(PeerDiscoveryTool())
+        self.register(GeneratePairingQRTool())
         self.register(SelfEvolutionTool())
         self.register(LogicRefactorTool())
         self.register(FirewallOverrideTool())
+        self.register(BiometricAuthTool())
+        self.register(IoTControlTool())
         self.register(EtherealSyncTool())
         self.register(ChronosBranchTool())
         self.register(NeuralGraphTool())
