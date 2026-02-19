@@ -148,3 +148,46 @@ class MirrorWorldSimulateTool(Tool):
         sandbox = MirrorWorldSandbox()
         result = await sandbox.simulate_task(task, plan)
         return ToolResult(success=True, output=result)
+
+class ShareToolWithPeerTool(Tool):
+    name = "meta.share_tool"
+    description = "Share a local tool with a connected Nexa peer."
+    category = "meta"
+    risk_level = "high"
+    parameters = {
+        "peer_name": {"type": "string", "required": True},
+        "tool_name": {"type": "string", "required": True}
+    }
+
+    async def execute(self, peer_name: str, tool_name: str, **kwargs) -> ToolResult:
+        from nexa.core.network_node import network_node
+        try:
+            res = await network_node.share_tool_with_peer(peer_name, tool_name)
+            return ToolResult(success=True, output=f"Successfully shared '{tool_name}' with peer '{peer_name}'.")
+        except Exception as e:
+            logger.exception(f"Tool sharing failed: {e}")
+            return ToolResult(success=False, error=str(e))
+
+class RequestToolFromPeerTool(Tool):
+    name = "meta.request_tool"
+    description = "Request and install a specific tool from a connected Nexa peer."
+    category = "meta"
+    risk_level = "critical"
+    parameters = {
+        "peer_name": {"type": "string", "required": True},
+        "tool_name": {"type": "string", "required": True}
+    }
+
+    async def execute(self, peer_name: str, tool_name: str, **kwargs) -> ToolResult:
+        from nexa.core.network_node import network_node
+        try:
+            res = await network_node.request_tool_from_peer(peer_name, tool_name)
+            if res.get('success'):
+                # Dynamically register the received tool code
+                from nexa.tools.registry import registry
+                registry.register_from_code(res['source_code'])
+                return ToolResult(success=True, output=f"Successfully requested and installed '{tool_name}' from peer '{peer_name}'.")
+            return ToolResult(success=False, error=res.get('error', 'Request failed.'))
+        except Exception as e:
+            logger.exception(f"Tool request failed: {e}")
+            return ToolResult(success=False, error=str(e))

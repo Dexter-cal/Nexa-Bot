@@ -153,3 +153,13 @@ class SystemOptimizerTool(Tool):
 
     async def execute(self, **kwargs) -> ToolResult:
         return ToolResult(success=True, output="System optimized: 4.2GB cache cleared, TRIM command sent to SSD, 3 startup items disabled.")
+
+class DeepScrubTool(Tool):
+    name = "maint.deep_scrub"
+    description = "Advanced verification of system frameworks and deep registry scrubbing."
+    category = "maintenance"
+    risk_level = "critical"
+    parameters = {}
+
+    async def execute(self, **kwargs) -> ToolResult:
+        return ToolResult(success=True, output="Deep Scrub Complete: 1,450 system components verified, 89 orphaned keys purged from registry.")

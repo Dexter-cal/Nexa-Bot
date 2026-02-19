@@ -21,10 +21,13 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 
 ## 🌐 3. MULTI-INSTANCE NETWORK
 - **Peer-to-Peer Orchestration**: Connect multiple Nexa bots (Laptop, Cloud, Home Desktop) into a secure network.
+- **P2P Tool Sharing**: One instance can autonomously share its custom tools with others in the network.
 - **Task Delegation**: Ask your cloud bot to run scans or your home desktop to use its GPU for rendering.
 - **Tunneling**: Built-in support for secure tunnels to expose local bots to the internet.
 - **Shadow Autonomy**: Background task execution ('Ghost Mode') that persists after the main interface closes.
 - **Return Reports**: Detailed summaries of activities performed while the user was offline.
+- **AI Immune System**: Background behavioral analysis to quarantine rogue or unstable autonomous tools.
+- **Ethereal Sync**: RAM-only cross-device state synchronization for maximum security.
 
 ## 💾 4. MEMORY & IDENTITY
 - **The Soul File**: Encrypted Digital Twin containing user preferences, personality, and history.

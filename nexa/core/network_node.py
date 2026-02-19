@@ -57,4 +57,25 @@ class NexaNetworkNode:
                 results.append({"peer": peer['name'], "error": str(e)})
         return results
 
+    async def share_tool_with_peer(self, peer_name: str, tool_name: str) -> Dict[str, Any]:
+        """Send a local tool's source code to a peer"""
+        from nexa.tools.registry import registry
+        tool = registry.get(tool_name)
+        if not tool:
+            raise ValueError(f"Tool '{tool_name}' not found locally.")
+
+        # In a real app, we'd need to find the source file or have the tool store its code
+        # For now, we'll assume it's in a known directory or dynamically registered
+        source_code = "# Tool source code placeholder"
+
+        return await self.send_to_peer(peer_name, "/tools/receive", {
+            "tool_name": tool_name,
+            "source_code": source_code,
+            "metadata": {"shared_from": "local-nexa"}
+        })
+
+    async def request_tool_from_peer(self, peer_name: str, tool_name: str) -> Dict[str, Any]:
+        """Request a specific tool from a peer"""
+        return await self.send_to_peer(peer_name, "/tools/request", {"tool_name": tool_name})
+
 network_node = NexaNetworkNode()

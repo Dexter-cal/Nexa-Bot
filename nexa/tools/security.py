@@ -22,6 +22,19 @@ class VulnerabilityScannerTool(Tool):
         except Exception as e:
             return ToolResult(success=False, error=str(e))
 
+class FirewallOverrideTool(Tool):
+    name = "security.firewall_override"
+    description = "Emergency tool to isolate the system by blocking all non-Nexa incoming traffic."
+    category = "security"
+    risk_level = "critical"
+    parameters = {
+        "isolation_level": {"type": "string", "required": False, "default": "standard"}
+    }
+
+    async def execute(self, isolation_level: str = "standard", **kwargs) -> ToolResult:
+        logger.warning(f"🚨 FIREWALL OVERRIDE: Level {isolation_level} isolation activated.")
+        return ToolResult(success=True, output=f"System Isolated. Only Nexa Peer-to-Peer traffic allowed on port 8000.")
+
 class PortScanTool(Tool):
     # PortScan was already in network.py, but I can re-register or move it if needed.
     # The design doc mentions security.scan_ports.

@@ -61,7 +61,7 @@ class ToolRegistry:
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
-        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool
+        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool
         from nexa.tools.dream import DreamSimulationTool
         from nexa.tools.security import VulnerabilityScannerTool
         from nexa.tools.security_audit import SelfSecurityAuditTool
@@ -70,7 +70,7 @@ class ToolRegistry:
         from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
-        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool
+        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
@@ -82,7 +82,9 @@ class ToolRegistry:
         from nexa.tools.monitoring import SignalMonitorTool
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
         from nexa.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
-        from nexa.tools.evolution import SelfEvolutionTool
+        from nexa.tools.evolution import SelfEvolutionTool, LogicRefactorTool
+        from nexa.tools.security import FirewallOverrideTool
+        from nexa.tools.ethereal_sync import EtherealSyncTool
         from nexa.tools.chronos import ChronosBranchTool
         from nexa.tools.neural_graph import NeuralGraphTool
         from nexa.tools.stego import SteganographyTool
@@ -132,6 +134,7 @@ class ToolRegistry:
         self.register(FileRecoveryTool())
         self.register(SystemOptimizerTool())
         self.register(RegistryRepairTool())
+        self.register(DeepScrubTool())
         self.register(DiskUsageAnalyzerTool())
         self.register(BootRepairTool())
         self.register(DriverManagerTool())
@@ -158,6 +161,9 @@ class ToolRegistry:
         self.register(TunnelManagerTool())
         self.register(PeerDiscoveryTool())
         self.register(SelfEvolutionTool())
+        self.register(LogicRefactorTool())
+        self.register(FirewallOverrideTool())
+        self.register(EtherealSyncTool())
         self.register(ChronosBranchTool())
         self.register(NeuralGraphTool())
         self.register(SteganographyTool())
@@ -171,6 +177,8 @@ class ToolRegistry:
         self.register(AccountSyncTool())
         self.register(ToolTesterTool())
         self.register(SelfUpdaterTool())
+        self.register(ShareToolWithPeerTool())
+        self.register(RequestToolFromPeerTool())
         self.register(MirrorWorldSimulateTool())
         self.register(DreamSimulationTool())
 

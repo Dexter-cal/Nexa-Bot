@@ -60,3 +60,20 @@ class SelfEvolutionTool(Tool):
         res = await updater.execute(component_path=component_path, new_code=new_code)
 
         return ToolResult(success=res.success, output=f"Evolution complete: {res.output}", error=res.error)
+
+class LogicRefactorTool(Tool):
+    name = "meta.logic_refactor"
+    description = "Autonomous tool to analyze Python code for performance bottlenecks and refactor it."
+    category = "meta"
+    risk_level = "critical"
+    parameters = {
+        "code": {"type": "string", "required": True},
+        "style": {"type": "string", "required": False, "default": "performance"}
+    }
+
+    async def execute(self, code: str, style: str = "performance", **kwargs) -> ToolResult:
+        logger.info(f"🧬 Logic Refactor: Optimizing code for {style}...")
+        router = EnhancedLLMRouter()
+        prompt = f"Refactor this code for {style}:\n\n{code}\n\nReturn only the refactored code in a block."
+        res = await router.execute(prompt, priority='quality')
+        return ToolResult(success=True, output=res['response'])

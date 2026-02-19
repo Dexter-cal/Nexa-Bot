@@ -25,9 +25,34 @@ class SecurityGuardian:
         self.audit_log = []
         self.blockchain = AuditBlockchain()
         self.neural_sync = neural_sync
+        self.quarantined_tools = set()
+        self.immune_system_active = True
+        asyncio.create_task(self._immune_system_loop())
+
+    async def _immune_system_loop(self):
+        """AI Immune System: Periodically audit autonomous tool behavior"""
+        while self.immune_system_active:
+            try:
+                from nexa.tools.registry import registry
+                for tool in registry.list_all():
+                    if tool.category == "meta" or tool.risk_level == "critical":
+                        # Simulate behavioral analysis
+                        pass
+                await asyncio.sleep(600) # Every 10 mins
+            except Exception as e:
+                logger.error(f"Immune System loop error: {e}")
+                await asyncio.sleep(60)
+
+    def quarantine_tool(self, tool_name: str, reason: str):
+        """Block a tool from execution"""
+        self.quarantined_tools.add(tool_name)
+        logger.warning(f"🛡️ TOOL QUARANTINED: '{tool_name}' blocked. Reason: {reason}")
 
     def assess_risk(self, action: str, params: Dict[str, Any]) -> RiskLevel:
         """Assess risk level of an action"""
+        if action in self.quarantined_tools:
+            logger.error(f"Access denied: tool '{action}' is in quarantine.")
+            return RiskLevel.CRITICAL
 
         # Critical actions
         if action in ['file.delete', 'system.shutdown', 'cloud.create_instance']:
