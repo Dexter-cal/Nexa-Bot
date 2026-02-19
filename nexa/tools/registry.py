@@ -70,7 +70,7 @@ class ToolRegistry:
         from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
-        from nexa.tools.maint import CleanTempFilesTool, DiskHealthTool
+        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
@@ -128,7 +128,9 @@ class ToolRegistry:
         self.register(CryptoPriceTool())
         self.register(PDFMergeTool())
         self.register(PDFSplitTool())
-        self.register(CleanTempFilesTool())
+        self.register(FileRecoveryTool())
+        self.register(SystemOptimizerTool())
+        self.register(RegistryRepairTool())
         self.register(DiskHealthTool())
         self.register(TextToSpeechTool())
         self.register(SpeechToTextTool())

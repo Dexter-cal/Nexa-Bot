@@ -1,56 +1,50 @@
-# 🏗️ NEXA BOT - SYSTEM CAPABILITIES & FEATURES
+# 🏗️ NEXA BOT - SYSTEM CAPABILITIES & FEATURES (v2.5 LEGENDARY)
 
 Nexa Bot is the most advanced AI Agent Orchestration framework, designed for absolute flexibility, safety, and power.
 
 ## 🧠 1. INTELLIGENCE ENGINE
+- **Quantum Router**: Dynamic multi-model consensus that weights responses from HuggingFace, Gemini, and local Ollama for the most accurate results.
 - **Strategic Planner**: Decomposes complex goals into multi-step executable plans.
 - **AI Council**: Multi-model consensus for high-risk decisions.
 - **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
-- **Refusal Detector & Predictor**: Detects and bypasses AI refusals automatically.
-- **Autonomous Tool Synthesis**: Nexa can *write and register its own tools* on the fly if a capability is missing.
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
-- **Shadow Autonomy**: Nexa can continue working on tasks even when you are offline. Ask for a "return report" to see what I did.
-- **Signal Monitor**: Nexa can watch for specific files or triggers while you are away and react immediately.
-- **Task Rewind (State Checkpointing)**: Built-in state management allows agents to "rewind" to previous steps if an error occurs, enabling robust time-travel debugging.
 - **Aura Persona Switching**: Nexa dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
 
-## 🛠️ 2. THE TOOL BELT (140+ Tools)
+## 🛠️ 2. THE TOOL BELT (150+ Tools)
+- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair.
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access.
-- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT.
+- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, HuggingFace Hub integration.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
-- **Multimedia**: Image OCR, conversion, 3D spatial mapping, vision analysis.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management.
 - **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders.
-- **Specialized Forensics**: Steganography detection/hiding within images.
-- **Swarm Evolution**: Coordinators that autonomously optimize sub-agent code.
-- **Neural Frequency**: Voice-category soundscapes based on system state.
 
-## 💾 3. MEMORY & IDENTITY
+## 🌐 3. MULTI-INSTANCE NETWORK
+- **Peer-to-Peer Orchestration**: Connect multiple Nexa bots (Laptop, Cloud, Home Desktop) into a secure network.
+- **Task Delegation**: Ask your cloud bot to run scans or your home desktop to use its GPU for rendering.
+- **Shadow Autonomy**: Background task execution ('Ghost Mode') that persists after the main interface closes.
+- **Return Reports**: Detailed summaries of activities performed while the user was offline.
+
+## 💾 4. MEMORY & IDENTITY
 - **The Soul File**: Encrypted Digital Twin containing user preferences, personality, and history.
-- **Vector Memory**: Long-term searchable context using embeddings.
-- **Time Capsule**: Periodic summaries and "memories" of past interactions.
-- **Sentiment Awareness**: Real-time adjustment of response tone and strategy based on user mood (Empathetic, Enthusiastic, Professional).
-- **Self-Evolution**: Nexa can autonomously propose and apply code upgrades to its own core modules.
+- **Deep Memory (RAG)**: Enhanced vector memory with directory indexing, allowing Nexa to 'remember' and search local file contexts.
+- **Sentiment Awareness**: Real-time adjustment of response tone based on user mood (Empathetic, Zen, Witty).
 
-## 🛡️ 4. SECURITY & TRANSPARENCY
+## 🛡️ 5. SECURITY & TRANSPARENCY
 - **Blockchain Audit Trail**: Immutable log of every action executed by the bot.
 - **4-Level Kill Switch**: Emergency stop commands from simple task cancellation to full system lock.
-- **Privacy Guardian**: Real-time monitoring of sensitive data leaks and dark web mentions.
 - **AES-256 Vault**: All API keys and personal data are encrypted at rest.
 
-## 🚀 5. ORCHESTRATION
-- **Agent Spawner**: Supports up to 50 parallel specialized agents (Hacker, Researcher, Developer).
-- **Swarm Coordination**: Complex task delegation across multiple agents.
-- **Resource Manager**: Monitors CPU/RAM to ensure system stability during high-load swarming.
-
 ## 🎨 6. INTERFACES
-- **CLI**: Powerful command-line interface with interactive chat and tool execution.
-- **TUI**: Text-based UI for beautiful terminal setups.
+- **CLI v2.5**: Powerful command-line interface with high-fidelity ASCII art and 'visuals' command.
+- **TUI**: Beautiful terminal setup for server-side management.
 - **GUI**: Modern web dashboard for real-time monitoring and agent management.
-- **Messaging Hub**: Integration with Telegram, Discord, WhatsApp, Slack, Teams, SMS, and Email.
+
+---
+## 👑 CREATOR
+Nexa Bot was created by **Henry Calvin**.
 
 ---
 ## 🔮 THE POTENTIAL
-Nexa Bot is not just a chatbot; it is a **Neural OS**. It can manage your finances, conduct security audits, develop software, manage IoT devices, and even simulate futuristic scenarios in its "Mirror-World" sandbox.
+Nexa Bot is a **Neural OS**. It can manage your global infrastructure, secure your personal data, and evolve its own logic autonomously.
 
 *The only limit is your imagination.*

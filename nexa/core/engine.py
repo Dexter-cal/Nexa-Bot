@@ -196,6 +196,19 @@ class NexaEngine:
             await storage.store_config(config)
             return {"success": True, "response": report_text}
 
+        # Network Delegation
+        if command.lower().startswith("ask ") or command.lower().startswith("delegate "):
+            parts = command.split()
+            peer_name = parts[1]
+            remote_cmd = " ".join(parts[2:])
+            from nexa.core.network_node import network_node
+            await network_node.load_peers()
+            try:
+                res = await network_node.delegate_task(peer_name, remote_cmd)
+                return {"success": True, "response": f"🤖 {peer_name} says:\n{res.get('response', 'Task initiated.')}"}
+            except Exception as e:
+                return {"success": False, "error": f"Failed to communicate with {peer_name}: {e}"}
+
         # Log to long-term memory
         await self.memory.add(f"User ({user_name}) command: {command}")
 
