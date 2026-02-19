@@ -67,7 +67,7 @@ class ToolRegistry:
         from nexa.tools.security_audit import SelfSecurityAuditTool
         from nexa.tools.learning import ResearchTopicTool, FindAcademicPapersTool
         from nexa.tools.creative import StoryWriterTool, ImageGenTool
-        from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
+        from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool, DiscordWebhookTool, TelegramBotManagerTool, WhatsAppGatewayTool
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
         from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool
@@ -76,6 +76,7 @@ class ToolRegistry:
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
         from nexa.tools.forensics import ForensicOSINTTool
+        from nexa.tools.dev_tools import NeuralReviewTool, AutoDocTool
         from nexa.tools.spatial import SpatialIntelligenceTool
         from nexa.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
         from nexa.tools.automation import InternetInteractorTool, AccountCreatorTool
@@ -131,6 +132,9 @@ class ToolRegistry:
         self.register(TwitterPostTool())
         self.register(HashtagGeneratorTool())
         self.register(MonitorMentionsTool())
+        self.register(DiscordWebhookTool())
+        self.register(TelegramBotManagerTool())
+        self.register(WhatsAppGatewayTool())
         self.register(StockPriceTool())
         self.register(CryptoPriceTool())
         self.register(PDFMergeTool())
@@ -156,6 +160,8 @@ class ToolRegistry:
         self.register(BluetoothManagerTool())
         self.register(WiFiManagerTool())
         self.register(ForensicOSINTTool())
+        self.register(NeuralReviewTool())
+        self.register(AutoDocTool())
         self.register(SpatialIntelligenceTool())
         self.register(SignUpAutomationTool())
         self.register(InternetInteractorTool())

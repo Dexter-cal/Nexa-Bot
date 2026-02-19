@@ -13,12 +13,15 @@ async def async_main():
     parser.add_argument("--spawn", help="Spawn a specialized agent with role")
     parser.add_argument("--chat", action="store_true", help="Start interactive neural chat")
     parser.add_argument("--visuals", action="store_true", help="Display visual mockups of Nexa interfaces")
+    parser.add_argument("--quick-setup", action="store_true", help="Fast-track setup with automatic defaults")
 
     args = parser.parse_args()
 
     if args.setup:
         wizard = TUISetupWizard()
         await wizard.run()
+    elif args.quick_setup:
+        await run_quick_setup()
     elif args.visuals:
         from nexa.tools.visualizer import GenerateMockupsTool
         tool = GenerateMockupsTool()
@@ -92,6 +95,43 @@ async def start_chat_loop():
             break
         except Exception as e:
             console.print(f"\n[bold red]System Error:[/] {e}")
+
+async def run_quick_setup():
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.prompt import Prompt
+    from nexa.intelligence.api_manager import UniversalAPIKeyManager
+    from nexa.foundation.storage import SecureConfigStorage
+    from nexa.intelligence.defaults import SmartDefaultsEngine
+
+    console = Console()
+    console.clear()
+    console.print(Panel("[bold green]⚡ NEXA EXPRESS SETUP[/]\n[white]Let's get you online in 30 seconds.[/]", border_style="green"))
+
+    user_name = Prompt.ask("Your name", default="Max")
+    bot_name = Prompt.ask("Bot name", default="Bill")
+
+    # Quick API key entry
+    console.print("\n[bold cyan]API Keys (Optional - press Enter to skip)[/]")
+    openai_key = Prompt.ask("OpenAI Key", password=True, default="")
+    google_key = Prompt.ask("Google/Gemini Key", password=True, default="")
+
+    storage = SecureConfigStorage()
+    defaults = SmartDefaultsEngine()
+
+    config = await defaults.generate_config()
+    config.update({
+        "user_name": user_name,
+        "nexa_name": bot_name,
+        "api_keys": {}
+    })
+
+    if openai_key: config['api_keys']['openai'] = openai_key
+    if google_key: config['api_keys']['google'] = google_key
+
+    await storage.store_config(config)
+
+    console.print(Panel.fit(f"[bold green]✓ Express Setup Complete![/]\n[white]Welcome, {user_name}. I am {bot_name}.[/]\nRun: [bold]nexa chat[/]", border_style="green"))
 
 def main():
     asyncio.run(async_main())

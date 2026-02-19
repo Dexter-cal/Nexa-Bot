@@ -34,8 +34,13 @@ nexa "Analyze my system health and take a screenshot"
 nexa --spawn hacker "Scan this host for vulnerabilities"
 ```
 
+## 📚 Documentation
+- [Installation Guide (60 Seconds)](INSTALL.md)
+- [Complete Feature Matrix (v3.5 Legendary)](FEATURES.md)
+- [Connecting to Apps (WhatsApp, Discord, etc.)](CONNECTIVITY.md)
+
 ## 🏢 Creator
-Created by **Henry Calvin** at **Crystal Tech**.
+Created by **Henry Calvin**.
 
 ---
-© 2025 Crystal Tech. All rights reserved.
+© 2025 Nexa Bot. All rights reserved.

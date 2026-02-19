@@ -13,6 +13,13 @@ Welcome to the future of AI orchestration. Follow these steps to get Nexa Bot ru
 curl -sSL https://get.nexa.bot/install.sh | bash
 ```
 
+## 🚀 Nexa Auto-Runner (Bootstrap)
+The simplest way to start: just run the bootstrap script.
+```bash
+python nexa_run.py
+```
+This will automatically install all dependencies and launch the **Express Setup Wizard**.
+
 ## 🤖 First Run
 
 Simply type:

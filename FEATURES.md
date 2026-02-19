@@ -11,14 +11,17 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Aura Persona Switching**: Nexa dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
 - **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
 - **Omni-Search**: Unified search across local files, the web, and all connected peers simultaneously.
+- **Zero-Friction Bootstrap**: A single-file `nexa_run.py` that handles complete system setup in seconds.
 
-## 🛠️ 2. THE TOOL BELT (165+ Tools)
+## 🛠️ 2. THE TOOL BELT (170+ Tools)
 - **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and the **Auto-Repair Wizard** for vague issues.
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok), and **QR Sync** for instant device pairing.
 - **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, HuggingFace Hub integration.
+- **Social Media**: Discord webhooks, Telegram bot management, WhatsApp gateways, Twitter posting, trending hashtag generation.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management, and **Unified IoT Control** for smart home orchestration.
-- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders.
+- **Dev Tools**: Autonomous neural code review, automatic documentation generation (AutoDoc).
+- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, Chronos branching, plugin loaders, logic refactoring.
 
 ## 📱 3. CONNECTING YOUR DEVICES
 Nexa Bot is designed to be a unified presence across all your hardware:
@@ -54,6 +57,9 @@ Nexa Bot is designed to be a unified presence across all your hardware:
 ---
 ## 👑 CREATOR
 Nexa Bot was created by **Henry Calvin**.
+
+## 🔗 CONNECTIVITY
+For detailed guides on how to connect Nexa to WhatsApp, Discord, Telegram, and more, see [CONNECTIVITY.md](CONNECTIVITY.md).
 
 ---
 ## 🔮 THE POTENTIAL
