@@ -44,7 +44,9 @@ async def start_chat_loop():
     from rich.markdown import Markdown
     from rich.text import Text
     from nexa.foundation.storage import SecureConfigStorage
+    from nexa.interfaces.prompt_assistant import PromptAssistant
 
+    assistant = PromptAssistant()
     storage = SecureConfigStorage()
     config = await storage.load_config()
     user_name = config.get('user_name', 'User')
@@ -64,6 +66,11 @@ async def start_chat_loop():
             user_input = console.input(f"\n[bold sky_blue1]{user_name} > [/]")
             if user_input.lower() in ["exit", "quit"]:
                 break
+
+            # Intent Detection
+            intent_tool = assistant.detect_intent(user_input)
+            if intent_tool:
+                console.print(f"[dim italic text_slate_500]Assistant: I detect you want to run {intent_tool}. Processing...[/]")
 
             with console.status("[bold sky_blue1]Thinking..."):
                 result = await engine.execute_command(user_input)

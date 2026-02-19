@@ -9,10 +9,11 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
 - **Aura Persona Switching**: Nexa dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
+- **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
 
 ## 🛠️ 2. THE TOOL BELT (150+ Tools)
-- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair.
-- **System Control**: Mouse, keyboard, screenshots, process management, terminal access.
+- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair, boot repair, driver management.
+- **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok).
 - **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, HuggingFace Hub integration.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management.
@@ -21,6 +22,7 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 ## 🌐 3. MULTI-INSTANCE NETWORK
 - **Peer-to-Peer Orchestration**: Connect multiple Nexa bots (Laptop, Cloud, Home Desktop) into a secure network.
 - **Task Delegation**: Ask your cloud bot to run scans or your home desktop to use its GPU for rendering.
+- **Tunneling**: Built-in support for secure tunnels to expose local bots to the internet.
 - **Shadow Autonomy**: Background task execution ('Ghost Mode') that persists after the main interface closes.
 - **Return Reports**: Detailed summaries of activities performed while the user was offline.
 
@@ -35,7 +37,7 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **AES-256 Vault**: All API keys and personal data are encrypted at rest.
 
 ## 🎨 6. INTERFACES
-- **CLI v2.5**: Powerful command-line interface with high-fidelity ASCII art and 'visuals' command.
+- **CLI v2.5**: Powerful command-line interface with high-fidelity ASCII art, visuals command, and prompt assistant.
 - **TUI**: Beautiful terminal setup for server-side management.
 - **GUI**: Modern web dashboard for real-time monitoring and agent management.
 

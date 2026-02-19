@@ -56,3 +56,6 @@ nexa --visuals
 ---
 **NEXA BOT** was created by **Henry Calvin**.
 *Neural Orchestration for the Modern Age.*
+
+## 👑 About the Creator
+**Henry Calvin** is the visionary behind Nexa Bot, designing it as a complete autonomous ecosystem for digital maintenance, security, and intelligence orchestration.

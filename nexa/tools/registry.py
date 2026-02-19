@@ -70,7 +70,7 @@ class ToolRegistry:
         from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
-        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool
+        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
@@ -81,6 +81,7 @@ class ToolRegistry:
         from nexa.tools.visualizer import GenerateMockupsTool
         from nexa.tools.monitoring import SignalMonitorTool
         from nexa.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
+        from nexa.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
         from nexa.tools.evolution import SelfEvolutionTool
         from nexa.tools.chronos import ChronosBranchTool
         from nexa.tools.neural_graph import NeuralGraphTool
@@ -131,6 +132,9 @@ class ToolRegistry:
         self.register(FileRecoveryTool())
         self.register(SystemOptimizerTool())
         self.register(RegistryRepairTool())
+        self.register(DiskUsageAnalyzerTool())
+        self.register(BootRepairTool())
+        self.register(DriverManagerTool())
         self.register(DiskHealthTool())
         self.register(TextToSpeechTool())
         self.register(SpeechToTextTool())
@@ -151,6 +155,8 @@ class ToolRegistry:
         self.register(SignalMonitorTool())
         self.register(MemoryIndexingTool())
         self.register(MemorySearchTool())
+        self.register(TunnelManagerTool())
+        self.register(PeerDiscoveryTool())
         self.register(SelfEvolutionTool())
         self.register(ChronosBranchTool())
         self.register(NeuralGraphTool())
