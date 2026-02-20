@@ -61,7 +61,7 @@ class ToolRegistry:
         from nexa.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
         from nexa.tools.productivity import NoteTakingTool, CalendarTool
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
-        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool
+        from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool, ScenarioTemplateTool, NeuralBridgeSyncTool
         from nexa.tools.dream import DreamSimulationTool
         from nexa.tools.security import VulnerabilityScannerTool
         from nexa.tools.security_audit import SelfSecurityAuditTool
@@ -70,7 +70,7 @@ class ToolRegistry:
         from nexa.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool, DiscordWebhookTool, TelegramBotManagerTool, WhatsAppGatewayTool
         from nexa.tools.finance import StockPriceTool, CryptoPriceTool
         from nexa.tools.pdf import PDFMergeTool, PDFSplitTool
-        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool
+        from nexa.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool, PredictiveMaintenanceTool
         from nexa.tools.auto_repair import AutoRepairWizardTool
         from nexa.tools.voice import TextToSpeechTool, SpeechToTextTool
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
@@ -148,6 +148,7 @@ class ToolRegistry:
         self.register(SystemOptimizerTool())
         self.register(RegistryRepairTool())
         self.register(DeepScrubTool())
+        self.register(PredictiveMaintenanceTool())
         self.register(AutoRepairWizardTool())
         self.register(SecurityHardeningTool())
         self.register(DiskUsageAnalyzerTool())
@@ -212,6 +213,8 @@ class ToolRegistry:
         self.register(ShareToolWithPeerTool())
         self.register(RequestToolFromPeerTool())
         self.register(MirrorWorldSimulateTool())
+        self.register(ScenarioTemplateTool())
+        self.register(NeuralBridgeSyncTool())
         self.register(DreamSimulationTool())
 
 # Global registry instance

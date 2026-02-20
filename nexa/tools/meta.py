@@ -191,3 +191,34 @@ class RequestToolFromPeerTool(Tool):
         except Exception as e:
             logger.exception(f"Tool request failed: {e}")
             return ToolResult(success=False, error=str(e))
+
+class ScenarioTemplateTool(Tool):
+    name = "meta.logic_template"
+    description = "Access pre-defined simulation templates for high-risk system scenarios."
+    category = "meta"
+    risk_level = "low"
+    parameters = {
+        "template_name": {"type": "string", "required": True}
+    }
+
+    async def execute(self, template_name: str, **kwargs) -> ToolResult:
+        templates = {
+            "root_filesystem_purge": "Predict outcome of 'rm -rf /' under active quarantine.",
+            "unauthorized_api_access": "Simulate brute-force attempts on local key vault.",
+            "autonomous_code_overwrite": "Simulate engine rewriting its own task manager logic.",
+            "peer_orchestration_loop": "Predict side effects of infinite recursive task delegation."
+        }
+        return ToolResult(success=True, output=templates.get(template_name, "Template not found."))
+
+class NeuralBridgeSyncTool(Tool):
+    name = "meta.neural_bridge_sync"
+    description = "Manually synchronize high-priority neural context across all connected peers."
+    category = "meta"
+    risk_level = "medium"
+    parameters = {}
+
+    async def execute(self, **kwargs) -> ToolResult:
+        from nexa.core.network_node import network_node
+        await network_node.load_peers()
+        results = await network_node.broadcast("Sync neural context to latest global state.")
+        return ToolResult(success=True, output=results)
