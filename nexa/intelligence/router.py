@@ -362,6 +362,10 @@ class EnhancedLLMRouter:
         """
         Execute with intelligent routing and automatic switching
         """
+        # Aegis Protection for outgoing prompt (Privacy scrub)
+        if hasattr(self, 'aegis') and self.aegis:
+            prompt = await self.aegis.filter_response(prompt)
+
         # Update Aura based on input
         await self.aura_manager.update_aura_from_input(prompt)
         scaling = self.aura_manager.get_scaling_config()
@@ -395,6 +399,10 @@ class EnhancedLLMRouter:
 
         # 2. Try primary model (Mocking the call for now)
         response = await self._call_model(primary, prompt, **kwargs)
+
+        # Aegis Protection for response
+        if hasattr(self, 'aegis') and self.aegis:
+            response = await self.aegis.filter_response(response)
 
         # Check for refusal
         refusal = await self.refusal_detector.detect_refusal(response)
@@ -454,6 +462,10 @@ class EnhancedLLMRouter:
         exec_kwargs = kwargs.copy()
         exec_kwargs.pop('model', None)
         response = await self._call_model(alternative, prompt, **exec_kwargs)
+
+        # Aegis Protection for response
+        if hasattr(self, 'aegis') and self.aegis:
+            response = await self.aegis.filter_response(response)
 
         return {
             'success': True,

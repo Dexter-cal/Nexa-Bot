@@ -25,6 +25,7 @@ class SecurityGuardian:
         self.audit_log = []
         self.blockchain = AuditBlockchain()
         self.neural_sync = neural_sync
+        self.aegis = AegisContentFilter()
         self.quarantined_tools = set()
         self.immune_system_active = True
         try:
@@ -233,3 +234,41 @@ class KillSwitch:
     def trigger(self, level: int):
         self.level = self.Level(level)
         logger.warning(f"🚨 KILL SWITCH LEVEL {self.level.name} TRIGGERED!")
+
+class AegisContentFilter:
+    """
+    Zero-Trust Content Filter to prevent sensitive data leakage.
+    Ensures that secrets, Soul File contents, and protected file data
+    never leave the system via AI responses.
+    """
+    def __init__(self):
+        self.forbidden_patterns = [
+            r"vault_key",
+            r"soul_key",
+            r"master_password",
+            r"sk-[a-zA-Z0-9]{32,}", # Generic API key pattern
+            r"AIza[a-zA-Z0-9_-]{35}" # Google/Gemini key pattern
+        ]
+        self.protected_keywords = ["FERNET_KEY", "ENCRYPTED_SOUL"]
+
+    async def filter_response(self, response: str) -> str:
+        """Scan and redact sensitive info from AI response"""
+        import re
+
+        redacted = response
+        for pattern in self.forbidden_patterns:
+            redacted = re.sub(pattern, "[REDACTED SECRET]", redacted)
+
+        for keyword in self.protected_keywords:
+            if keyword in redacted:
+                redacted = redacted.replace(keyword, "[PROTECTED DATA]")
+
+        if redacted != response:
+            logger.warning("🛡️ AEGIS: Sensitive data leakage blocked in AI response.")
+
+        return redacted
+
+    async def is_file_protected(self, file_path: str) -> bool:
+        """Check if a file belongs to the zero-trust protected set"""
+        protected_paths = [".nexa/.key", ".nexa/.soul_key", ".nexa/config.enc", ".nexa/soul.enc"]
+        return any(p in file_path for p in protected_paths)

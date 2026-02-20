@@ -63,7 +63,10 @@ class ToolRegistry:
         from nexa.tools.network import PingTool, DNSLookupTool, PortScanTool
         from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool, ScenarioTemplateTool, NeuralBridgeSyncTool
         from nexa.tools.dream import DreamSimulationTool
-        from nexa.tools.security import VulnerabilityScannerTool
+        from nexa.tools.security import VulnerabilityScannerTool, DataLockdownTool
+        from nexa.tools.anonymity import StealthModeTool, MetadataScrubberTool
+        from nexa.tools.defense import HoneyPotTool, SystemIntegrityMonitorTool
+        from nexa.tools.intuition import SelfSecurityAuditTool as SelfAISecurityAuditTool, IntentPredictionTool
         from nexa.tools.security_audit import SelfSecurityAuditTool
         from nexa.tools.learning import ResearchTopicTool, FindAcademicPapersTool
         from nexa.tools.creative import StoryWriterTool, ImageGenTool
@@ -129,6 +132,13 @@ class ToolRegistry:
         self.register(PortScanTool())
         self.register(ToolGeneratorTool())
         self.register(VulnerabilityScannerTool())
+        self.register(DataLockdownTool())
+        self.register(StealthModeTool())
+        self.register(MetadataScrubberTool())
+        self.register(HoneyPotTool())
+        self.register(SystemIntegrityMonitorTool())
+        self.register(SelfAISecurityAuditTool())
+        self.register(IntentPredictionTool())
         self.register(SelfSecurityAuditTool())
         self.register(ResearchTopicTool())
         self.register(FindAcademicPapersTool())

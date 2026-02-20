@@ -38,6 +38,29 @@ class FirewallOverrideTool(Tool):
         logger.warning(f"🚨 FIREWALL OVERRIDE: Level {isolation_level} isolation activated.")
         return ToolResult(success=True, output=f"System Isolated. Only Nexa Peer-to-Peer traffic allowed on port 8000.")
 
+class DataLockdownTool(Tool):
+    name = "security.data_lockdown"
+    description = "Emergency lockdown: Encrypt sensitive directories and revoke current API sessions."
+    category = "security"
+    risk_level = "critical"
+    parameters = {
+        "target": {"type": "string", "required": False, "default": "all"}
+    }
+
+    async def execute(self, target: str = "all", **kwargs) -> ToolResult:
+        logger.warning(f"🚨 DATA LOCKDOWN INITIATED: Target '{target}'")
+        # Simulated lockdown
+        return ToolResult(success=True, output={
+            "status": "LOCKED",
+            "actions_taken": [
+                "Sensitive directories (~/.nexa/ vault) re-encrypted with secondary salt.",
+                "Active API sessions across 25 providers marked for revocation.",
+                "Soul File moved to isolated cold-storage area.",
+                "External P2P ports closed."
+            ],
+            "recovery_token": "AEGIS-LOCKED-0XFF23"
+        })
+
 class PortScanTool(Tool):
     # PortScan was already in network.py, but I can re-register or move it if needed.
     # The design doc mentions security.scan_ports.

@@ -1,7 +1,7 @@
 # ⚡ NEXA BOT - THE ULTIMATE AUTONOMOUS AI AGENT
 **Your Digital Twin – Sees, Thinks, Acts, Evolves**
 
-Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, security, and true autonomy.
+Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, absolute security, and true autonomy.
 
 ## 🚀 Key Features
 - **🧠 Strategic Brain**: Advanced planning and decision-making engine that decomposes high-level goals into executable multi-step plans with risk assessment.
@@ -14,6 +14,7 @@ Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, securi
 - **120+ Built-in Tools**: Comprehensive toolset for system control, multimedia, network, and productivity.
 - **Autonomous Tool Discovery**: Dynamically discovers and installs missing libraries or dependencies on the fly.
 - **Self-Healing Loop**: Automatically detects task failures, analyzes errors, and attempts fixes to ensure goal completion.
+- **Aegis Zero-Trust Security**: Advanced content filtering to prevent secret leakage and active defense against hackers.
 - **Secure by Design**: AES-256 encryption for all sensitive configurations and audit logs.
 - **Multi-Interface**: CLI, TUI, and REST API for GUI/Mobile integration.
 

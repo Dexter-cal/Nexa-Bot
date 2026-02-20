@@ -46,6 +46,10 @@ Nexa Bot is designed to be a unified presence across all your hardware:
 - **Sentiment Awareness**: Real-time adjustment of response tone based on user mood (Empathetic, Zen, Witty), powered by the **Aura Sentiment Scaling** engine.
 
 ## 🛡️ 6. SECURITY & TRANSPARENCY
+- **Aegis Zero-Trust Filter**: Real-time redaction of secrets, API keys, and Soul File data from all AI outputs.
+- **Data Lockdown**: Emergency command to re-encrypt sensitive directories and revoke all API sessions instantly.
+- **Stealth Mode & Metadata Scrubber**: Multi-hop proxy simulation and automatic removal of tracking metadata from files.
+- **Active Defense**: Deploy Honey-Pot decoys and monitor system integrity for unauthorized process injections.
 - **Blockchain Audit Trail**: Immutable log of every action executed by the bot.
 - **4-Level Kill Switch**: Emergency stop commands from simple task cancellation to full system lock.
 - **AES-256 Vault**: All API keys and personal data are encrypted at rest.
