@@ -76,6 +76,7 @@ class ToolRegistry:
         from nexa.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from nexa.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
         from nexa.tools.forensics import ForensicOSINTTool
+        from nexa.tools.forensics_v2 import BreachCheckTool, MalwarePersistenceScannerTool
         from nexa.tools.dev_tools import NeuralReviewTool, AutoDocTool
         from nexa.tools.spatial import SpatialIntelligenceTool
         from nexa.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
@@ -99,6 +100,8 @@ class ToolRegistry:
         from nexa.tools.swarm_evolution import EvolveSwarmTool
         from nexa.tools.soundscape import NeuralSoundscapeTool
         from nexa.tools.legendary_ext import LinodeDeployTool, HuggingFaceHubTool
+        from nexa.tools.legendary_forensics import SocialMediaLookupTool, DomainIntelligenceTool, DeepFileRecoveryTool, MemoryDumpAnalysisTool
+        from nexa.tools.document import DocumentParseTool, VisionAnalyzeAttachmentTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -163,6 +166,8 @@ class ToolRegistry:
         self.register(BluetoothManagerTool())
         self.register(WiFiManagerTool())
         self.register(ForensicOSINTTool())
+        self.register(BreachCheckTool())
+        self.register(MalwarePersistenceScannerTool())
         self.register(NeuralReviewTool())
         self.register(AutoDocTool())
         self.register(SpatialIntelligenceTool())
@@ -193,6 +198,12 @@ class ToolRegistry:
         self.register(NeuralSoundscapeTool())
         self.register(LinodeDeployTool())
         self.register(HuggingFaceHubTool())
+        self.register(SocialMediaLookupTool())
+        self.register(DomainIntelligenceTool())
+        self.register(DeepFileRecoveryTool())
+        self.register(MemoryDumpAnalysisTool())
+        self.register(DocumentParseTool())
+        self.register(VisionAnalyzeAttachmentTool())
         self.register(GenerateMockupsTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())

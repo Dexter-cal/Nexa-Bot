@@ -29,13 +29,29 @@ nexa
 This will launch the **Interactive Setup Wizard**.
 
 ## 🔑 Easy API Key Setup
-You can add API keys instantly through the CLI without entering a wizard:
+Setting up your AI models is simple. You can use the CLI, TUI, or the Web Dashboard.
+
+### Full API Key Directory
+For a complete list of 25+ supported providers and where to get their keys, see [KEYS.md](KEYS.md).
+
+### Example: Hugging Face (1000+ Models for FREE)
+1. Get your token from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens).
+2. Run this command:
+   ```bash
+   nexa --key huggingface hf_your_token_here
+   ```
+3. Done! Nexa will now use Hugging Face for research and technical tasks.
+
+### Quick Commands for Other Providers:
 ```bash
 nexa --key openai sk-123...
 nexa --key google AIza...
 nexa --key anthropic sk-ant...
 ```
-These keys are encrypted at rest using AES-256 in your local secure vault.
+*All keys are encrypted at rest using AES-256 in your local secure vault.*
+
+### Settings via UI
+You can also connect keys by navigating to the **Settings** tab in the Web Dashboard or by running the `nexa --setup` wizard.
 
 ## 🏠 Local LLM Support (Ollama)
 Nexa supports local execution for 100% privacy:

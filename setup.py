@@ -10,6 +10,7 @@ setup(
         "cryptography",
         "aiohttp",
         "python-dotenv",
+        "python-whois",
     ],
     entry_points={
         "console_scripts": [

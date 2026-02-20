@@ -264,8 +264,9 @@ class UniversalAPIKeyManager:
             for pattern in patterns:
                 key = os.getenv(pattern)
                 if key:
-                    detected[provider] = key
-                    break
+                    if provider not in detected: detected[provider] = []
+                    if key not in detected[provider]:
+                        detected[provider].append(key)
 
         # Check common config files (Mocked/Simplified)
         config_paths = [
@@ -290,9 +291,13 @@ class UniversalAPIKeyManager:
         try:
             stored = await self.vault.load_config()
             if 'api_keys' in stored:
-                for p, k in stored['api_keys'].items():
-                    if p not in detected:
-                        detected[p] = k
+                for p, keys in stored['api_keys'].items():
+                    if p not in detected: detected[p] = []
+                    if isinstance(keys, list):
+                        for k in keys:
+                            if k not in detected[p]: detected[p].append(k)
+                    else:
+                        if keys not in detected[p]: detected[p].append(keys)
         except: pass
 
         return detected

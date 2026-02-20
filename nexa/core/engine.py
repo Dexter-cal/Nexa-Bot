@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+from typing import List
 from nexa.core.task_manager import TaskManager
 from nexa.intelligence.router import EnhancedLLMRouter
 from nexa.core.security import SecurityGuardian
@@ -9,6 +11,7 @@ from nexa.interfaces.messaging import MessagingHub
 from nexa.memory.soul import SoulFile
 from nexa.memory.vector import VectorMemory, TimeCapsule
 from nexa.core.neural_sync import NeuralSync
+from nexa.interfaces.voice import VoiceCommandBridge
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +29,7 @@ class NexaEngine:
         self.neural_sync = NeuralSync()
         self.innovation = InnovationModule()
         self.messaging_hub = MessagingHub()
+        self.voice_bridge = VoiceCommandBridge(engine=self)
         self.background_tasks = []
         logger.info("Nexa Bot engine initialized")
 
@@ -93,6 +97,7 @@ class NexaEngine:
     async def stop(self, level: int = 0):
         """Stop Nexa Bot with optional level"""
         logger.info(f"Stopping Nexa Bot (Level {level})...")
+        self.voice_bridge.stop()
 
         if level == 1:
             # Level 1: Stop current task only
@@ -137,10 +142,31 @@ class NexaEngine:
 
         logger.info("Nexa Bot stopped")
 
-    async def execute_command(self, command: str):
+    async def execute_command(self, command: str, attachments: List[str] = None):
         """Execute a command and wait for result"""
         if not self.task_manager:
             await self.start()
+
+        # Handle attachments if any
+        attachment_context = ""
+        if attachments:
+            for path in attachments:
+                ext = os.path.splitext(path)[1].lower()
+                if ext in ['.pdf', '.docx', '.txt', '.py', '.md']:
+                    from nexa.tools.registry import registry
+                    tool = registry.get("document.parse")
+                    res = await tool.execute(path)
+                    if res.success:
+                        attachment_context += f"\n[ATTACHMENT: {path}]\n{res.output['content']}\n"
+                elif ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                    from nexa.tools.registry import registry
+                    tool = registry.get("vision.analyze_attachment")
+                    res = await tool.execute(path)
+                    if res.success:
+                        attachment_context += f"\n[IMAGE ANALYSIS: {path}]\n{res.output['analysis']}\n"
+
+        if attachment_context:
+            command = f"Context from attachments: {attachment_context}\n\nTask: {command}"
 
         # Load personalization
         config = await self.messaging_hub.bridges['telegram'].api_manager.vault.load_config() if hasattr(self.messaging_hub.bridges['telegram'], 'api_manager') else {}
@@ -151,15 +177,6 @@ class NexaEngine:
 
         user_name = config.get('user_name', 'User')
         nexa_name = config.get('nexa_name', 'Nexa')
-
-        # Sentiment-Aware adjustment
-        sentiment = self.llm_router.refusal_detector.analyze_sentiment(command)
-        if sentiment == "negative":
-            logger.info("Detected negative sentiment, activating Empathetic Aura.")
-            self.soul.set_aura("empathetic")
-        elif sentiment == "positive":
-            logger.info("Detected positive sentiment, activating Witty Aura.")
-            self.soul.set_aura("witty")
 
         # Custom Greeting logic
         if command.lower().strip() in ["hi", "hello", "hey"]:

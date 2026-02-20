@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 def setup():
-    print("🚀 NEXA BOT - AUTO-INSTALLER")
+    print("🚀 NEXA BOT v3.8 LEGENDARY - AUTO-INSTALLER")
     print("----------------------------")
 
     # 1. Check Python version

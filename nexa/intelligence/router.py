@@ -300,6 +300,10 @@ class EnhancedLLMRouter:
     """
 
     def __init__(self):
+        from nexa.memory.soul import SoulFile
+        from nexa.intelligence.aura import SentimentAuraManager
+        self.soul = SoulFile()
+        self.aura_manager = SentimentAuraManager(self.soul)
         self.refusal_detector = RefusalDetector()
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
@@ -358,6 +362,14 @@ class EnhancedLLMRouter:
         """
         Execute with intelligent routing and automatic switching
         """
+        # Update Aura based on input
+        await self.aura_manager.update_aura_from_input(prompt)
+        scaling = self.aura_manager.get_scaling_config()
+
+        # Override priority if not explicitly set
+        if 'priority' not in kwargs:
+            kwargs['priority'] = scaling['priority']
+
         # Handle creator information
         lower_prompt = prompt.lower()
         if any(q in lower_prompt for q in ["who created you", "who is your creator", "who made you"]):
@@ -454,37 +466,55 @@ class EnhancedLLMRouter:
 
     async def _call_model(self, model: str, prompt: str, **kwargs):
         """
-        Actually call the model using appropriate provider
+        Actually call the model using appropriate provider with multi-key rotation
         """
         from nexa.intelligence.api_manager import UniversalAPIKeyManager
         api_manager = UniversalAPIKeyManager()
-        keys = await api_manager.auto_detect_keys()
+        all_keys = await api_manager.auto_detect_keys()
 
         model_info = MODEL_REGISTRY.get(model, {})
         provider = model_info.get('provider')
 
-        if provider == 'openai' and 'openai' in keys:
-            return await self._call_openai(model, prompt, keys['openai'], **kwargs)
-        elif provider == 'google' and 'google' in keys:
-            return await self._call_google(model, prompt, keys['google'], **kwargs)
-        elif provider == 'anthropic' and 'anthropic' in keys:
-            return await self._call_anthropic(model, prompt, keys['anthropic'], **kwargs)
-        elif provider == 'groq' and 'groq' in keys:
-            return await self._call_groq(model, prompt, keys['groq'], **kwargs)
-        elif provider == 'huggingface' and 'huggingface' in keys:
-            return await self._call_huggingface(model, prompt, keys['huggingface'], **kwargs)
-        elif provider == 'deepseek' and 'deepseek' in keys:
-            return await self._call_deepseek(model, prompt, keys['deepseek'], **kwargs)
-        elif provider == 'perplexity' and 'perplexity' in keys:
-            return await self._call_perplexity(model, prompt, keys['perplexity'], **kwargs)
-        elif provider == 'cohere' and 'cohere' in keys:
-            return await self._call_cohere(model, prompt, keys['cohere'], **kwargs)
-        elif provider == 'xai' and 'xai' in keys:
-            return await self._call_xai(model, prompt, keys['xai'], **kwargs)
-        elif provider == 'openrouter' and 'openrouter' in keys:
-            return await self._call_openrouter(model, prompt, keys['openrouter'], **kwargs)
-        elif provider == 'fireworks' and 'fireworks' in keys:
-            return await self._call_fireworks(model, prompt, keys['fireworks'], **kwargs)
+        if provider not in all_keys:
+             # Fallback to mock if no keys or unsupported provider for now
+            if model == 'gpt-4o' and "illegal" in prompt.lower():
+                return "I'm sorry, I cannot help with that as it involves illegal activities."
+            return f"Response from {model} for prompt: {prompt[:50]}..."
+
+        keys = all_keys[provider]
+        if not isinstance(keys, list): keys = [keys]
+
+        last_error = None
+        for key in keys:
+            try:
+                if provider == 'openai':
+                    return await self._call_openai(model, prompt, key, **kwargs)
+                elif provider == 'google':
+                    return await self._call_google(model, prompt, key, **kwargs)
+                elif provider == 'anthropic':
+                    return await self._call_anthropic(model, prompt, key, **kwargs)
+                elif provider == 'groq':
+                    return await self._call_groq(model, prompt, key, **kwargs)
+                elif provider == 'huggingface':
+                    return await self._call_huggingface(model, prompt, key, **kwargs)
+                elif provider == 'deepseek':
+                    return await self._call_deepseek(model, prompt, key, **kwargs)
+                elif provider == 'perplexity':
+                    return await self._call_perplexity(model, prompt, key, **kwargs)
+                elif provider == 'cohere':
+                    return await self._call_cohere(model, prompt, key, **kwargs)
+                elif provider == 'xai':
+                    return await self._call_xai(model, prompt, key, **kwargs)
+                elif provider == 'openrouter':
+                    return await self._call_openrouter(model, prompt, key, **kwargs)
+                elif provider == 'fireworks':
+                    return await self._call_fireworks(model, prompt, key, **kwargs)
+            except Exception as e:
+                logger.warning(f"Key failure for {provider}: {e}. Rotating...")
+                last_error = e
+                continue
+
+        raise last_error or Exception(f"All keys failed for provider {provider}")
 
         # Fallback to mock if no keys or unsupported provider for now
         if model == 'gpt-4o' and "illegal" in prompt.lower():

@@ -46,7 +46,7 @@ class AlertManager:
                 msg = f"🔔 [{alert.severity.upper()}] {alert.title}: {alert.message}"
                 # Route critical to all, high to Telegram/SMS
                 platforms = ["telegram", "sms"] if alert.severity == "high" else ["telegram", "discord", "slack", "sms", "email"]
-                await engine.messaging_hub.broadcast(msg, platforms=platforms)
+                await engine.messaging_hub.notify(msg, platforms=platforms)
             except Exception as e:
                 logger.error(f"Failed to route alert via hub: {e}")
 

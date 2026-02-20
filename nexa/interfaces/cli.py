@@ -15,6 +15,9 @@ async def async_main():
     parser.add_argument("--visuals", action="store_true", help="Display visual mockups of Nexa interfaces")
     parser.add_argument("--quick-setup", action="store_true", help="Fast-track setup with automatic defaults")
     parser.add_argument("--key", nargs=2, metavar=('PROVIDER', 'VALUE'), help="Quickly set an API key (e.g. --key openai sk-...)")
+    parser.add_argument("--connect", nargs=3, metavar=('NAME', 'URL', 'KEY'), help="Connect to another Nexa instance")
+    parser.add_argument("--peers", action="store_true", help="List all connected Nexa peers")
+    parser.add_argument("--voice", action="store_true", help="Activate hands-free voice command bridge")
 
     args = parser.parse_args()
 
@@ -25,6 +28,23 @@ async def async_main():
         await run_quick_setup()
     elif args.key:
         await set_api_key(args.key[0], args.key[1])
+    elif args.connect:
+        from nexa.core.network_node import network_node
+        await network_node.add_peer(args.connect[0], args.connect[1], args.connect[2])
+        print(f"✓ Successfully connected to peer '{args.connect[0]}'")
+    elif args.peers:
+        from nexa.core.network_node import network_node
+        await network_node.load_peers()
+        if not network_node.peers:
+            print("No peers connected.")
+        else:
+            print("\nConnected Nexa Peers:")
+            for p in network_node.peers:
+                print(f" • {p['name']} ({p['url']}) - Status: {p['status']}")
+    elif args.voice:
+        print("🎙️ Activating Voice Command Bridge... (Say 'Nexa' to trigger)")
+        await engine.start()
+        await engine.voice_bridge.start_listening_loop()
     elif args.visuals:
         from nexa.tools.visualizer import GenerateMockupsTool
         tool = GenerateMockupsTool()

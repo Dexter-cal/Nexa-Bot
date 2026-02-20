@@ -20,6 +20,15 @@ class AgentSpawner:
         self.resource_manager = AgentResourceManager(self)
 
     async def spawn_agent(self, role: str, task: Dict[str, Any], mode: str = 'assistive') -> Agent:
+        # Aura-Driven Auto-Scaling
+        from nexa.core.engine import engine
+        aura = engine.soul.data.get('current_aura', 'professional')
+
+        # Adjust spawning priority or capacity based on aura
+        if aura == "aggressive":
+             # In aggressive mode, we might allow bypassing some soft limits or prioritize resources
+             logger.info("Aggressive Aura detected: Prioritizing agent spawning.")
+
         if not await self.resource_manager.can_spawn():
             logger.warning("Resource limits reached. Cannot spawn more agents.")
             raise RuntimeError("Agent limit reached or insufficient resources")
@@ -35,7 +44,7 @@ class AgentSpawner:
 
         return agent
 
-    async def spawn_multiple(self, role_task_pairs: List[tuple]) -> List[Agent]:
+    async def spawn_multiple(self, role_task_pairs: List[Any]) -> List[Agent]:
         agents = []
         for role, task in role_task_pairs:
             agent = await self.spawn_agent(role, task)
@@ -50,10 +59,9 @@ class AgentSpawner:
 
     async def spawn_swarm(self, goal: str, count: int = 5) -> List[Agent]:
         """Spawn a swarm of agents to achieve a goal"""
-        from nexa.orchestration.swarm import SwarmCoordinator
 
         # Decompose goal into subtasks (mocked for now)
-        subtasks = [{"description": f"Subtask {i} for goal: {goal}"} for i in range(count)]
+        subtasks = [{"description": f"Subtask {idx} for goal: {goal}"} for idx in range(count)]
 
         agents = []
         for subtask in subtasks:

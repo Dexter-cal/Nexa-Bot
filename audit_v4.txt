@@ -1,0 +1,16 @@
+File: nexa/orchestration/spawner.py
+  - Undefined Name: tuple
+File: nexa/interfaces/cli.py
+  - Undefined Name: start_chat_loop
+  - Undefined Name: run_quick_setup
+  - Undefined Name: set_api_key
+File: nexa/intelligence/detector.py
+  - Undefined Name: x
+File: nexa/intelligence/router.py
+  - Undefined Name: x
+File: nexa/tools/chronos.py
+  - Undefined Name: x
+File: nexa/tools/maint.py
+  - Undefined Name: x
+File: nexa/memory/vector.py
+  - Undefined Name: x

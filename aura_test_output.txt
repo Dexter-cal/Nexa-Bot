@@ -1,0 +1,22 @@
+INFO:nexa.memory.soul:Soul File loaded successfully.
+INFO:nexa.memory.soul:Soul File loaded successfully.
+INFO:nexa.intelligence.aura:Aura shift detected: witty -> professional
+INFO:nexa.memory.soul:Soul File saved securely.
+INFO:nexa.intelligence.aura:Aura shift detected: professional -> aggressive
+INFO:nexa.memory.soul:Soul File saved securely.
+INFO:nexa.intelligence.aura:Aura shift detected: aggressive -> empathetic
+INFO:nexa.memory.soul:Soul File saved securely.
+INFO:nexa.intelligence.aura:Aura shift detected: empathetic -> witty
+INFO:nexa.memory.soul:Soul File saved securely.
+
+--- Test 1: Neutral ---
+Current Aura: witty
+
+--- Test 2: Urgent ---
+Current Aura: witty
+
+--- Test 3: Stressed ---
+Current Aura: witty
+
+--- Test 4: Funny ---
+Current Aura: witty

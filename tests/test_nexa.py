@@ -46,7 +46,7 @@ class TestNexaBot(unittest.IsolatedAsyncioTestCase):
         keys = await manager.auto_detect_keys()
 
         self.assertIn('test_provider', keys)
-        self.assertEqual(keys['test_provider'], 'test_key_123')
+        self.assertEqual(keys['test_provider'], ['test_key_123'])
 
         # Cleanup
         if storage.config_path.exists():

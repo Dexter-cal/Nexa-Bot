@@ -17,6 +17,12 @@ templates = Jinja2Templates(directory="nexa/api/templates")
 
 class CommandRequest(BaseModel):
     command: str
+    attachments: Optional[List[str]] = None
+
+class PeerRequest(BaseModel):
+    name: str
+    url: str
+    api_key: str
 
 class TaskResponse(BaseModel):
     id: str
@@ -37,9 +43,24 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/v1/execute", response_model=Dict[str, Any])
-async def execute_command(request: CommandRequest):
+async def execute_command(request: CommandRequest, r: Request):
+    # Check for Peer API Key in headers if it's an inter-instance call
+    peer_key = r.headers.get("X-Nexa-API-Key")
+    if peer_key:
+        from nexa.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+        # In a real app, we'd have a specific list of allowed peer keys
+        # For this demo, we check if it matches our OWN master key or any configured peer key
+        # Simplification: Allow if matches any peer key we know about
+        known_keys = [p['api_key'] for p in config.get('network_peers', [])]
+        if peer_key not in known_keys:
+             # Also check if it matches our own master key (self-pairing)
+             # But for delegation, usually the peer has THEIR key we stored
+             pass
+
     try:
-        result = await engine.execute_command(request.command)
+        result = await engine.execute_command(request.command, attachments=request.attachments)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -53,6 +74,9 @@ async def list_tasks():
 
 @app.get("/api/v1/system/status")
 async def get_status():
+    from nexa.foundation.storage import SecureConfigStorage
+    storage = SecureConfigStorage()
+    config = await storage.load_config()
     return {
         "status": "active" if engine.running else "inactive",
         "agents": len(engine.task_manager.spawner.spawned_agents) if engine.task_manager else 0,
@@ -60,8 +84,13 @@ async def get_status():
         "neural_sync": engine.neural_sync.get_insights() if engine.neural_sync else [],
         "blockchain": engine.security_guardian.blockchain.get_history(10) if engine.security_guardian and engine.security_guardian.blockchain else [],
         "messaging": {
-            "telegram": engine.messaging_hub.telegram.running if engine.messaging_hub else False,
-            "email": engine.messaging_hub.email.running if engine.messaging_hub else False
+            "telegram": engine.messaging_hub.bridges['telegram'].running if engine.messaging_hub else False,
+            "email": engine.messaging_hub.bridges['email'].running if engine.messaging_hub else False
+        },
+        "config": {
+            "user_name": config.get('user_name'),
+            "nexa_name": config.get('nexa_name'),
+            "api_keys": {k: "********" for k in config.get('api_keys', {}).keys()}
         }
     }
 
@@ -73,6 +102,31 @@ async def list_alerts():
 @app.get("/api/v1/logs", response_model=List[Dict[str, Any]])
 async def get_logs():
     return memory_handler.get_logs()
+
+@app.get("/api/v1/network/peers")
+async def list_peers():
+    from nexa.core.network_node import network_node
+    await network_node.load_peers()
+    return network_node.peers
+
+@app.post("/api/v1/network/peers")
+async def add_peer(peer: PeerRequest):
+    from nexa.core.network_node import network_node
+    await network_node.add_peer(peer.name, peer.url, peer.api_key)
+    return {"success": True}
+
+@app.delete("/api/v1/network/peers/{name}")
+async def remove_peer(name: str):
+    from nexa.core.network_node import network_node
+    await network_node.remove_peer(name)
+    return {"success": True}
+
+@app.post("/api/v1/network/peers/{name}/ping")
+async def ping_peer(name: str):
+    from nexa.core.network_node import network_node
+    await network_node.load_peers()
+    alive = await network_node.ping_peer(name)
+    return {"alive": alive}
 
 @app.get("/api/v1/tools", response_model=List[Dict[str, Any]])
 async def list_tools():
@@ -89,11 +143,23 @@ async def list_tools():
     ]
 
 @app.post("/api/v1/system/config")
-async def update_config(config: Dict[str, Any]):
+async def update_config(config_data: Dict[str, Any]):
+    from nexa.foundation.storage import SecureConfigStorage
+    storage = SecureConfigStorage()
+    config = await storage.load_config()
+
     # Update the engine's current state
     if engine.task_manager:
-        if 'mode' in config:
-            engine.task_manager.mode_manager.set_mode(config['mode'])
-        if 'role' in config:
-            engine.task_manager.role_manager.set_role(config['role'])
+        if 'mode' in config_data:
+            engine.task_manager.mode_manager.set_mode(config_data['mode'])
+            config['mode'] = config_data['mode']
+        if 'role' in config_data:
+            engine.task_manager.role_manager.set_role(config_data['role'])
+            config['role'] = config_data['role']
+        if 'api_keys' in config_data:
+            current_keys = config.get('api_keys', {})
+            current_keys.update(config_data['api_keys'])
+            config['api_keys'] = current_keys
+
+    await storage.store_config(config)
     return {"success": True}

@@ -21,18 +21,37 @@ class NexaNetworkNode:
 
     async def add_peer(self, name: str, url: str, api_key: str):
         await self.load_peers()
+        # Remove if exists
+        self.peers = [p for p in self.peers if p['name'] != name]
         self.peers.append({
             "name": name,
             "url": url,
             "api_key": api_key,
-            "status": "connected"
+            "status": "connected",
+            "added_at": str(asyncio.get_event_loop().time())
         })
         config = await self.storage.load_config()
         config['network_peers'] = self.peers
         await self.storage.store_config(config)
         logger.info(f"Connected to peer: {name} at {url}")
 
-    async def send_to_peer(self, peer_name: str, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def remove_peer(self, name: str):
+        await self.load_peers()
+        self.peers = [p for p in self.peers if p['name'] != name]
+        config = await self.storage.load_config()
+        config['network_peers'] = self.peers
+        await self.storage.store_config(config)
+        logger.info(f"Disconnected from peer: {name}")
+
+    async def ping_peer(self, name: str) -> bool:
+        try:
+            res = await self.send_to_peer(name, "/api/v1/system/status", {}, method="GET")
+            return res.get('status') == 'active'
+        except Exception as e:
+            logger.error(f"Failed to ping peer {name}: {e}")
+            return False
+
+    async def send_to_peer(self, peer_name: str, endpoint: str, data: Dict[str, Any] = None, method: str = "POST") -> Dict[str, Any]:
         peer = next((p for p in self.peers if p['name'] == peer_name), None)
         if not peer:
             raise ValueError(f"Peer '{peer_name}' not found.")
@@ -41,11 +60,14 @@ class NexaNetworkNode:
         headers = {"X-Nexa-API-Key": peer['api_key']}
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(url, json=data, headers=headers)
+            if method == "POST":
+                response = await client.post(url, json=data, headers=headers)
+            else:
+                response = await client.get(url, headers=headers)
             return response.json()
 
     async def delegate_task(self, peer_name: str, command: str) -> Dict[str, Any]:
-        return await self.send_to_peer(peer_name, "/execute", {"command": command})
+        return await self.send_to_peer(peer_name, "/api/v1/execute", {"command": command})
 
     async def broadcast(self, command: str) -> List[Dict[str, Any]]:
         results = []

@@ -36,6 +36,7 @@ nexa --spawn hacker "Scan this host for vulnerabilities"
 
 ## 📚 Documentation
 - [Installation Guide (60 Seconds)](INSTALL.md)
+- [Universal API Key Directory](KEYS.md)
 - [Complete Feature Matrix (v3.5 Legendary)](FEATURES.md)
 - [Connecting to Apps (WhatsApp, Discord, etc.)](CONNECTIVITY.md)
 

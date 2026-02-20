@@ -6,7 +6,7 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Strategic Brain**: Decomposes complex goals into multi-step executable plans with risk assessment.
 - **Quantum Router**: Dynamic multi-model consensus that weights responses from HuggingFace, Gemini, and local Ollama for the most accurate results.
 - **AI Council**: Multi-model consensus for high-risk decisions.
-- **Enhanced LLM Router**: Intelligent switching between 15+ providers based on cost, speed, and quality.
+- **Enhanced LLM Router**: Intelligent switching between 25+ providers based on cost, speed, and quality, with **Multi-Key Rotation** and load balancing.
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
 - **Aura Persona Switching**: Nexa dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
 - **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
@@ -14,9 +14,10 @@ Nexa Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Zero-Friction Bootstrap**: A single-file `nexa_run.py` that handles complete system setup in seconds.
 
 ## 🛠️ 2. THE TOOL BELT (180+ Tools)
-- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and **Security Hardening**.
+- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, **Forensic Deep Sector Recovery**, **RAM Memory Analysis**, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and **Security Hardening**.
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok), and **QR Sync** for instant device pairing.
-- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, **Deep OSINT**, HuggingFace Hub integration.
+- **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, **Deep OSINT**, **Social Media Username Lookup**, **Domain Intelligence**, HuggingFace Hub integration.
+- **Document Intelligence**: Deep parsing of PDF, Word, and text files, and integrated **Neural Vision** for analyzing image attachments.
 - **Social Media**: Discord webhooks, Telegram bot management, WhatsApp gateways, Twitter posting, trending hashtag generation.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management, and **Unified IoT Control**.
@@ -42,7 +43,7 @@ Nexa Bot is designed to be a unified presence across all your hardware:
 ## 💾 5. MEMORY & IDENTITY
 - **The Soul File**: Encrypted Digital Twin containing user preferences, personality, and history.
 - **Deep Memory (RAG)**: Enhanced vector memory with directory indexing, allowing Nexa to 'remember' and search local file contexts.
-- **Sentiment Awareness**: Real-time adjustment of response tone based on user mood (Empathetic, Zen, Witty).
+- **Sentiment Awareness**: Real-time adjustment of response tone based on user mood (Empathetic, Zen, Witty), powered by the **Aura Sentiment Scaling** engine.
 
 ## 🛡️ 6. SECURITY & TRANSPARENCY
 - **Blockchain Audit Trail**: Immutable log of every action executed by the bot.
@@ -51,9 +52,9 @@ Nexa Bot is designed to be a unified presence across all your hardware:
 - **Biometric Guard**: Simulated multi-factor authentication for critical system actions.
 
 ## 🎨 7. INTERFACES
-- **CLI v3.5**: Powerful command-line interface with high-fidelity ASCII art, visuals command, and prompt assistant.
+- **CLI v3.8**: Powerful command-line interface with high-fidelity ASCII art, visuals command, prompt assistant, and **Hands-free Voice Bridge**.
 - **TUI**: Beautiful terminal setup for server-side management.
-- **GUI**: Modern web dashboard for real-time monitoring and agent management.
+- **GUI**: Modern web dashboard featuring a dedicated **Instance Network** manager and context-aware file attachments.
 
 ---
 ## 👑 CREATOR

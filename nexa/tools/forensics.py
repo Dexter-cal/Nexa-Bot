@@ -1,6 +1,9 @@
 import aiohttp
 import socket
-import whois
+try:
+    import whois
+except ImportError:
+    whois = None
 from nexa.tools.base import Tool, ToolResult
 from typing import Dict, Any, List
 
@@ -19,7 +22,13 @@ class ForensicOSINTTool(Tool):
             ip = socket.gethostbyname(target)
 
             # 2. Whois
-            w = whois.whois(target)
+            if whois:
+                w = whois.whois(target)
+                registrar = w.registrar
+                creation_date = str(w.creation_date)
+            else:
+                registrar = "N/A (whois library missing)"
+                creation_date = "N/A"
 
             # 3. Simulate certificate transparency check
             cert_data = {"status": "valid", "issuer": "Let's Encrypt", "expiry": "2025-12-31"}
@@ -27,8 +36,8 @@ class ForensicOSINTTool(Tool):
             return ToolResult(success=True, output={
                 "target": target,
                 "ip": ip,
-                "registrar": w.registrar,
-                "creation_date": str(w.creation_date),
+                "registrar": registrar,
+                "creation_date": creation_date,
                 "cert_info": cert_data
             })
         except Exception as e:

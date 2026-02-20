@@ -27,7 +27,10 @@ class SecurityGuardian:
         self.neural_sync = neural_sync
         self.quarantined_tools = set()
         self.immune_system_active = True
-        asyncio.create_task(self._immune_system_loop())
+        try:
+            asyncio.create_task(self._immune_system_loop())
+        except RuntimeError:
+            logger.warning("No event loop running. AI Immune System background task not started in constructor.")
 
     async def _immune_system_loop(self):
         """AI Immune System: Periodically audit autonomous tool behavior"""

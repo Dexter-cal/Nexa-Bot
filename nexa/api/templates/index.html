@@ -98,6 +98,14 @@
                 <i class="fas fa-terminal w-5"></i>
                 <span class="text-sm font-medium">System Console</span>
             </a>
+            <a href="#" onclick="switchTab('instances')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-network-wired w-5"></i>
+                <span class="text-sm font-medium">Instances</span>
+            </a>
+            <a href="#" onclick="switchTab('settings')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-cog w-5"></i>
+                <span class="text-sm font-medium">Settings</span>
+            </a>
 
             <div class="px-6 mt-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Configuration</div>
 
@@ -267,6 +275,59 @@
                 </div>
             </div>
 
+            <!-- Instances Tab -->
+            <div id="tab-instances" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center justify-between mb-12">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                                <i class="fas fa-network-wired text-emerald-500 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Instance Network</h2>
+                                <p class="text-slate-400 text-sm">Connect and manage multiple Nexa instances.</p>
+                            </div>
+                        </div>
+                        <button onclick="showAddPeerModal()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-plus mr-2"></i> CONNECT INSTANCE
+                        </button>
+                    </div>
+
+                    <div id="peers-list" class="grid grid-cols-1 gap-4">
+                        <!-- Peers injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                            <i class="fas fa-cog text-indigo-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">System Settings</h2>
+                            <p class="text-slate-400 text-sm">Configure your AI providers and API keys securely.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-8 rounded-3xl space-y-8">
+                        <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400">AI Model Providers</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="api-settings-list">
+                            <!-- Injected via JS -->
+                        </div>
+
+                        <div class="pt-8 border-t border-white/5 flex justify-end">
+                            <button id="save-settings-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold transition-all">
+                                SAVE ALL SETTINGS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Toolbox Tab -->
             <div id="tab-tools" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
                 <div class="max-w-6xl mx-auto">
@@ -361,11 +422,14 @@
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : tabId.charAt(0).toUpperCase() + tabId.slice(1)));
+            const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1))));
             if (clickedItem) clickedItem.classList.add('active');
 
-            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry' };
+            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network' };
             document.getElementById('tab-title').innerText = titles[tabId];
+
+            if (tabId === 'settings') loadSettings();
+            if (tabId === 'instances') loadPeers();
         }
 
         // Sidebar Toggling
@@ -407,13 +471,20 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        let selectedFiles = [];
+
         executeBtn.onclick = async () => {
             const command = commandInput.value.trim();
-            if (!command) return;
+            if (!command && selectedFiles.length === 0) return;
 
-            addMessage(command, 'user');
+            addMessage(command + (selectedFiles.length > 0 ? ` [Attached: ${selectedFiles.join(', ')}]` : ''), 'user');
+            const attachments = [...selectedFiles];
+
             commandInput.value = '';
             commandInput.style.height = '';
+            selectedFiles = [];
+            updateAttachmentUI();
+
             executeBtn.disabled = true;
             executeBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
 
@@ -421,7 +492,7 @@
                 const response = await fetch('/api/v1/execute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command })
+                    body: JSON.stringify({ command, attachments })
                 });
                 const result = await response.json();
 
@@ -549,6 +620,119 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'INITIALIZE SIMULATION';
+            }
+        };
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/v1/system/status');
+                const data = await response.json();
+                const apiKeys = data.config.api_keys || {};
+
+                const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'jina', 'telegram', 'twilio'];
+
+                document.getElementById('api-settings-list').innerHTML = providers.map(p => `
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-400 capitalize">${p.replace('_', ' ')} Keys (comma separated)</label>
+                        <input type="password" id="key-${p}" value="${Array.isArray(apiKeys[p]) ? apiKeys[p].join(',') : (apiKeys[p] || '')}"
+                            class="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="Enter ${p} API Keys">
+                    </div>
+                `).join('');
+            } catch(err) {}
+        }
+
+        document.getElementById('save-settings-btn').onclick = async () => {
+            const keys = {};
+            const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'jina', 'telegram', 'twilio'];
+
+            providers.forEach(p => {
+                const el = document.getElementById(`key-${p}`);
+                if (el) {
+                    const val = el.value.trim();
+                    if (val) {
+                        if (val.includes(',')) {
+                            keys[p] = val.split(',').map(k => k.trim());
+                        } else {
+                            keys[p] = [val];
+                        }
+                    }
+                }
+            });
+
+            try {
+                const response = await fetch('/api/v1/system/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_keys: keys })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert("Settings saved securely.");
+                }
+            } catch (err) {
+                alert("Failed to save settings.");
+            }
+        };
+
+        async function loadPeers() {
+            try {
+                const response = await fetch('/api/v1/network/peers');
+                const peers = await response.json();
+                document.getElementById('peers-list').innerHTML = peers.map(p => `
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-server text-slate-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm">${p.name}</h4>
+                                <p class="text-xs text-slate-500">${p.url}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] rounded uppercase font-bold">${p.status}</span>
+                            <button onclick="removePeer('${p.name}')" class="text-slate-500 hover:text-red-400 transition-all text-xs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="text-center py-12 text-slate-500 text-sm">No instances connected yet.</div>';
+            } catch (err) {}
+        }
+
+        async function removePeer(name) {
+            if (confirm(`Disconnect from ${name}?`)) {
+                await fetch(`/api/v1/network/peers/${name}`, { method: 'DELETE' });
+                loadPeers();
+            }
+        }
+
+        function showAddPeerModal() {
+            const name = prompt("Instance Name:");
+            const url = prompt("Instance URL (e.g. http://localhost:8001):");
+            const key = prompt("API Key:");
+            if (name && url && key) {
+                fetch('/api/v1/network/peers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, url, api_key: key })
+                }).then(() => loadPeers());
+            }
+        }
+
+        function updateAttachmentUI() {
+            // Simplified: just log for now, in real UI we'd show badges
+            console.log("Selected files:", selectedFiles);
+        }
+
+        // Mock file attachment
+        document.querySelector('button[title="Attach File"]').onclick = () => {
+            const path = prompt("Enter file path to attach:");
+            if (path) {
+                selectedFiles.push(path);
+                updateAttachmentUI();
+                alert(`Attached: ${path}`);
             }
         };
 
