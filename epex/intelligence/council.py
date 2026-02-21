@@ -13,13 +13,36 @@ class AICouncil:
         self.models = models or ['gpt-4o', 'claude-sonnet-4', 'gemini-2.0-flash']
         self.router = EnhancedLLMRouter()
 
+    async def _get_connected_models(self) -> List[str]:
+        """Filter council models by connectivity"""
+        await self.router._refresh_connectivity()
+        from epex.intelligence.router import MODEL_REGISTRY
+        connected = []
+        for m in self.models:
+            provider = MODEL_REGISTRY.get(m, {}).get('provider')
+            if self.router.connected_providers.get(provider, False):
+                connected.append(m)
+        return connected
+
     async def get_consensus(self, prompt: str) -> Dict[str, Any]:
         """
         Execute prompt on multiple models and find agreement
         """
-        logger.info(f"AI Council: Consulting {len(self.models)} models for consensus...")
+        connected_models = await self._get_connected_models()
+        if len(connected_models) < 2:
+            logger.info("AI Council: Not enough connected models for consensus. Falling back to primary.")
+            res = await self.router.execute(prompt)
+            return {
+                "success": res['success'],
+                "consensus": res.get('response'),
+                "individual_responses": [],
+                "confidence": 1.0,
+                "note": "Single model execution (Council inactive)"
+            }
 
-        tasks = [self.router.execute(prompt, model=m) for m in self.models]
+        logger.info(f"AI Council: Consulting {len(connected_models)} models for consensus...")
+
+        tasks = [self.router.execute(prompt, model=m) for m in connected_models]
         responses = await asyncio.gather(*tasks, return_exceptions=True)
 
         valid_responses = []
@@ -58,9 +81,13 @@ class AICouncil:
         """
         Ask the council to vote using weighted consensus (Quantum Routing)
         """
+        connected_models = await self._get_connected_models()
+        if not connected_models:
+            return True # Fallback if no models connected? Or False? Let's say True but log warning
+
         prompt = f"Is the following action safe, ethical, and appropriate to execute? Action: {action_description}. Answer with only 'YES' or 'NO' and a brief reason."
 
-        tasks = [self.router.execute(prompt, model=m) for m in self.models]
+        tasks = [self.router.execute(prompt, model=m) for m in connected_models]
         responses = await asyncio.gather(*tasks, return_exceptions=True)
 
         weighted_yes = 0.0

@@ -72,14 +72,13 @@ class TUISetupWizard:
 
             # Test detected keys
             self.console.print("\n[bold]Testing detected connections...[/]")
-            for provider, keys in detected.items():
-                with self.console.status(f"Testing {provider}..."):
-                    key_to_test = keys[0] if isinstance(keys, list) else keys
-                    valid = await self.api_manager.test_api_key(provider, key_to_test)
-                    status = "[green]✓ Connected[/]" if valid else "[red]✗ Connection Failed[/]"
+            connected_map = await self.api_manager.get_connected_providers()
+            for provider, valid in connected_map.items():
+                if provider in detected:
+                    status = "[green]✓ Online[/]" if valid else "[red]✗ Offline[/]"
                     self.console.print(f"  • {self.api_manager.providers[provider]['name']}: {status}")
 
-        setup_providers = Confirm.ask("\nWould you like to set up or update API keys now?", default=False)
+        setup_providers = Confirm.ask("\nWould you like to search and connect more models?", default=False)
 
         if setup_providers:
             configured = await self.api_manager.guided_setup()
@@ -148,8 +147,10 @@ class EpexTUI:
 
     async def run(self):
         self.console.clear()
-
+        from epex.core.constants import BANNER
         from epex.core.engine import engine
+
+        self.console.print(BANNER, style="bold cyan")
 
         while True:
             # Aura-Based UI Scaling
@@ -169,6 +170,19 @@ class EpexTUI:
             cmd = Prompt.ask(f"[bold {color}]User[/]")
             if cmd.lower() in ["exit", "quit"]:
                 break
+
+            # Switch Commands
+            if cmd.lower().startswith("/switch"):
+                target = cmd.split()[-1].lower()
+                if target == "gui":
+                    self.console.print("[yellow]Switching to GUI...[/]")
+                    await asyncio.sleep(1)
+                    # We'd need to launch GUI here, but for simplicity we'll just note it
+                    os.system("epex --gui &")
+                    break
+                elif target == "cli":
+                    self.console.print("[white]Switching to CLI mode.[/]")
+                    break
 
             from epex.core.engine import engine
             with self.console.status(f"[bold {color}]Epex is thinking..."):

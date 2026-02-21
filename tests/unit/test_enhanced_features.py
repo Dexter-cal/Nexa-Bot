@@ -41,8 +41,13 @@ class TestEnhancedFeatures:
         assert len(result.output) > 0
 
     @pytest.mark.asyncio
-    async def test_router_optimization(self):
+    async def test_router_optimization(self, mocker):
         router = EnhancedLLMRouter()
+        # Mock all providers as connected
+        mocker.patch.object(router.api_manager, 'get_connected_providers', return_value={
+            'openai': True, 'google': True, 'anthropic': True, 'deepseek': True, 'local': True, 'mistral': True
+        })
+
         model = await router.select_optimal_model(priority='cost')
         assert model == 'llama-3-uncensored' # Based on my scores
 

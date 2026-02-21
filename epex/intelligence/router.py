@@ -302,12 +302,15 @@ class EnhancedLLMRouter:
     def __init__(self):
         from epex.memory.soul import SoulFile
         from epex.intelligence.aura import SentimentAuraManager
+        from epex.intelligence.api_manager import UniversalAPIKeyManager
         self.soul = SoulFile()
         self.aura_manager = SentimentAuraManager(self.soul)
+        self.api_manager = UniversalAPIKeyManager()
         self.refusal_detector = RefusalDetector()
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
+        self.connected_providers = {} # provider -> bool
         self.accuracy_stats = {} # {model: {domain: {success: 0, total: 0}}}
         self.model_database = {
             'gpt-4o': {
@@ -348,15 +351,33 @@ class EnhancedLLMRouter:
             }
         }
 
+    async def _refresh_connectivity(self):
+        """Refresh the list of connected providers"""
+        self.connected_providers = await self.api_manager.get_connected_providers()
+
     async def select_optimal_model(self, priority='balanced'):
+        if not self.connected_providers:
+            await self._refresh_connectivity()
+
+        # Filter models by connected providers
+        available_models = {
+            m: info for m, info in self.model_database.items()
+            if self.connected_providers.get(info['provider'], False)
+        }
+
+        # If no models connected, fallback to gpt-4o (will fail later or use mock)
+        # or use first available if we are in mock mode
+        if not available_models:
+            return 'gpt-4o'
+
         if priority == 'cost':
-            return min(self.model_database.items(), key=lambda x: x[1]['cost'])[0]
+            return min(available_models.items(), key=lambda x: x[1]['cost'])[0]
         elif priority == 'speed':
-            return max(self.model_database.items(), key=lambda x: x[1]['speed'])[0]
+            return max(available_models.items(), key=lambda x: x[1]['speed'])[0]
         elif priority == 'quality':
-            return max(self.model_database.items(), key=lambda x: x[1]['quality'])[0]
+            return max(available_models.items(), key=lambda x: x[1]['quality'])[0]
         else: # balanced
-            return max(self.model_database.items(), key=lambda x: (x[1]['quality'] * 0.5 + (10 - x[1]['cost']) * 0.3 + x[1]['speed'] * 0.2))[0]
+            return max(available_models.items(), key=lambda x: (x[1]['quality'] * 0.5 + (10 - x[1]['cost']) * 0.3 + x[1]['speed'] * 0.2))[0]
 
     async def execute(self, prompt: str, **kwargs):
         """
@@ -385,7 +406,19 @@ class EnhancedLLMRouter:
             }
 
         priority = kwargs.get('priority', 'balanced')
-        primary = kwargs.get('model') or await self.select_optimal_model(priority)
+        primary = kwargs.get('model')
+
+        if not self.connected_providers:
+            await self._refresh_connectivity()
+
+        if primary:
+            # Check if requested model is connected
+            provider = MODEL_REGISTRY.get(primary, {}).get('provider')
+            if not self.connected_providers.get(provider, False):
+                logger.warning(f"Requested model {primary} is not connected. Selecting optimal connected model.")
+                primary = await self.select_optimal_model(priority)
+        else:
+            primary = await self.select_optimal_model(priority)
 
         # 1. Predict if will refuse
         prediction = await self.predictor.will_refuse(

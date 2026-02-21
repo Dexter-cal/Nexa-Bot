@@ -236,7 +236,7 @@ class UniversalAPIKeyManager:
 
     async def auto_detect_keys(self):
         """
-        Automatically detect API keys from environment
+        Automatically detect API keys from environment, files, and secure storage.
         """
         detected = {}
         env_patterns = {
@@ -268,23 +268,22 @@ class UniversalAPIKeyManager:
                     if key not in detected[provider]:
                         detected[provider].append(key)
 
-        # Check common config files (Mocked/Simplified)
+        # Check common config files
         config_paths = [
-            '~/.openai/api_key',
-            '~/.anthropic/api_key',
-            '~/.config/huggingface/token'
+            ('~/.openai/api_key', 'openai'),
+            ('~/.anthropic/api_key', 'anthropic'),
+            ('~/.config/huggingface/token', 'huggingface')
         ]
-        for path in config_paths:
+        for path, provider in config_paths:
             full_path = os.path.expanduser(path)
             if os.path.exists(full_path):
                 try:
                     with open(full_path, 'r') as f:
                         key = f.read().strip()
                         if key:
-                            # Map path to provider
-                            if 'openai' in path: detected['openai'] = key
-                            elif 'anthropic' in path: detected['anthropic'] = key
-                            elif 'huggingface' in path: detected['huggingface'] = key
+                            if provider not in detected: detected[provider] = []
+                            if key not in detected[provider]:
+                                detected[provider].append(key)
                 except: pass
 
         # Load from secure storage
@@ -301,6 +300,46 @@ class UniversalAPIKeyManager:
         except: pass
 
         return detected
+
+    async def get_connected_providers(self) -> dict:
+        """
+        Tests all detected keys and returns a mapping of provider -> status (bool)
+        """
+        detected = await self.auto_detect_keys()
+        status = {}
+
+        tasks = []
+        for provider, keys in detected.items():
+            if keys:
+                key = keys[0] if isinstance(keys, list) else keys
+                tasks.append(self._test_provider_status(provider, key))
+            else:
+                status[provider] = False
+
+        results = await asyncio.gather(*tasks)
+
+        idx = 0
+        for provider, keys in detected.items():
+            if keys:
+                status[provider] = results[idx]
+                idx += 1
+
+        return status
+
+    async def _test_provider_status(self, provider: str, key: str) -> bool:
+        """Helper for background status check"""
+        # For Ollama/LMStudio, check if server is up
+        if provider in ['ollama', 'lmstudio']:
+            try:
+                endpoint = self.providers[provider]['test_endpoint']
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(endpoint, timeout=2) as r:
+                        return r.status == 200
+            except:
+                return False
+
+        # For others, use the existing test_api_key logic
+        return await self.test_api_key(provider, key)
 
     async def guided_setup(self):
         """
@@ -453,16 +492,39 @@ class UniversalAPIKeyManager:
         from rich.console import Console
         from rich.prompt import Prompt
         console = Console()
-        console.print("\nAvailable providers:")
-        for i, opt in enumerate(options):
-            status = "[green](detected)[/]" if opt.get('default') else ""
-            console.print(f" {i+1}. {opt['label']} {status}")
 
-        indices = Prompt.ask("\nEnter numbers separated by space (e.g. 1 3)")
         selected = []
-        try:
-            for idx in indices.split():
-                selected.append(options[int(idx)-1]['value'])
-        except:
-            console.print("[red]Invalid selection.[/]")
+        filtered_options = options
+
+        while True:
+            console.clear()
+            console.print("[bold cyan]Select Providers to Configure[/]")
+            console.print("[dim](Type a name to search, numbers to select, 'done' to finish, 'all' for all)[/]\n")
+
+            for i, opt in enumerate(filtered_options):
+                status = "[green](detected)[/]" if opt.get('default') else ""
+                check = "[bold green]✓[/]" if opt['value'] in selected else "[ ]"
+                console.print(f" {i+1}. {check} {opt['label']} {status}")
+
+            choice = Prompt.ask("\nSearch/Select")
+
+            if choice.lower() == 'done':
+                break
+            elif choice.lower() == 'all':
+                selected = [o['value'] for o in options]
+                break
+            elif choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(filtered_options):
+                    val = filtered_options[idx]['value']
+                    if val in selected: selected.remove(val)
+                    else: selected.append(val)
+            else:
+                # Search
+                filtered_options = [o for o in options if choice.lower() in o['label'].lower()]
+                if not filtered_options:
+                    console.print("[red]No matches found.[/]")
+                    await asyncio.sleep(1)
+                    filtered_options = options
+
         return selected

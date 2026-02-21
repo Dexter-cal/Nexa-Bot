@@ -39,8 +39,9 @@ class SecureConfigStorage:
 
     async def store_config(self, config: dict):
         """
-        Store configuration securely
+        Store configuration securely with atomic write to prevent corruption.
         """
+        import tempfile
 
         # Serialize
         config_json = json.dumps(config)
@@ -48,13 +49,15 @@ class SecureConfigStorage:
         # Encrypt
         encrypted = self.cipher.encrypt(config_json.encode())
 
-        # Save
+        # Atomic Save using temporary file
         self.config_path.parent.mkdir(exist_ok=True, parents=True)
-        with open(self.config_path, 'wb') as f:
-            f.write(encrypted)
 
-        # Secure permissions
-        os.chmod(self.config_path, 0o600)
+        with tempfile.NamedTemporaryFile('wb', dir=self.config_path.parent, delete=False) as tf:
+            tf.write(encrypted)
+            tempname = tf.name
+
+        os.chmod(tempname, 0o600)
+        os.replace(tempname, self.config_path)
 
     async def load_config(self):
         """

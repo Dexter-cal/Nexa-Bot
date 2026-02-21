@@ -19,6 +19,7 @@ async def async_main():
     parser.add_argument("--peers", action="store_true", help="List all connected Epex peers")
     parser.add_argument("--voice", action="store_true", help="Activate hands-free voice command bridge")
     parser.add_argument("--tool-hub", action="store_true", help="Open the EPEX Tool Hub")
+    parser.add_argument("--gui", action="store_true", help="Launch the EPEX Web-Based GUI")
 
     args = parser.parse_args()
 
@@ -50,6 +51,8 @@ async def async_main():
         from epex.interfaces.tool_hub import ToolHub
         hub = ToolHub()
         await hub.run()
+    elif args.gui:
+        await launch_gui()
     elif args.visuals:
         from epex.tools.visualizer import GenerateMockupsTool
         tool = GenerateMockupsTool()
@@ -85,17 +88,8 @@ async def start_chat_loop():
 
     console = Console()
 
-    banner = Text(r"""
- ███████╗██████╗ ███████╗██╗  ██╗
- ██╔════╝██╔══██╗██╔════╝╚██╗██╔╝
- █████╗  ██████╔╝█████╗   ╚███╔╝
- ██╔══╝  ██╔═══╝ ██╔══╝   ██╔██╗
- ███████╗██║     ███████╗██╔╝ ██╗
- ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝
- ⚡ APEX NEURAL OPERATING SYSTEM ⚡
-    """, style="bold cyan")
-
-    console.print(banner)
+    from epex.core.constants import BANNER
+    console.print(BANNER, style="bold cyan")
     console.print(Panel(f"[bold sky_blue1]Neural Chat Interface Initialized[/]\n[italic text_slate_500]{epex_name.upper()} BOT is ready for task orchestration. Type 'exit' or 'quit' to end session.[/]", border_style="sky_blue1"))
 
     while True:
@@ -103,6 +97,20 @@ async def start_chat_loop():
             user_input = console.input(f"\n[bold sky_blue1]{user_name} > [/]")
             if user_input.lower() in ["exit", "quit"]:
                 break
+
+            if user_input.lower().startswith("/switch"):
+                target = user_input.split()[-1].lower()
+                if target == "gui":
+                    console.print("[yellow]Switching to GUI...[/]")
+                    await asyncio.sleep(1)
+                    await launch_gui()
+                    break
+                elif target == "tui":
+                    console.print("[cyan]Switching to TUI...[/]")
+                    from epex.interfaces.tui import EpexTUI
+                    tui = EpexTUI()
+                    await tui.run()
+                    break
 
             # Intent Detection
             intent_tool = assistant.detect_intent(user_input)
@@ -177,6 +185,25 @@ async def run_quick_setup():
     await storage.store_config(config)
 
     console.print(Panel.fit(f"[bold green]✓ Express Setup Complete![/]\n[white]Welcome, {user_name}. I am {bot_name}.[/]\nRun: [bold]epex chat[/]", border_style="green"))
+
+async def launch_gui():
+    import uvicorn
+    import webbrowser
+    from rich.console import Console
+    console = Console()
+    console.print("[bold cyan]🚀 Launching EPEX APEX GUI...[/]")
+    console.print("[dim]Starting local server at http://127.0.0.1:8000[/]")
+
+    # Auto-open browser after a short delay
+    async def open_browser():
+        await asyncio.sleep(2)
+        webbrowser.open("http://127.0.0.1:8000")
+
+    asyncio.create_task(open_browser())
+
+    config = uvicorn.Config("epex.api.app:app", port=8000, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 def main():
     asyncio.run(async_main())

@@ -144,6 +144,18 @@ class EpexEngine:
         logger.info("Epex Bot stopped")
 
     async def execute_command(self, command: str, attachments: List[str] = None):
+        """Execute a command and wait for result with global error boundary"""
+        try:
+            return await self._execute_command_internal(command, attachments)
+        except Exception as e:
+            logger.error(f"Global Error Boundary caught: {e}")
+            return {
+                "success": False,
+                "error": f"Internal System Error: {str(e)}",
+                "recovery_suggestion": "Try restarting the EPEX engine or checking your API connectivity."
+            }
+
+    async def _execute_command_internal(self, command: str, attachments: List[str] = None):
         """Execute a command and wait for result"""
         if not self.task_manager:
             await self.start()
