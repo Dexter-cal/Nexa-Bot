@@ -17,7 +17,8 @@ Epex Bot is a state-of-the-art, multi-agent AI system designed for power, absolu
 - **Self-Healing Loop**: Automatically detects task failures, analyzes errors, and attempts fixes to ensure goal completion.
 - **Aegis Zero-Trust Security**: Advanced content filtering to prevent secret leakage and active defense against hackers.
 - **Secure by Design**: AES-256 encryption for all sensitive configurations and audit logs.
-- **Multi-Interface**: CLI, TUI, and REST API for GUI/Mobile integration.
+- **Multi-Interface**: CLI, TUI, and high-fidelity Web GUI.
+- **Dynamic Model Switching**: Change models on the fly using `/model <id>` (supports 25+ providers and any Hugging Face model).
 
 ## 🛠️ Installation
 ```bash

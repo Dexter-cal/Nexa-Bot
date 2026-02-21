@@ -170,7 +170,13 @@ class EpexEngine:
                     tool = registry.get("document.parse")
                     res = await tool.execute(path)
                     if res.success:
-                        attachment_context += f"\n[ATTACHMENT: {path}]\n{res.output['content']}\n"
+                        attachment_context += f"\n[DOCUMENT ATTACHMENT: {path}]\n{res.output['content']}\n"
+                elif ext in ['.wav', '.mp3', '.ogg', '.m4a']:
+                    from epex.tools.registry import registry
+                    tool = registry.get("voice.stt")
+                    res = await tool.execute(path)
+                    if res.success:
+                        attachment_context += f"\n[AUDIO ATTACHMENT: {path}]\nTranscript: {res.output['text']}\n"
                 elif ext in ['.jpg', '.jpeg', '.png', '.webp']:
                     from epex.tools.registry import registry
                     tool = registry.get("vision.analyze_attachment")
@@ -180,6 +186,18 @@ class EpexEngine:
 
         if attachment_context:
             command = f"Context from attachments: {attachment_context}\n\nTask: {command}"
+
+        # Model Switching Command
+        if command.lower().startswith("/model "):
+            model_id = command.split("/model ", 1)[1].strip()
+            if self.llm_router:
+                self.llm_router.active_model_override = model_id
+                return {"success": True, "response": f"Successfully switched active model to: {model_id}"}
+
+        if command.lower() == "/model reset":
+            if self.llm_router:
+                self.llm_router.active_model_override = None
+                return {"success": True, "response": "Active model reset to intelligent auto-selection."}
 
         # Load personalization
         config = await self.messaging_hub.bridges['telegram'].api_manager.vault.load_config() if hasattr(self.messaging_hub.bridges['telegram'], 'api_manager') else {}

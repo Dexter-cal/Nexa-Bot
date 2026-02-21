@@ -311,6 +311,7 @@ class EnhancedLLMRouter:
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
         self.connected_providers = {} # provider -> bool
+        self.active_model_override = None # User specified active model
         self.accuracy_stats = {} # {model: {domain: {success: 0, total: 0}}}
         self.model_database = {
             'gpt-4o': {
@@ -406,16 +407,25 @@ class EnhancedLLMRouter:
             }
 
         priority = kwargs.get('priority', 'balanced')
-        primary = kwargs.get('model')
+        primary = kwargs.get('model') or self.active_model_override
 
         if not self.connected_providers:
             await self._refresh_connectivity()
 
         if primary:
-            # Check if requested model is connected
-            provider = MODEL_REGISTRY.get(primary, {}).get('provider')
-            if not self.connected_providers.get(provider, False):
-                logger.warning(f"Requested model {primary} is not connected. Selecting optimal connected model.")
+            # Check if requested model is in registry or is a custom Hugging Face model
+            model_info = MODEL_REGISTRY.get(primary)
+            if model_info:
+                provider = model_info.get('provider')
+                if not self.connected_providers.get(provider, False):
+                    logger.warning(f"Requested model {primary} is not connected. Selecting optimal connected model.")
+                    primary = await self.select_optimal_model(priority)
+            elif "/" in primary: # Likely a Hugging Face model ID (e.g. meta-llama/Llama-2-7b)
+                if not self.connected_providers.get('huggingface', False):
+                    logger.warning(f"HuggingFace not connected for custom model {primary}. Selecting optimal connected model.")
+                    primary = await self.select_optimal_model(priority)
+            else:
+                logger.warning(f"Unknown model {primary}. Selecting optimal connected model.")
                 primary = await self.select_optimal_model(priority)
         else:
             primary = await self.select_optimal_model(priority)
@@ -469,7 +479,29 @@ class EnhancedLLMRouter:
         return stats["success"] / stats["total"]
 
     async def _execute_alternative(self, prompt, failed_model, kwargs, refusal=None):
-        alternative = 'llama-3-uncensored' # Hardcoded for now
+        # Find the best connected Tier 3 or Tier 4 model
+        alternative = None
+
+        # Priority 1: Unrestricted models in database
+        unrestricted = [m for m, info in self.model_database.items() if m == 'llama-3-uncensored']
+        for m in unrestricted:
+            provider = self.model_database[m]['provider']
+            if self.connected_providers.get(provider, False):
+                alternative = m
+                break
+
+        # Priority 2: Any connected Tier 3 model from registry
+        if not alternative:
+            for m, info in MODEL_REGISTRY.items():
+                if info.get('restriction_level') in ['lightly_restricted', 'unrestricted']:
+                    provider = info.get('provider')
+                    if self.connected_providers.get(provider, False):
+                        alternative = m
+                        break
+
+        # Fallback if nothing found
+        if not alternative:
+            alternative = 'llama-3-uncensored' # Still fallback to this, even if it might fail
 
         approval = await self.approval_system.evaluate_switch(
             task={'prompt': prompt, **kwargs},

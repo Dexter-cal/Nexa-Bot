@@ -13,22 +13,30 @@ Welcome to the future of AI orchestration. Follow these steps to get Epex Bot ru
 curl -sSL https://get.epex.bot/install.sh | bash
 ```
 
-## 🚀 Epex Auto-Runner (Bootstrap)
-The simplest way to start: just run the bootstrap script.
+## 🚀 EPEX Unified Runner (Recommended)
+The simplest way to install and run EPEX is via the unified bootstrap script. It handles dependency management, initial setup, and launching your preferred interface.
+
 ```bash
+# To install and start for the first time
+python epex_run.py
+
+# To restart EPEX anytime
 python epex_run.py
 ```
-This will automatically install all dependencies and launch the **Express Setup Wizard**.
 
-## 🤖 First Run
+## 🤖 First Run & Configuration
 
 Simply type:
 ```bash
 epex --setup
 ```
 This will launch the **EPEX APEX v5.0 Setup Wizard**, where you can:
-- **Test Connections**: Real-time testing for all your API keys.
-- **Choose Interface**: Select your preferred way to interact (GUI, TUI, or CLI).
+- **Search & Connect Models**: Find any of the 25+ providers or 1000+ Hugging Face models.
+- **Test Connections**: Real-time testing for all your API keys (Online/Offline indicators).
+- **Choose Interface**: Select your preferred way to interact:
+    - **GUI**: High-fidelity web dashboard with drag-and-drop.
+    - **TUI**: Lightning-fast terminal interface with Aura-based styling.
+    - **CLI**: Raw neural chat for power users.
 - **Auto-Launch**: Get taken straight to your chosen interface as soon as setup finishes.
 
 ## 🔑 Easy API Key Setup

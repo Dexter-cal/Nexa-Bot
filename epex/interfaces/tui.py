@@ -152,6 +152,8 @@ class EpexTUI:
 
         self.console.print(BANNER, style="bold cyan")
 
+        is_voice_active = False
+
         while True:
             # Aura-Based UI Scaling
             aura = engine.soul.data.get('current_aura', 'professional')
@@ -165,7 +167,14 @@ class EpexTUI:
             }
             color, title = aura_styles.get(aura, ('cyan', '⚡ EPEX BOT'))
 
-            self.console.print(Panel(f"[bold {color}]{title} MODE ACTIVATED[/]", border_style=color))
+            active_model = engine.llm_router.active_model_override or "Intelligent Auto"
+            voice_status = "[green]ON[/]" if is_voice_active else "[red]OFF[/]"
+
+            self.console.print(Panel(
+                f"[bold {color}]{title} MODE ACTIVATED[/]\n"
+                f"[dim]Model: [bold]{active_model}[/] | Voice Bridge: {voice_status} | Type 'exit' to quit[/]",
+                border_style=color
+            ))
 
             cmd = Prompt.ask(f"[bold {color}]User[/]")
             if cmd.lower() in ["exit", "quit"]:
@@ -183,6 +192,17 @@ class EpexTUI:
                 elif target == "cli":
                     self.console.print("[white]Switching to CLI mode.[/]")
                     break
+
+            if cmd.lower() == "/voice":
+                is_voice_active = not is_voice_active
+                status = "activated" if is_voice_active else "deactivated"
+                self.console.print(f"[cyan]Voice Bridge {status}.[/]")
+                if is_voice_active:
+                    # Start listening in background
+                    asyncio.create_task(engine.voice_bridge.start_listening_loop())
+                else:
+                    engine.voice_bridge.stop()
+                continue
 
             from epex.core.engine import engine
             with self.console.status(f"[bold {color}]Epex is thinking..."):
