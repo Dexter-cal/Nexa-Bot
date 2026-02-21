@@ -210,6 +210,14 @@ class EpexTUI:
 
             self.console.print(Panel(response.get('response', 'Error'), title=f"[bold {color}]Epex[/]", border_style=color))
 
+            # Handle Control Signals
+            signal = response.get('control_signal')
+            if signal == "switch_gui":
+                os.system("epex --gui &")
+                break
+            elif signal == "switch_cli":
+                break
+
     async def run_health_check(self):
         """
         Comprehensive health check on first run

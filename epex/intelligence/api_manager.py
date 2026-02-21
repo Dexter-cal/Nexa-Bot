@@ -231,6 +231,22 @@ class UniversalAPIKeyManager:
                 'free_tier': True,
                 'free_limit': '1M tokens free',
                 'cost': '$'
+            },
+            'elevenlabs': {
+                'name': 'ElevenLabs (Voice)',
+                'key_format': '...',
+                'test_endpoint': 'https://api.elevenlabs.io/v1/user',
+                'get_key_url': 'https://elevenlabs.io/api',
+                'free_tier': True,
+                'cost': '$$'
+            },
+            'assemblyai': {
+                'name': 'AssemblyAI (Audio)',
+                'key_format': '...',
+                'test_endpoint': 'https://api.assemblyai.com/v2/transcript',
+                'get_key_url': 'https://www.assemblyai.com/dashboard/signup',
+                'free_tier': True,
+                'cost': '$'
             }
         }
 
@@ -257,7 +273,9 @@ class UniversalAPIKeyManager:
             'voyage': ['VOYAGE_API_KEY'],
             'fireworks': ['FIREWORKS_API_KEY'],
             'novita': ['NOVITA_API_KEY'],
-            'jina': ['JINA_API_KEY']
+            'jina': ['JINA_API_KEY'],
+            'elevenlabs': ['ELEVENLABS_API_KEY'],
+            'assemblyai': ['ASSEMBLY_API_KEY']
         }
 
         for provider, patterns in env_patterns.items():
@@ -482,6 +500,12 @@ class UniversalAPIKeyManager:
                         return r.status == 200
                 elif provider == 'fireworks':
                     async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'elevenlabs':
+                    async with session.get(info['test_endpoint'], headers={'xi-api-key': key}) as r:
+                        return r.status == 200
+                elif provider == 'assemblyai':
+                    async with session.get('https://api.assemblyai.com/v2/user', headers={'authorization': key}) as r:
                         return r.status == 200
                 return False
         except Exception as e:

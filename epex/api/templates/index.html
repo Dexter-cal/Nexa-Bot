@@ -179,6 +179,11 @@
                 <div id="tab-title" class="text-sm font-semibold text-slate-200">Neural Chat Interface</div>
             </div>
             <div class="flex items-center space-x-6">
+                <div id="service-status" class="flex items-center space-x-3 mr-4 border-r border-white/10 pr-4">
+                    <i title="Telegram Bridge" id="status-telegram" class="fab fa-telegram text-slate-600 transition-all"></i>
+                    <i title="Discord Bridge" id="status-discord" class="fab fa-discord text-slate-600 transition-all"></i>
+                    <i title="Voice Engine" id="status-voice" class="fas fa-microphone text-slate-600 transition-all"></i>
+                </div>
                 <div class="flex items-center space-x-4">
                     <div id="active-model-display" class="flex items-center space-x-2 bg-slate-800/50 px-3 py-1 rounded-full border border-white/5 cursor-pointer hover:bg-slate-700/50 transition-all">
                         <i class="fas fa-microchip text-sky-400 text-[10px]"></i>
@@ -638,6 +643,13 @@
 
                 if (result.success) {
                     addMessage(result.response, 'ai');
+
+                    if (result.control_signal === 'switch_tui') {
+                        addMessage("Closing GUI. Please return to your terminal for TUI mode.", 'ai');
+                    }
+                    if (result.control_signal === 'switch_cli') {
+                        addMessage("Closing GUI. Please return to your terminal for CLI mode.", 'ai');
+                    }
                 } else {
                     addMessage(`Error: ${result.error}`, 'ai');
                 }
@@ -666,6 +678,12 @@
                 // Privacy
                 const priv = data.privacy;
                 document.getElementById('leak-count').innerText = `${priv.total_findings || 0} Detected`;
+
+                // Bridge Status
+                const msg = data.messaging || {};
+                const tg = document.getElementById('status-telegram');
+                if (msg.telegram) tg.classList.replace('text-slate-600', 'text-sky-400');
+                else tg.classList.replace('text-sky-400', 'text-slate-600');
 
                 // Neural Sync Insights
                 if (data.neural_sync && data.neural_sync.length > 0) {

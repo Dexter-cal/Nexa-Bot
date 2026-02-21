@@ -12,6 +12,7 @@ from epex.memory.soul import SoulFile
 from epex.memory.vector import VectorMemory, TimeCapsule
 from epex.core.neural_sync import NeuralSync
 from epex.interfaces.voice import VoiceCommandBridge
+from epex.core.system_context import SystemContext
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class EpexEngine:
         self.innovation = InnovationModule()
         self.messaging_hub = MessagingHub()
         self.voice_bridge = VoiceCommandBridge(engine=self)
+        self.system_context = SystemContext(engine=self)
         self.background_tasks = []
         logger.info("Epex Bot engine initialized")
 
@@ -82,6 +84,9 @@ class EpexEngine:
 
         # 7. Initialize Innovation features
         logger.info("Innovation Module ready.")
+
+        # 8. Refresh System Context
+        asyncio.create_task(self.system_context.refresh())
 
         logger.info("Epex Bot started successfully!")
 
@@ -199,6 +204,14 @@ class EpexEngine:
                 self.llm_router.active_model_override = None
                 return {"success": True, "response": "Active model reset to intelligent auto-selection."}
 
+        # AI-Driven Interface Switching
+        if "switch to gui" in command.lower() or "open the dashboard" in command.lower():
+            return {"success": True, "response": "Switching to GUI interface...", "control_signal": "switch_gui"}
+        if "switch to tui" in command.lower():
+            return {"success": True, "response": "Switching to TUI interface...", "control_signal": "switch_tui"}
+        if "switch to cli" in command.lower() or "use raw chat" in command.lower():
+            return {"success": True, "response": "Switching to CLI interface...", "control_signal": "switch_cli"}
+
         # Load personalization
         config = await self.messaging_hub.bridges['telegram'].api_manager.vault.load_config() if hasattr(self.messaging_hub.bridges['telegram'], 'api_manager') else {}
         # Or better from SecureConfigStorage
@@ -224,6 +237,13 @@ class EpexEngine:
 
         if "create a tool" in command.lower() or "build a tool" in command.lower():
             command = f"Generate a spec and build a tool for: {command}"
+
+        # Self-Aware Diagnostics
+        diagnostic_keywords = ["is active", "is connected", "system status", "models online", "check connectivity"]
+        if any(k in command.lower() for k in diagnostic_keywords):
+            await self.system_context.refresh()
+            summary = self.system_context.get_summary()
+            return {"success": True, "response": f"Self-Diagnostic Check:\n{summary}"}
 
         if "ghost mode" in command.lower() or "run in background" in command.lower():
             task = await self.task_manager.create_task_from_command(command.replace("ghost mode", "").replace("run in background", "").strip())

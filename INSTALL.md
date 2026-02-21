@@ -20,9 +20,14 @@ The simplest way to install and run EPEX is via the unified bootstrap script. It
 # To install and start for the first time
 python epex_run.py
 
-# To restart EPEX anytime
+# To restart EPEX anytime (even after PC shutdown)
 python epex_run.py
 ```
+
+### 🛠 Disaster Recovery
+If your configuration becomes corrupted or you want a fresh start:
+1. Delete the configuration folder: `rm -rf ~/.epex`
+2. Rerun the bootstrap: `python epex_run.py`
 
 ## 🤖 First Run & Configuration
 

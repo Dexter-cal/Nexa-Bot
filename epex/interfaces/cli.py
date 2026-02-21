@@ -130,6 +130,17 @@ async def start_chat_loop():
                 console.print(Markdown(result['response']))
                 if result.get('switched'):
                     console.print(f"\n[dim italic text_slate_500]Note: Switched from {result['from_model']} to {result['model']} because: {result['switch_reason']}[/]")
+
+                # Handle Control Signals
+                signal = result.get('control_signal')
+                if signal == "switch_gui":
+                    await launch_gui()
+                    break
+                elif signal == "switch_tui":
+                    from epex.interfaces.tui import EpexTUI
+                    tui = EpexTUI()
+                    await tui.run()
+                    break
             else:
                 console.print(f"\n[bold red]Error:[/] {result.get('error', 'Unknown failure')}")
 

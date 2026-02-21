@@ -9,6 +9,8 @@ Epex Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Enhanced LLM Router**: Intelligent switching between 25+ providers based on cost, speed, and quality, with **Multi-Key Rotation** and load balancing.
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
 - **Aura Persona Switching**: Epex dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
+- **Intelligent Interface Switching**: Prompt Epex in natural language to move between GUI, TUI, and CLI instantly.
+- **Self-Aware Diagnostics**: Epex knows its own connectivity status and can answer questions like "Is my Telegram bot online?".
 - **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
 - **Omni-Search**: Unified search across local files, the web, and all connected peers simultaneously.
 - **Zero-Friction Bootstrap**: A single-file `epex_run.py` that handles complete system setup in seconds.
@@ -18,6 +20,7 @@ Epex Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok), and **QR Sync** for instant device pairing.
 - **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, **Deep OSINT**, **Social Media Username Lookup**, **Domain Intelligence**, HuggingFace Hub integration.
 - **Document Intelligence**: Deep parsing of PDF, Word, and text files, and integrated **Neural Vision** for analyzing image attachments.
+- **Multimodal Context**: Seamless support for attaching Audio (transcribed via STT), Documents, and Folders directly into the chat stream.
 - **Social Media**: Discord webhooks, Telegram bot management, WhatsApp gateways, Twitter posting, trending hashtag generation.
 - **Finance**: Stock/Crypto tracking, budget management, automated account syncing.
 - **Hardware**: Android/ADB control, GPIO (IoT) manipulation, Bluetooth/WiFi management, and **Unified IoT Control**.
@@ -58,11 +61,15 @@ Epex Bot is designed to be a unified presence across all your hardware:
 ## 🎨 7. INTERFACES
 - **CLI v3.8**: Powerful command-line interface with high-fidelity ASCII art, visuals command, prompt assistant, and **Hands-free Voice Bridge**.
 - **TUI**: Beautiful terminal setup for server-side management.
-- **GUI**: Modern web dashboard featuring a dedicated **Instance Network** manager and context-aware file attachments.
+- **GUI**: Modern web dashboard featuring a dedicated **Instance Network** manager, drag-and-drop file attachments, and a real-time **Voice Visualizer**.
 
 ---
-## 👑 CREATOR
-Epex Bot was created by **Henry Calvin**.
+## 👑 CREATOR & RE-RUNNING
+Epex Bot was created by **Henry Calvin**. To rerun or restart the agent anytime (especially after a system shutdown), simply execute:
+```bash
+python epex_run.py
+```
+This script ensures all services are restored to their last known good state.
 
 ## 🔗 CONNECTIVITY
 For detailed guides on how to connect Epex to WhatsApp, Discord, Telegram, and more, see [CONNECTIVITY.md](CONNECTIVITY.md).
