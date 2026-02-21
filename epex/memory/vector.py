@@ -6,12 +6,30 @@ import datetime
 
 logger = logging.getLogger(__name__)
 
+from pathlib import Path
+
 class VectorMemory:
     """
     Searchable long-term memory layer
     """
     def __init__(self):
         self.store: List[Dict[str, Any]] = []
+        self.path = Path.home() / '.epex' / 'memory.json'
+        self.load()
+
+    def load(self):
+        if self.path.exists():
+            try:
+                self.store = json.loads(self.path.read_text())
+            except:
+                self.store = []
+
+    def save(self):
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.write_text(json.dumps(self.store))
+        except:
+            pass
 
     async def add(self, text: str, metadata: Dict[str, Any] = None):
         """
@@ -26,6 +44,7 @@ class VectorMemory:
             "embedding": None
         }
         self.store.append(entry)
+        self.save()
         logger.debug(f"Memory added: {text[:50]}...")
 
     async def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:

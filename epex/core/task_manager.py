@@ -227,8 +227,16 @@ class TaskManager:
         if not guardrail_check['allowed']:
             raise PermissionError(f"Action blocked by guardrail: {guardrail_check['violation']}")
 
-        # Execute tool with self-healing
-        result = await self.healing_loop.run_with_healing(tool.execute, **params)
+        # Execute tool with self-healing and error protection
+        try:
+            result = await self.healing_loop.run_with_healing(tool.execute, **params)
+        except Exception as e:
+            logger.error(f"Error executing tool {tool_name}: {e}")
+            result = ToolResult(
+                success=False,
+                error=f"Runtime error in {tool_name}: {str(e)}",
+                logs=[f"Execution failed: {str(e)}"]
+            )
 
         # Handle autonomous tool registration if it was a generation task
         if tool_name == "meta.generate_tool" and result.success:

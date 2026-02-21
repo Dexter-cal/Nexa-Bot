@@ -122,6 +122,10 @@
                 <i class="fas fa-project-diagram w-5"></i>
                 <span class="text-sm font-medium">Neural Architecture</span>
             </a>
+            <a href="#" onclick="switchTab('memory')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-brain w-5"></i>
+                <span class="text-sm font-medium">Neural Memory</span>
+            </a>
             <a href="#" onclick="switchTab('settings')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
                 <i class="fas fa-cog w-5"></i>
                 <span class="text-sm font-medium">Settings</span>
@@ -193,6 +197,9 @@
                         <i class="fas fa-microchip text-sky-400 text-[10px]"></i>
                         <span id="current-model-name" class="text-[10px] font-bold text-slate-300">Intelligent Auto</span>
                     </div>
+                    <button id="comparison-toggle" title="Model Comparison Mode" class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 transition-all">
+                        <i class="fas fa-columns"></i>
+                    </button>
                     <div class="flex items-center space-x-2">
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Router Status</span>
                         <span class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] rounded border border-green-500/20">Optimal</span>
@@ -448,6 +455,32 @@
                 </div>
             </div>
 
+            <!-- Memory Tab -->
+            <div id="tab-memory" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20">
+                            <i class="fas fa-brain text-amber-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">Neural Memory</h2>
+                            <p class="text-slate-400 text-sm">Semantic search and long-term memory management.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-3xl mb-8 flex items-center space-x-4">
+                        <i class="fas fa-search text-slate-500 ml-2"></i>
+                        <input id="memory-search-input" type="text" placeholder="Search through your agent's long-term memory..."
+                            class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2">
+                        <button id="memory-search-btn" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold transition-all">SEARCH</button>
+                    </div>
+
+                    <div id="memory-results" class="space-y-4">
+                        <div class="text-center py-20 text-slate-600 italic">Enter a query to search semantic history.</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Toolbox Tab -->
             <div id="tab-tools" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
                 <div class="max-w-6xl mx-auto">
@@ -528,6 +561,30 @@
             </div>
         </div>
     </aside>
+
+    <!-- Command Palette -->
+    <div id="command-palette" class="hidden fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 bg-slate-950/60 backdrop-blur-sm">
+        <div class="w-full max-w-xl glass rounded-2xl shadow-2xl overflow-hidden border border-white/10 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center px-6 py-4 border-b border-white/5">
+                <i class="fas fa-search text-slate-500 mr-4"></i>
+                <input id="palette-search" type="text" placeholder="Type a command or tool name..."
+                    class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-white py-2">
+                <span class="text-[10px] font-bold text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded border border-white/5">ESC</span>
+            </div>
+            <div id="palette-results" class="max-h-[60vh] overflow-y-auto p-2">
+                <!-- Results -->
+            </div>
+            <div class="px-6 py-3 border-t border-white/5 bg-slate-900/50 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <span class="text-[10px] text-slate-500"><i class="fas fa-arrow-up mr-1"></i><i class="fas fa-arrow-down mr-1"></i> to navigate</span>
+                    <span class="text-[10px] text-slate-500"><i class="fas fa-level-down-alt fa-rotate-90 mr-1"></i> to select</span>
+                </div>
+                <div class="text-[10px] text-slate-500">
+                    EPEX COMMAND PALETTE
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const chatMessages = document.getElementById('chat-messages');
@@ -648,7 +705,7 @@
             const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1))));
             if (clickedItem) clickedItem.classList.add('active');
 
-            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture' };
+            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture', memory: 'Neural Memory' };
             document.getElementById('tab-title').innerText = titles[tabId];
 
             if (tabId === 'settings') loadSettings();
@@ -695,6 +752,18 @@
         }
 
         let selectedFiles = [];
+        let isComparisonMode = false;
+
+        document.getElementById('comparison-toggle').onclick = () => {
+            isComparisonMode = !isComparisonMode;
+            document.getElementById('comparison-toggle').classList.toggle('text-sky-400', isComparisonMode);
+            document.getElementById('comparison-toggle').classList.toggle('border-sky-500/50', isComparisonMode);
+            if (isComparisonMode) {
+                addMessage("Model Comparison Mode Enabled. Responses will be compared side-by-side.", 'ai');
+            } else {
+                addMessage("Model Comparison Mode Disabled.", 'ai');
+            }
+        };
 
         function animateLayers(activeLayers) {
             document.querySelectorAll('.arch-layer').forEach(l => {
@@ -713,9 +782,7 @@
             const command = commandInput.value.trim();
             if (!command && selectedFiles.length === 0) return;
 
-            // Trigger visual architecture activity
             animateLayers([7, 6, 5, 4]);
-
             addMessage(command + (selectedFiles.length > 0 ? ` [Attached: ${selectedFiles.join(', ')}]` : ''), 'user');
             const attachments = [...selectedFiles];
 
@@ -728,26 +795,50 @@
             executeBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
 
             try {
-                const response = await fetch('/api/v1/execute', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command, attachments })
-                });
-                const result = await response.json();
+                if (isComparisonMode) {
+                    // Send two requests with different priorities/models
+                    const [res1, res2] = await Promise.all([
+                        fetch('/api/v1/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: command + " (Respond briefly)", attachments })
+                        }).then(r => r.json()),
+                        fetch('/api/v1/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: command + " (Respond formally)", attachments })
+                        }).then(r => r.json())
+                    ]);
 
-                if (result.success) {
-                    addMessage(result.response, 'ai');
-                    animateLayers([1, 2, 3, 4, 5, 6, 7]);
-                    setTimeout(() => animateLayers([]), 2000);
-
-                    if (result.control_signal === 'switch_tui') {
-                        addMessage("Closing GUI. Please return to your terminal for TUI mode.", 'ai');
-                    }
-                    if (result.control_signal === 'switch_cli') {
-                        addMessage("Closing GUI. Please return to your terminal for CLI mode.", 'ai');
-                    }
+                    const div = document.createElement('div');
+                    div.className = "grid grid-cols-2 gap-4 my-4";
+                    div.innerHTML = `
+                        <div class="chat-bubble-ai p-5 rounded-3xl shadow-xl border-l-2 border-sky-500">
+                            <div class="text-[9px] font-bold uppercase text-sky-500 mb-2">Model A (Primary)</div>
+                            <div class="text-sm text-slate-200">${res1.response || res1.error}</div>
+                        </div>
+                        <div class="chat-bubble-ai p-5 rounded-3xl shadow-xl border-l-2 border-indigo-500">
+                            <div class="text-[9px] font-bold uppercase text-indigo-500 mb-2">Model B (Alternative)</div>
+                            <div class="text-sm text-slate-200">${res2.response || res2.error}</div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(div);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
                 } else {
-                    addMessage(`Error: ${result.error}`, 'ai');
+                    const response = await fetch('/api/v1/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command, attachments })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        addMessage(result.response, 'ai');
+                        animateLayers([1, 2, 3, 4, 5, 6, 7]);
+                        setTimeout(() => animateLayers([]), 2000);
+                    } else {
+                        addMessage(`Error: ${result.error}`, 'ai');
+                    }
                 }
             } catch (err) {
                 addMessage(`Critical System Error: ${err.message}`, 'ai');
@@ -1042,7 +1133,55 @@
             addMessage(`Agent persona switched to: ${e.target.value.toUpperCase()}`, 'ai');
         };
 
+        // Command Palette Logic
+        const palette = document.getElementById('command-palette');
+        const paletteSearch = document.getElementById('palette-search');
+        const paletteResults = document.getElementById('palette-results');
+        let allCommands = [];
+
+        async function initPalette() {
+            const toolsRes = await fetch('/api/v1/tools');
+            const tools = await toolsRes.json();
+
+            allCommands = [
+                { name: 'Switch to TUI', type: 'system', icon: 'fa-terminal', action: () => executeBtn.onclick('/switch tui') },
+                { name: 'Switch to CLI', type: 'system', icon: 'fa-code', action: () => executeBtn.onclick('/switch cli') },
+                { name: 'System Reset', type: 'system', icon: 'fa-undo', action: () => confirm('Revert to clean state?') && addMessage('Resetting...', 'ai') },
+                ...tools.map(t => ({ name: `Run: ${t.name}`, type: 'tool', icon: 'fa-bolt', action: () => { switchTab('tools'); palette.classList.add('hidden'); } }))
+            ];
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                palette.classList.remove('hidden');
+                paletteSearch.focus();
+                renderPalette('');
+            }
+            if (e.key === 'Escape') {
+                palette.classList.add('hidden');
+            }
+        });
+
+        paletteSearch.oninput = (e) => renderPalette(e.target.value);
+
+        function renderPalette(query) {
+            const filtered = allCommands.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+            paletteResults.innerHTML = filtered.map((c, i) => `
+                <div onclick="allCommands[${allCommands.indexOf(c)}].action()" class="flex items-center px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer group transition-all">
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center mr-4 group-hover:bg-sky-500/20 group-hover:text-sky-400">
+                        <i class="fas ${c.icon} text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-xs font-bold text-slate-200">${c.name}</div>
+                        <div class="text-[10px] text-slate-500 capitalize">${c.type}</div>
+                    </div>
+                </div>
+            `).join('') || '<div class="text-center py-10 text-slate-600 text-xs italic">No commands found.</div>';
+        }
+
         // Initialize
+        initPalette();
         setInterval(updateMetrics, 5000);
         setInterval(loadLogs, 2000);
         setInterval(loadAlerts, 5000);

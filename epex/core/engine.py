@@ -82,6 +82,9 @@ class EpexEngine:
         # 6. Start Task processing loop
         self.background_tasks.append(asyncio.create_task(self._task_processing_loop()))
 
+        # Start Memory Synthesis loop (every 24 hours)
+        self.background_tasks.append(asyncio.create_task(self._memory_synthesis_loop()))
+
         # 7. Initialize Innovation features
         logger.info("Innovation Module ready.")
 
@@ -89,6 +92,19 @@ class EpexEngine:
         asyncio.create_task(self.system_context.refresh())
 
         logger.info("Epex Bot started successfully!")
+
+    async def _memory_synthesis_loop(self):
+        """Periodically synthesize experiences"""
+        while self.running:
+            try:
+                from epex.tools.registry import registry
+                tool = registry.get("memory.synthesize_experiences")
+                if tool:
+                    await tool.execute(days_back=3)
+                await asyncio.sleep(86400) # Once a day
+            except Exception as e:
+                logger.error(f"Memory synthesis loop error: {e}")
+                await asyncio.sleep(3600)
 
     async def _task_processing_loop(self):
         """Continuous task processing loop"""

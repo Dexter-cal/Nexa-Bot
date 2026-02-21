@@ -10,13 +10,15 @@ Epex Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
 - **Aura Persona Switching**: Epex dynamically changes its entire persona (tone, tools, vocabulary) based on real-time sentiment analysis.
 - **Intelligent Interface Switching**: Prompt Epex in natural language to move between GUI, TUI, and CLI instantly.
+- **Autonomous Macro Synthesis**: The bot identifies your repetitive sequences and suggests creating new atomic tools for them.
+- **Dynamic Plugin Support**: Drop any `.py` tool into the `plugins/` folder and Epex registers it instantly.
 - **Self-Aware Diagnostics**: Epex knows its own connectivity status and can answer questions like "Is my Telegram bot online?".
 - **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
 - **Omni-Search**: Unified search across local files, the web, and all connected peers simultaneously.
 - **Zero-Friction Bootstrap**: A single-file `epex_run.py` that handles complete system setup in seconds.
 
 ## 🛠️ 2. THE TOOL BELT (180+ Tools)
-- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, **Forensic Deep Sector Recovery**, **RAM Memory Analysis**, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, and **Security Hardening**.
+- **Maintenance & Recovery**: SMART disk health monitoring, deep file recovery scan, **Forensic Deep Sector Recovery**, **RAM Memory Analysis**, system optimization, registry repair, boot repair, driver management, deep system framework scrubbing, **Security Hardening**, and **OS Service Management**.
 - **System Control**: Mouse, keyboard, screenshots, process management, terminal access, secure tunneling (Ngrok), and **QR Sync** for instant device pairing.
 - **Web & Automation**: Headless browsing, form detection, automated sign-ups, forensic OSINT, **Deep OSINT**, **Social Media Username Lookup**, **Domain Intelligence**, HuggingFace Hub integration.
 - **Document Intelligence**: Deep parsing of PDF, Word, and text files, and integrated **Neural Vision** for analyzing image attachments.

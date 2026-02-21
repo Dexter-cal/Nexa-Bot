@@ -109,6 +109,8 @@ class ToolRegistry:
         from epex.intelligence.council import CouncilCalibrateTool
         from epex.tools.snapshot import QuantumSnapshotTool, QuantumRestoreTool
         from epex.intelligence.macros import MacroSuggesterTool, MacroRegisterTool
+        from epex.memory.synthesis import MemorySynthesisTool
+        from epex.tools.reset import SystemResetTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -231,6 +233,8 @@ class ToolRegistry:
         self.register(QuantumRestoreTool())
         self.register(MacroSuggesterTool())
         self.register(MacroRegisterTool())
+        self.register(MemorySynthesisTool())
+        self.register(SystemResetTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())
         self.register(ToolTesterTool())

@@ -133,6 +133,11 @@ async def ping_peer(name: str):
     alive = await network_node.ping_peer(name)
     return {"alive": alive}
 
+@app.get("/api/v1/memory/search", response_model=List[Dict[str, Any]])
+async def search_memory(query: str, limit: int = 5):
+    results = await engine.memory.search(query, limit=limit)
+    return results
+
 @app.get("/api/v1/tools", response_model=List[Dict[str, Any]])
 async def list_tools():
     from epex.tools.registry import registry
