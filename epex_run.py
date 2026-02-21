@@ -6,8 +6,8 @@ import asyncio
 from pathlib import Path
 
 async def main():
-    print("🚀 EPEX APEX v5.0 - UNIFIED RUNNER")
-    print("---------------------------------")
+    print("🛠️ EPEX APEX v5.0 - INSTALLER & REPAIR")
+    print("--------------------------------------")
 
     import argparse
     parser = argparse.ArgumentParser()
@@ -30,22 +30,29 @@ async def main():
     print("🔍 Checking system dependencies...")
     try:
         import importlib.metadata
-        with open("requirements.txt", "r") as f:
-            required = [line.split("==")[0].split(">=")[0].strip() for line in f if line.strip() and not line.startswith("#")]
+        if os.path.exists("requirements.txt"):
+            with open("requirements.txt", "r") as f:
+                required = [line.split("==")[0].split(">=")[0].strip() for line in f if line.strip() and not line.startswith("#")]
 
-        installed = {dist.metadata['Name'].lower() for dist in importlib.metadata.distributions()}
-        missing = [r for r in required if r.lower() not in installed and r.lower().replace("-", "_") not in installed]
+            installed = {dist.metadata['Name'].lower() for dist in importlib.metadata.distributions()}
+            missing = [r for r in required if r.lower() not in installed and r.lower().replace("-", "_") not in installed]
 
-        if missing:
-            print(f"📦 Installing missing packages: {', '.join(missing)}")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", *missing, "--quiet"])
-        else:
-            print("✅ All dependencies satisfied.")
+            if missing:
+                print(f"📦 Installing missing packages: {', '.join(missing)}")
+                subprocess.run([sys.executable, "-m", "pip", "install", *missing, "--quiet"], check=True)
+            else:
+                print("✅ All dependencies satisfied.")
 
         # Ensure EPEX is installed in editable mode
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", ".", "--quiet"])
+        print("🔗 Linking EPEX modules...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "-e", ".", "--quiet"], check=True)
     except Exception as e:
         print(f"⚠️ Dependency check warning: {e}")
+
+    # 3. Check for Virtual Environment
+    if not (sys.prefix != sys.base_prefix or 'VIRTUAL_ENV' in os.environ):
+        print("⚠️  Warning: You are not running in a virtual environment.")
+        print("💡 Recommended: Create a venv with 'python -m venv venv' and activate it.")
 
     if not config_path.exists():
         print("📝 No configuration found. Initializing Setup Wizard...")
@@ -55,18 +62,35 @@ async def main():
             await wizard.run()
 
             # Offer Global Shortcut
+            home = Path.home()
+            bashrc = home / ".bashrc"
+            zshrc = home / ".zshrc"
+            shell_configs = [bashrc, zshrc]
+
+            launcher_path = Path(__file__).parent / "epex_launcher.py"
+            alias_line = f"alias epex='python3 {launcher_path.absolute()}'"
+
             print("\n💡 Tip: Would you like to add 'epex' as a global command?")
-            choice = input("Add alias to ~/.bashrc? (y/n): ")
+            choice = input("Add alias to your shell profile? (y/n): ")
             if choice.lower() == 'y':
-                home = Path.home()
-                bashrc = home / ".bashrc"
-                alias_line = f"\nalias epex='python3 {Path(__file__).absolute()}'\n"
-                if bashrc.exists():
-                    with open(bashrc, "a") as f:
-                        f.write(alias_line)
-                    print("✅ Alias added. Please run 'source ~/.bashrc' to activate.")
+                added = False
+                for config in shell_configs:
+                    if config.exists():
+                        with open(config, "r") as f:
+                            content = f.read()
+                        if alias_line not in content:
+                            with open(config, "a") as f:
+                                f.write(f"\n# EPEX APEX Shortcut\n{alias_line}\n")
+                            print(f"✅ Alias added to {config.name}")
+                            added = True
+                        else:
+                            print(f"ℹ️  Alias already exists in {config.name}")
+                            added = True
+
+                if added:
+                    print("🚀 Please restart your terminal or run 'source <your_shell_config>'")
                 else:
-                    print("⚠️  .bashrc not found. Manual alias creation required.")
+                    print("⚠️  No shell profile (.bashrc or .zshrc) found. Manual alias creation required.")
 
         except Exception as e:
             print(f"❌ Setup error: {e}")

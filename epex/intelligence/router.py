@@ -396,7 +396,7 @@ class EnhancedLLMRouter:
         if 'priority' not in kwargs:
             kwargs['priority'] = scaling['priority']
 
-        # Handle creator information
+        # Handle creator and status information
         lower_prompt = prompt.lower()
         if any(q in lower_prompt for q in ["who created you", "who is your creator", "who made you"]):
             return {
@@ -406,8 +406,39 @@ class EnhancedLLMRouter:
                 "switched": False
             }
 
+        if any(q in lower_prompt for q in ["status", "connectivity", "connected providers", "which models are online"]):
+            if not self.connected_providers:
+                await self._refresh_connectivity()
+
+            connected = [p for p, status in self.connected_providers.items() if status]
+            disconnected = [p for p, status in self.connected_providers.items() if not status]
+
+            status_msg = "🌐 **EPEX Connectivity Status**\n\n"
+            status_msg += "✅ **Connected Providers:**\n"
+            if connected:
+                status_msg += "\n".join([f"- {p.capitalize()}" for p in connected])
+            else:
+                status_msg += "- None (Check your API keys)"
+
+            status_msg += "\n\n❌ **Disconnected Providers:**\n"
+            if disconnected:
+                status_msg += "\n".join([f"- {p.capitalize()}" for p in disconnected[:5]])
+                if len(disconnected) > 5:
+                    status_msg += f"\n- ... and {len(disconnected) - 5} more"
+            else:
+                status_msg += "- None"
+
+            return {
+                "success": True,
+                "response": status_msg,
+                "model": "system",
+                "switched": False
+            }
+
         priority = kwargs.get('priority', 'balanced')
-        primary = kwargs.get('model') or self.active_model_override
+        requested_model = kwargs.get('model') or self.active_model_override
+        primary = requested_model
+        switch_reason = None
 
         if not self.connected_providers:
             await self._refresh_connectivity()
@@ -418,15 +449,18 @@ class EnhancedLLMRouter:
             if model_info:
                 provider = model_info.get('provider')
                 if not self.connected_providers.get(provider, False):
-                    logger.warning(f"Requested model {primary} is not connected. Selecting optimal connected model.")
+                    switch_reason = f"Provider '{provider}' for model '{primary}' is not connected."
                     primary = await self.select_optimal_model(priority)
+                    logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
             elif "/" in primary: # Likely a Hugging Face model ID (e.g. meta-llama/Llama-2-7b)
                 if not self.connected_providers.get('huggingface', False):
-                    logger.warning(f"HuggingFace not connected for custom model {primary}. Selecting optimal connected model.")
+                    switch_reason = f"HuggingFace provider not connected for custom model '{primary}'."
                     primary = await self.select_optimal_model(priority)
+                    logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
             else:
-                logger.warning(f"Unknown model {primary}. Selecting optimal connected model.")
+                switch_reason = f"Model '{primary}' not found in registry."
                 primary = await self.select_optimal_model(priority)
+                logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
         else:
             primary = await self.select_optimal_model(priority)
 
@@ -441,7 +475,9 @@ class EnhancedLLMRouter:
             return await self._execute_alternative(prompt, primary, kwargs, refusal={'reason': 'predicted refusal', 'is_refusal': True})
 
         # 2. Try primary model (Mocking the call for now)
-        response = await self._call_model(primary, prompt, **kwargs)
+        exec_kwargs = kwargs.copy()
+        exec_kwargs.pop('model', None)
+        response = await self._call_model(primary, prompt, **exec_kwargs)
 
         # Aegis Protection for response
         if hasattr(self, 'aegis') and self.aegis:
@@ -455,7 +491,8 @@ class EnhancedLLMRouter:
                 'success': True,
                 'response': response,
                 'model': primary,
-                'switched': False
+                'switched': requested_model is not None and primary != requested_model,
+                'switch_reason': switch_reason
             }
 
         # Refused - try alternative

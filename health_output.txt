@@ -1,0 +1,14 @@
+📋 EPEX SYSTEM HEALTH CHECK
+==============================
+✅ Core directory 'epex/' found.
+
+🔍 Checking Dependencies...
+❌ Missing: faker, python-multipart, websockets
+
+🔐 Checking Configuration...
+❌ No config found. Run epex_run.py to set up.
+
+🌐 Checking Provider Connectivity...
+
+==============================
+Health check complete.
