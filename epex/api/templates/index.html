@@ -118,6 +118,10 @@
                 <i class="fas fa-network-wired w-5"></i>
                 <span class="text-sm font-medium">Instances</span>
             </a>
+            <a href="#" onclick="switchTab('architecture')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-project-diagram w-5"></i>
+                <span class="text-sm font-medium">Neural Architecture</span>
+            </a>
             <a href="#" onclick="switchTab('settings')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
                 <i class="fas fa-cog w-5"></i>
                 <span class="text-sm font-medium">Settings</span>
@@ -370,6 +374,80 @@
                 </div>
             </div>
 
+            <!-- Architecture Tab -->
+            <div id="tab-architecture" class="tab-content hidden absolute inset-0 overflow-y-auto p-12 bg-slate-950">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center border border-sky-500/20">
+                            <i class="fas fa-project-diagram text-sky-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">7-Layer Neural Architecture</h2>
+                            <p class="text-slate-400 text-sm">Real-time status of EPEX core components.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="arch-stack">
+                        <!-- Layer 7 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-white/40 opacity-80" data-layer="7">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 7</span>
+                                <span class="text-xs font-bold text-white">INTERFACES</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">GUI, TUI, CLI, Mobile, API, Voice</div>
+                        </div>
+                        <!-- Layer 6 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-indigo-500/40 opacity-80" data-layer="6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 6</span>
+                                <span class="text-xs font-bold text-white">USER CONTROLS</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Guardrails, Persona, Kill-Switch, Approvals</div>
+                        </div>
+                        <!-- Layer 5 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-sky-500/40 opacity-80" data-layer="5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 5</span>
+                                <span class="text-xs font-bold text-white">INTELLIGENCE</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Model Router, Refusal Detection, AI Council, Macros</div>
+                        </div>
+                        <!-- Layer 4 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-blue-500/40 opacity-80" data-layer="4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 4</span>
+                                <span class="text-xs font-bold text-white">ORCHESTRATION</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Task Manager, Spawner, Swarm, Self-Healing</div>
+                        </div>
+                        <!-- Layer 3 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-emerald-500/40 opacity-80" data-layer="3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 3</span>
+                                <span class="text-xs font-bold text-white">TOOL LAYER</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">180+ Tools, Discovery, Plugin System, Hardware</div>
+                        </div>
+                        <!-- Layer 2 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-amber-500/40 opacity-80" data-layer="2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 2</span>
+                                <span class="text-xs font-bold text-white">MEMORY & DATA</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Soul File, Vector Memory, Cache, Blockchain</div>
+                        </div>
+                        <!-- Layer 1 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-red-500/40 opacity-80" data-layer="1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 1</span>
+                                <span class="text-xs font-bold text-white">FOUNDATION</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Encryption, Auth, Monitoring, Sandboxing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Toolbox Tab -->
             <div id="tab-tools" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
                 <div class="max-w-6xl mx-auto">
@@ -570,7 +648,7 @@
             const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1))));
             if (clickedItem) clickedItem.classList.add('active');
 
-            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network' };
+            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture' };
             document.getElementById('tab-title').innerText = titles[tabId];
 
             if (tabId === 'settings') loadSettings();
@@ -618,9 +696,25 @@
 
         let selectedFiles = [];
 
+        function animateLayers(activeLayers) {
+            document.querySelectorAll('.arch-layer').forEach(l => {
+                const layerId = parseInt(l.dataset.layer);
+                if (activeLayers.includes(layerId)) {
+                    l.classList.replace('opacity-80', 'opacity-100');
+                    l.classList.add('animate-pulse', 'border-sky-500');
+                } else {
+                    l.classList.replace('opacity-100', 'opacity-80');
+                    l.classList.remove('animate-pulse', 'border-sky-500');
+                }
+            });
+        }
+
         executeBtn.onclick = async () => {
             const command = commandInput.value.trim();
             if (!command && selectedFiles.length === 0) return;
+
+            // Trigger visual architecture activity
+            animateLayers([7, 6, 5, 4]);
 
             addMessage(command + (selectedFiles.length > 0 ? ` [Attached: ${selectedFiles.join(', ')}]` : ''), 'user');
             const attachments = [...selectedFiles];
@@ -643,6 +737,8 @@
 
                 if (result.success) {
                     addMessage(result.response, 'ai');
+                    animateLayers([1, 2, 3, 4, 5, 6, 7]);
+                    setTimeout(() => animateLayers([]), 2000);
 
                     if (result.control_signal === 'switch_tui') {
                         addMessage("Closing GUI. Please return to your terminal for TUI mode.", 'ai');
@@ -684,6 +780,17 @@
                 const tg = document.getElementById('status-telegram');
                 if (msg.telegram) tg.classList.replace('text-slate-600', 'text-sky-400');
                 else tg.classList.replace('text-sky-400', 'text-slate-600');
+
+                const dc = document.getElementById('status-discord');
+                if (msg.discord) dc.classList.replace('text-slate-600', 'text-indigo-400');
+                else dc.classList.replace('text-indigo-400', 'text-slate-600');
+
+                // Model Health Indicators (Tooltips or colors)
+                const ctx = data.context || {};
+                const models = ctx.models || {};
+                if (Object.values(models).some(v => v)) {
+                    document.getElementById('current-model-name').classList.add('text-green-400');
+                }
 
                 // Neural Sync Insights
                 if (data.neural_sync && data.neural_sync.length > 0) {

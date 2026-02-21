@@ -105,3 +105,39 @@ class AICouncil:
 
         logger.info(f"AI Council Weighted Vote: YES {weighted_yes:.2f}, NO {weighted_no:.2f}")
         return weighted_yes > weighted_no
+
+    async def calibrate_weights(self) -> Dict[str, float]:
+        """
+        Benchmark all connected models on a standardized logic test to optimize weights.
+        """
+        test_riddle = "If a farmer has 17 sheep and all but 9 die, how many are left?"
+        expected_answer = "9"
+
+        logger.info("⚖️ CALIBRATING COUNCIL: Running logic benchmarks...")
+        connected_models = await self._get_connected_models()
+
+        results = {}
+        for m in connected_models:
+            res = await self.router.execute(f"Question: {test_riddle}. Give only the numeric answer.", model=m)
+            if res.get('success'):
+                is_correct = expected_answer in res['response']
+                # Update weight in router (simulated)
+                await self.router.record_success(m, "logic", is_correct)
+                results[m] = 1.0 if is_correct else 0.5
+
+        return results
+
+from epex.tools.base import Tool, ToolResult
+
+class CouncilCalibrateTool(Tool):
+    name = "council.calibrate"
+    description = "Run a performance-based calibration of all connected AI models to optimize voting weights."
+    category = "intelligence"
+    risk_level = "low"
+    parameters = {}
+
+    async def execute(self, **kwargs) -> ToolResult:
+        from epex.intelligence.council import AICouncil
+        council = AICouncil()
+        results = await council.calibrate_weights()
+        return ToolResult(success=True, output={"new_weight_scores": results})

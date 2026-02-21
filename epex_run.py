@@ -44,6 +44,21 @@ async def main():
             from epex.interfaces.tui import TUISetupWizard
             wizard = TUISetupWizard()
             await wizard.run()
+
+            # Offer Global Shortcut
+            print("\n💡 Tip: Would you like to add 'epex' as a global command?")
+            choice = input("Add alias to ~/.bashrc? (y/n): ")
+            if choice.lower() == 'y':
+                home = Path.home()
+                bashrc = home / ".bashrc"
+                alias_line = f"\nalias epex='python3 {Path(__file__).absolute()}'\n"
+                if bashrc.exists():
+                    with open(bashrc, "a") as f:
+                        f.write(alias_line)
+                    print("✅ Alias added. Please run 'source ~/.bashrc' to activate.")
+                else:
+                    print("⚠️  .bashrc not found. Manual alias creation required.")
+
         except Exception as e:
             print(f"❌ Setup error: {e}")
     else:

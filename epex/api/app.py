@@ -77,6 +77,9 @@ async def get_status():
     from epex.foundation.storage import SecureConfigStorage
     storage = SecureConfigStorage()
     config = await storage.load_config()
+
+    context = engine.system_context.status if engine.system_context else {}
+
     return {
         "status": "active" if engine.running else "inactive",
         "agents": len(engine.task_manager.spawner.spawned_agents) if engine.task_manager else 0,
@@ -85,8 +88,10 @@ async def get_status():
         "blockchain": engine.security_guardian.blockchain.get_history(10) if engine.security_guardian and engine.security_guardian.blockchain else [],
         "messaging": {
             "telegram": engine.messaging_hub.bridges['telegram'].running if engine.messaging_hub else False,
-            "email": engine.messaging_hub.bridges['email'].running if engine.messaging_hub else False
+            "email": engine.messaging_hub.bridges['email'].running if engine.messaging_hub else False,
+            "discord": engine.messaging_hub.bridges.get('discord').running if engine.messaging_hub and 'discord' in engine.messaging_hub.bridges else False
         },
+        "context": context,
         "config": {
             "user_name": config.get('user_name'),
             "epex_name": config.get('epex_name'),

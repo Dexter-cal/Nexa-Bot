@@ -55,7 +55,7 @@ class ToolRegistry:
 
     async def load_default_tools(self):
         """Load and register built-in tools"""
-        from epex.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool, TerminalTool, VisionAnalyzeTool, SelectCaptureTool
+        from epex.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool, TerminalTool, VisionAnalyzeTool, SelectCaptureTool, ServiceManagerTool, RegistryExpertTool
         from epex.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
         from epex.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool, WebWhoisTool, WebHttpRequestTool
         from epex.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
@@ -106,7 +106,9 @@ class ToolRegistry:
         from epex.tools.legendary_forensics import SocialMediaLookupTool, DomainIntelligenceTool, DeepFileRecoveryTool, MemoryDumpAnalysisTool
         from epex.tools.document import DocumentParseTool, VisionAnalyzeAttachmentTool
         from epex.tools.intelligence import NeuroLinkTool
+        from epex.intelligence.council import CouncilCalibrateTool
         from epex.tools.snapshot import QuantumSnapshotTool, QuantumRestoreTool
+        from epex.intelligence.macros import MacroSuggesterTool, MacroRegisterTool
 
         self.register(SystemInfoTool())
         self.register(ScreenshotTool())
@@ -117,6 +119,8 @@ class ToolRegistry:
         self.register(TerminalTool())
         self.register(VisionAnalyzeTool())
         self.register(SelectCaptureTool())
+        self.register(ServiceManagerTool())
+        self.register(RegistryExpertTool())
         self.register(FileReadTool())
         self.register(FileWriteTool())
         self.register(FileDeleteTool())
@@ -222,8 +226,11 @@ class ToolRegistry:
         self.register(VisionAnalyzeAttachmentTool())
         self.register(GenerateMockupsTool())
         self.register(NeuroLinkTool())
+        self.register(CouncilCalibrateTool())
         self.register(QuantumSnapshotTool())
         self.register(QuantumRestoreTool())
+        self.register(MacroSuggesterTool())
+        self.register(MacroRegisterTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())
         self.register(ToolTesterTool())

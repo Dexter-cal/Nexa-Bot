@@ -24,6 +24,15 @@ python epex_run.py
 python epex_run.py
 ```
 
+## 🌍 Global Access (CLI)
+During the first setup, EPEX offers to add a global `epex` command to your shell. Once active, you can simply type `epex` from any directory to launch your preferred interface.
+
+If you skipped this, you can manually add it:
+```bash
+echo "alias epex='python3 $(pwd)/epex_run.py'" >> ~/.bashrc
+source ~/.bashrc
+```
+
 ### 🛠 Disaster Recovery
 If your configuration becomes corrupted or you want a fresh start:
 1. Delete the configuration folder: `rm -rf ~/.epex`

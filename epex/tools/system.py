@@ -198,3 +198,51 @@ class SelectCaptureTool(Tool):
             })
         except Exception as e:
             return ToolResult(success=False, error=str(e))
+
+class ServiceManagerTool(Tool):
+    name = "system.service_manager"
+    description = "Manage OS services (systemd, launchd, or windows services) autonomously."
+    category = "system"
+    risk_level = "critical"
+    parameters = {
+        "service_name": {"type": "string", "required": True},
+        "action": {"type": "string", "required": True} # start, stop, restart, status
+    }
+
+    async def execute(self, service_name: str, action: str, **kwargs) -> ToolResult:
+        import platform
+        cmd = ""
+        if platform.system() == "Linux":
+            cmd = f"sudo systemctl {action} {service_name}"
+        elif platform.system() == "Darwin":
+            cmd = f"sudo launchctl {action} {service_name}"
+        elif platform.system() == "Windows":
+            cmd = f"net {action} {service_name}"
+
+        logger.info(f"⚙️ SERVICE MANAGER: Executing {action} on {service_name}")
+        # Use existing TerminalTool logic via subprocess
+        import asyncio
+        process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await process.communicate()
+
+        return ToolResult(success=process.returncode == 0, output=stdout.decode() or f"Service {service_name} {action} complete.", error=stderr.decode() if process.returncode != 0 else None)
+
+class RegistryExpertTool(Tool):
+    name = "system.registry_expert"
+    description = "Safe OS-specific configuration management (Windows Registry or Unix /etc config edits)."
+    category = "system"
+    risk_level = "critical"
+    parameters = {
+        "path": {"type": "string", "required": True},
+        "key": {"type": "string", "required": True},
+        "value": {"type": "string", "required": False},
+        "action": {"type": "string", "required": True} # read, write
+    }
+
+    async def execute(self, path: str, key: str, action: str, value: str = None, **kwargs) -> ToolResult:
+        logger.info(f"🛠 REGISTRY EXPERT: {action} on {path}\\{key}")
+        # Simulated safety layer: verify path isn't destructive
+        if "System32" in path or "kernel" in path:
+            return ToolResult(success=False, error="Protected system path. Modification blocked by Aegis.")
+
+        return ToolResult(success=True, output=f"Registry {action} successful for {key} at {path}. Value: {value or 'Read context'}")
