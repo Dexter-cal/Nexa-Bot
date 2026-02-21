@@ -1,9 +1,9 @@
 import pytest
 import os
-from nexa.core.engine import engine
-from nexa.orchestration.swarm import SwarmCoordinator
-from nexa.core.innovation import BlockchainAudit
-from nexa.privacy.breach_detector import BreachDetector
+from epex.core.engine import engine
+from epex.orchestration.swarm import SwarmCoordinator
+from epex.core.innovation import BlockchainAudit
+from epex.privacy.breach_detector import BreachDetector
 
 class TestFinalProject:
     @pytest.mark.asyncio
@@ -17,7 +17,7 @@ class TestFinalProject:
 
     @pytest.mark.asyncio
     async def test_swarm_coordinator(self):
-        from nexa.core.agent import Agent
+        from epex.core.agent import Agent
         agents = [Agent(f"a{i}", "assistant", "assistive") for i in range(2)]
         for a in agents: await a.start()
 

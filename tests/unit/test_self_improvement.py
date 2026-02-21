@@ -1,7 +1,7 @@
 import pytest
 import os
-from nexa.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool
-from nexa.tools.registry import registry
+from epex.tools.meta import ToolGeneratorTool, ToolTesterTool, SelfUpdaterTool
+from epex.tools.registry import registry
 
 class TestSelfImprovement:
     @pytest.mark.asyncio
@@ -27,7 +27,7 @@ class TestSelfImprovement:
     @pytest.mark.asyncio
     async def test_tool_testing_and_registration(self):
         code = """
-from nexa.tools.base import Tool, ToolResult
+from epex.tools.base import Tool, ToolResult
 
 class DynamicHelloWorldTool(Tool):
     name = "custom.dynamic_hello"
@@ -59,7 +59,7 @@ class DynamicHelloWorldTool(Tool):
     @pytest.mark.asyncio
     async def test_self_update(self):
         # Create a dummy component
-        dummy_file = "nexa/dummy_component.py"
+        dummy_file = "epex/dummy_component.py"
         with open(dummy_file, 'w') as f:
             f.write("def hello(): return 'old'")
 

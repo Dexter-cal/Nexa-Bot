@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import pytest
-from nexa.intelligence.router import EnhancedLLMRouter
-from nexa.memory.soul import SoulFile
+from epex.intelligence.router import EnhancedLLMRouter
+from epex.memory.soul import SoulFile
 
 logging.basicConfig(level=logging.INFO)
 

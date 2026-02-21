@@ -1,5 +1,5 @@
 import pytest
-from nexa.tools.system import SystemInfoTool
+from epex.tools.system import SystemInfoTool
 
 class TestSystemInfoTool:
     """Test suite for SystemInfoTool"""

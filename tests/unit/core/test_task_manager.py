@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from nexa.core.task_manager import TaskManager, Task
+from epex.core.task_manager import TaskManager, Task
 
 class TestTaskManager:
     @pytest.fixture
@@ -9,7 +9,7 @@ class TestTaskManager:
 
     @pytest.mark.asyncio
     async def test_create_task(self, task_manager):
-        from nexa.core.database import init_db
+        from epex.core.database import init_db
         await init_db()
         task = await task_manager.create_task_from_command("test command")
         assert task.description == "test command"
@@ -18,9 +18,9 @@ class TestTaskManager:
 
     @pytest.mark.asyncio
     async def test_process_queue(self, task_manager):
-        from nexa.core.database import init_db, AsyncSessionLocal
+        from epex.core.database import init_db, AsyncSessionLocal
         from sqlalchemy import select
-        from nexa.models.core import Task as DBTask
+        from epex.models.core import Task as DBTask
         await init_db()
         task = await task_manager.create_task_from_command("system info")
 
@@ -36,8 +36,8 @@ class TestTaskManager:
 
     @pytest.mark.asyncio
     async def test_execute_task_with_tools(self, task_manager):
-        from nexa.tools.registry import registry
-        from nexa.core.database import init_db
+        from epex.tools.registry import registry
+        from epex.core.database import init_db
         await init_db()
         await registry.load_default_tools()
 

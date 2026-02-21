@@ -1,6 +1,6 @@
-# 🔑 NEXA UNIVERSAL API KEY DIRECTORY
+# 🔑 EPEX UNIVERSAL API KEY DIRECTORY
 
-Nexa Bot supports over 25+ AI providers. Use this directory to quickly find where to get your keys and understand the costs.
+Epex Bot supports over 25+ AI providers. Use this directory to quickly find where to get your keys and understand the costs.
 
 ## 🚀 Recommended for Beginners (Generous FREE Tiers)
 
@@ -36,25 +36,25 @@ Nexa Bot supports over 25+ AI providers. Use this directory to quickly find wher
 
 | Provider | Purpose | Get Key Here |
 | :--- | :--- | :--- |
-| **Telegram** | Run Nexa as a Telegram Bot | [@BotFather](https://t.me/BotFather) |
+| **Telegram** | Run Epex as a Telegram Bot | [@BotFather](https://t.me/BotFather) |
 | **Twilio** | SMS and Voice calling | [twilio.com](https://www.twilio.com/console) |
 
 ---
 
-## ⚡ How to Add Keys to Nexa
+## ⚡ How to Add Keys to Epex
 
 ### Option 1: CLI (Fastest)
 ```bash
-nexa --key openai sk-...
+epex --key openai sk-...
 ```
 
 ### Option 2: Setup Wizard
 ```bash
-nexa --setup
+epex --setup
 ```
 
 ### Option 3: Web Dashboard
-Open the Nexa Web UI and navigate to the **Settings** tab.
+Open the Epex Web UI and navigate to the **Settings** tab.
 
 ### Option 4: Environment Variables
 Export keys in your shell:
@@ -63,4 +63,4 @@ export OPENAI_API_KEY='sk-...'
 ```
 
 ---
-**Security Note:** All keys are encrypted using AES-256 and stored locally in your `~/.nexa/config.enc`. We never see or store your keys on our servers.
+**Security Note:** All keys are encrypted using AES-256 and stored locally in your `~/.epex/config.enc`. We never see or store your keys on our servers.

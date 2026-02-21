@@ -1,8 +1,8 @@
 import asyncio
 import unittest
-from nexa.intelligence.router import RefusalDetector, EnhancedLLMRouter
+from epex.intelligence.router import RefusalDetector, EnhancedLLMRouter
 
-class TestNexaBot(unittest.IsolatedAsyncioTestCase):
+class TestEpexBot(unittest.IsolatedAsyncioTestCase):
     async def test_refusal_detection(self):
         detector = RefusalDetector()
 
@@ -33,8 +33,8 @@ class TestNexaBot(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result['model'], 'llama-3-uncensored')
 
     async def test_key_loading_from_storage(self):
-        from nexa.foundation.storage import SecureConfigStorage
-        from nexa.intelligence.api_manager import UniversalAPIKeyManager
+        from epex.foundation.storage import SecureConfigStorage
+        from epex.intelligence.api_manager import UniversalAPIKeyManager
         import os
 
         storage = SecureConfigStorage()

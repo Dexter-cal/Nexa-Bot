@@ -1,5 +1,5 @@
 import pytest
-from nexa.core.security import SecurityGuardian, RiskLevel
+from epex.core.security import SecurityGuardian, RiskLevel
 
 class TestSecurityGuardian:
     @pytest.fixture

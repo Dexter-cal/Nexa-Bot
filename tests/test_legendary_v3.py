@@ -1,7 +1,7 @@
 import pytest
 import asyncio
-from nexa.core.engine import engine
-from nexa.core.security import RiskLevel
+from epex.core.engine import engine
+from epex.core.security import RiskLevel
 
 @pytest.mark.asyncio
 async def test_immune_system():
@@ -18,14 +18,14 @@ async def test_immune_system():
 @pytest.mark.asyncio
 async def test_tool_sharing_interface():
     # Check if tools are registered
-    from nexa.tools.registry import registry
+    from epex.tools.registry import registry
     assert registry.get("meta.share_tool") is not None
     assert registry.get("meta.request_tool") is not None
     assert registry.get("meta.ethereal_sync") is not None
 
 @pytest.mark.asyncio
 async def test_new_maint_tools():
-    from nexa.tools.registry import registry
+    from epex.tools.registry import registry
     assert registry.get("maint.deep_scrub") is not None
     assert registry.get("security.firewall_override") is not None
     assert registry.get("meta.logic_refactor") is not None

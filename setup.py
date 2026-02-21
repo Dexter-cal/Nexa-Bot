@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="nexa-bot",
+    name="epex-bot",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
@@ -14,7 +14,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "nexa=nexa.interfaces.cli:main",
+            "epex=epex.interfaces.cli:main",
         ],
     },
 )

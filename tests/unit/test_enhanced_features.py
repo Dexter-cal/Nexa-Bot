@@ -1,9 +1,9 @@
 import pytest
-from nexa.tools.multimedia import ImageResizeTool
-from nexa.tools.productivity import NoteTakingTool
-from nexa.tools.network import DNSLookupTool
-from nexa.intelligence.router import EnhancedLLMRouter
-from nexa.orchestration.teach_mode import TeachMode
+from epex.tools.multimedia import ImageResizeTool
+from epex.tools.productivity import NoteTakingTool
+from epex.tools.network import DNSLookupTool
+from epex.intelligence.router import EnhancedLLMRouter
+from epex.orchestration.teach_mode import TeachMode
 import os
 
 class TestEnhancedFeatures:
@@ -26,7 +26,7 @@ class TestEnhancedFeatures:
     @pytest.mark.asyncio
     async def test_productivity_tool_note(self):
         tool = NoteTakingTool()
-        result = await tool.execute(title='test_note', content='Hello Nexa!')
+        result = await tool.execute(title='test_note', content='Hello Epex!')
         assert result.success is True
         assert os.path.exists('notes/test_note.txt')
 
@@ -54,7 +54,7 @@ class TestEnhancedFeatures:
         tm = TeachMode()
         await tm.start_recording("test_wf")
         tm.record_action("click", "submit_button")
-        tm.record_action("type", "search_bar", value="Nexa Bot")
+        tm.record_action("type", "search_bar", value="Epex Bot")
         workflow = await tm.stop_recording()
 
         assert workflow['name'] == "test_wf"

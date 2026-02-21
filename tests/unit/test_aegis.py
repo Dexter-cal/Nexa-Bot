@@ -1,6 +1,6 @@
 import asyncio
 import pytest
-from nexa.core.security import AegisContentFilter
+from epex.core.security import AegisContentFilter
 
 @pytest.mark.asyncio
 async def test_aegis_filter_redaction():
@@ -30,5 +30,5 @@ async def test_aegis_filter_keywords():
 async def test_aegis_file_protection():
     aegis = AegisContentFilter()
 
-    assert await aegis.is_file_protected("~/.nexa/soul.enc") == True
+    assert await aegis.is_file_protected("~/.epex/soul.enc") == True
     assert await aegis.is_file_protected("/etc/passwd") == False

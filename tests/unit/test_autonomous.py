@@ -1,8 +1,8 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from nexa.features.tool_discovery import AutonomousToolDiscovery
-from nexa.features.self_healing import SelfHealingLoop
+from epex.features.tool_discovery import AutonomousToolDiscovery
+from epex.features.self_healing import SelfHealingLoop
 
 @pytest.mark.asyncio
 async def test_tool_discovery_install():

@@ -1,12 +1,12 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from nexa.core.alerts import alert_manager
+from epex.core.alerts import alert_manager
 
 @pytest.mark.asyncio
 async def test_alert_emission():
     # Mock communication hub
-    from nexa.core.engine import engine
+    from epex.core.engine import engine
     mock_hub = AsyncMock()
 
     with patch.object(engine, 'messaging_hub', mock_hub):
@@ -22,7 +22,7 @@ async def test_alert_emission():
 
 @pytest.mark.asyncio
 async def test_alert_routing_low_severity():
-    from nexa.core.engine import engine
+    from epex.core.engine import engine
     mock_hub = AsyncMock()
 
     with patch.object(engine, 'messaging_hub', mock_hub):

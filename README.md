@@ -1,7 +1,7 @@
-# ⚡ NEXA BOT - THE ULTIMATE AUTONOMOUS AI AGENT
+# ⚡ EPEX BOT - THE ULTIMATE AUTONOMOUS AI AGENT
 **Your Digital Twin – Sees, Thinks, Acts, Evolves**
 
-Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, absolute security, and true autonomy.
+Epex Bot is a state-of-the-art, multi-agent AI system designed for power, absolute security, and true autonomy.
 
 ## 🚀 Key Features
 - **🧠 Strategic Brain**: Advanced planning and decision-making engine that decomposes high-level goals into executable multi-step plans with risk assessment.
@@ -11,6 +11,7 @@ Nexa Bot is a state-of-the-art, multi-agent AI system designed for power, absolu
 - **Agent Spawning**: Spawn specialized parallel agents (Hacker, Developer, Researcher) to work on complex goals simultaneously.
 - **Privacy Guardian**: 24/7 dark web monitoring, breach detection, and digital life scanning.
 - **Teach Mode**: Record and replay your own custom workflows.
+- **🚀 Tool Hub**: Browse, inspect, and launch 120+ tools easily through a dedicated interface.
 - **120+ Built-in Tools**: Comprehensive toolset for system control, multimedia, network, and productivity.
 - **Autonomous Tool Discovery**: Dynamically discovers and installs missing libraries or dependencies on the fly.
 - **Self-Healing Loop**: Automatically detects task failures, analyzes errors, and attempts fixes to ensure goal completion.
@@ -26,13 +27,16 @@ bash install.sh
 ## 🎮 Quick Start
 ```bash
 # Run the setup wizard
-nexa --setup
+epex --setup
 
-# Ask Nexa to perform a task
-nexa "Analyze my system health and take a screenshot"
+# Open the Tool Hub
+epex --tool-hub
+
+# Ask Epex to perform a task
+epex "Analyze my system health and take a screenshot"
 
 # Spawn a specialized agent
-nexa --spawn hacker "Scan this host for vulnerabilities"
+epex --spawn hacker "Scan this host for vulnerabilities"
 ```
 
 ## 📚 Documentation
@@ -45,4 +49,4 @@ nexa --spawn hacker "Scan this host for vulnerabilities"
 Created by **Henry Calvin**.
 
 ---
-© 2025 Nexa Bot. All rights reserved.
+© 2025 Epex Bot. All rights reserved.
