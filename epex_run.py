@@ -9,6 +9,15 @@ async def main():
     print("🚀 EPEX APEX v5.0 - UNIFIED RUNNER")
     print("---------------------------------")
 
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--safe-mode", action="store_true", help="Bypass plugin loading and use minimal core.")
+    args = parser.parse_args()
+
+    if args.safe_mode:
+        print("🛡️ SAFE MODE ACTIVATED: Skipping extended modules...")
+        os.environ["EPEX_SAFE_MODE"] = "true"
+
     # 1. Environment Validation
     if sys.version_info < (3, 11):
         print("❌ EPEX requires Python 3.11 or higher.")

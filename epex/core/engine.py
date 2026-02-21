@@ -54,7 +54,15 @@ class EpexEngine:
 
         # 2. Load Tools
         from epex.tools.registry import registry
-        await registry.load_default_tools()
+        if os.getenv("EPEX_SAFE_MODE") == "true":
+            logger.warning("SAFE MODE: Loading minimal toolset...")
+            # Load only critical tools
+            from epex.tools.system import SystemInfoTool
+            from epex.tools.file import FileReadTool
+            registry.register(SystemInfoTool())
+            registry.register(FileReadTool())
+        else:
+            await registry.load_default_tools()
 
         # 3. Initialize components
         self.llm_router = EnhancedLLMRouter()

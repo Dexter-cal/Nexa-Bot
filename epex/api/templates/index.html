@@ -215,7 +215,7 @@
         <div class="flex-1 relative">
 
             <!-- Chat Tab -->
-            <div id="tab-chat" class="tab-content absolute inset-0 flex flex-col">
+            <div id="tab-chat" class="tab-content absolute inset-0 flex flex-col lg:flex-row">
                 <div id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-6">
                     <div class="flex justify-center mb-10">
                         <div class="text-center">
@@ -225,6 +225,17 @@
                             <h2 class="text-xl font-bold mb-2">Initialize Command</h2>
                             <p class="text-sm text-slate-500 max-w-sm mx-auto">Epex is ready for complex task orchestration. Use natural language to interact with your system.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Thought Stream Panel (Desktop only) -->
+                <div id="thought-stream-panel" class="hidden lg:flex w-80 border-l border-white/5 flex-col bg-slate-950/20">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Neural Thought Stream</span>
+                        <span class="flex h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                    </div>
+                    <div id="thought-stream-content" class="flex-1 overflow-y-auto p-4 space-y-4">
+                        <!-- Thoughts injected here -->
                     </div>
                 </div>
 
@@ -765,9 +776,15 @@
             }
         };
 
-        function animateLayers(activeLayers) {
+        function animateLayers(activeLayers, heatmap = null) {
             document.querySelectorAll('.arch-layer').forEach(l => {
                 const layerId = parseInt(l.dataset.layer);
+
+                if (heatmap && heatmap[`layer_${layerId}`]) {
+                    const intensity = heatmap[`layer_${layerId}`];
+                    l.style.background = `rgba(56, 189, 248, ${intensity * 0.2})`;
+                }
+
                 if (activeLayers.includes(layerId)) {
                     l.classList.replace('opacity-80', 'opacity-100');
                     l.classList.add('animate-pulse', 'border-sky-500');
@@ -883,6 +900,11 @@
                     document.getElementById('current-model-name').classList.add('text-green-400');
                 }
 
+                // Heatmap Update
+                if (data.neural_heatmap) {
+                    animateLayers([], data.neural_heatmap);
+                }
+
                 // Neural Sync Insights
                 if (data.neural_sync && data.neural_sync.length > 0) {
                     document.getElementById('neural-sync-list').innerHTML = data.neural_sync.map(i => `
@@ -935,6 +957,31 @@
                 }
             } catch (err) {}
         }
+
+        async function loadThoughts() {
+            try {
+                const response = await fetch('/api/v1/intelligence/thoughts');
+                const thoughts = await response.json();
+                if (thoughts.length > 0) {
+                    const stream = document.getElementById('thought-stream-content');
+                    stream.innerHTML = thoughts.reverse().map(t => `
+                        <div class="p-3 bg-slate-900/50 rounded-xl border border-white/5 animate-in fade-in slide-in-from-right-2">
+                            <div class="text-[9px] font-bold text-sky-400 uppercase mb-1">Reasoning @ ${new Date(t.timestamp * 1000).toLocaleTimeString()}</div>
+                            <div class="text-[11px] text-slate-400 font-mono line-clamp-3 overflow-hidden">${t.response}</div>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-[8px] text-slate-600 italic">Model: ${t.model}</span>
+                                <button onclick="viewThoughtDetail('${btoa(t.response)}')" class="text-[8px] text-sky-500 hover:text-sky-400 font-bold uppercase">Expand</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {}
+        }
+
+        window.viewThoughtDetail = (encoded) => {
+            const detail = atob(encoded);
+            alert("FULL REASONING LOG:\n\n" + detail);
+        };
 
         async function loadAlerts() {
             try {
@@ -1185,6 +1232,7 @@
         setInterval(updateMetrics, 5000);
         setInterval(loadLogs, 2000);
         setInterval(loadAlerts, 5000);
+        setInterval(loadThoughts, 3000);
 
         updateMetrics();
         loadLogs();

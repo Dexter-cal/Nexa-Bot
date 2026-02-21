@@ -76,6 +76,7 @@ class ToolRegistry:
         from epex.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool, PredictiveMaintenanceTool
         from epex.tools.auto_repair import AutoRepairWizardTool
         from epex.tools.voice import TextToSpeechTool, SpeechToTextTool
+        from epex.tools.voice_profiles import VoiceProfileTool, ListVoicesTool
         from epex.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
         from epex.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
         from epex.tools.forensics import ForensicOSINTTool
@@ -109,6 +110,8 @@ class ToolRegistry:
         from epex.intelligence.council import CouncilCalibrateTool
         from epex.tools.snapshot import QuantumSnapshotTool, QuantumRestoreTool
         from epex.intelligence.macros import MacroSuggesterTool, MacroRegisterTool
+        from epex.tools.optimizer import ApexOptimizerTool
+        from epex.tools.sync import SoulSyncTool
         from epex.memory.synthesis import MemorySynthesisTool
         from epex.tools.reset import SystemResetTool
 
@@ -177,6 +180,8 @@ class ToolRegistry:
         self.register(DiskHealthTool())
         self.register(TextToSpeechTool())
         self.register(SpeechToTextTool())
+        self.register(VoiceProfileTool())
+        self.register(ListVoicesTool())
         self.register(TelegramSendTool())
         self.register(EmailSendTool())
         self.register(AlertPushTool())
@@ -233,7 +238,9 @@ class ToolRegistry:
         self.register(QuantumRestoreTool())
         self.register(MacroSuggesterTool())
         self.register(MacroRegisterTool())
+        self.register(ApexOptimizerTool())
         self.register(MemorySynthesisTool())
+        self.register(SoulSyncTool())
         self.register(SystemResetTool())
         self.register(BudgetManagerTool())
         self.register(AccountSyncTool())

@@ -12,6 +12,8 @@ Epex Bot is the most advanced AI Agent Orchestration framework, designed for abs
 - **Intelligent Interface Switching**: Prompt Epex in natural language to move between GUI, TUI, and CLI instantly.
 - **Autonomous Macro Synthesis**: The bot identifies your repetitive sequences and suggests creating new atomic tools for them.
 - **Dynamic Plugin Support**: Drop any `.py` tool into the `plugins/` folder and Epex registers it instantly.
+- **Neural Reasoning Stream**: Real-time visualization of the agent's internal planning and logic steps.
+- **Soul Cloud Sync**: Securely synchronize personality and memories across devices via encrypted backups.
 - **Self-Aware Diagnostics**: Epex knows its own connectivity status and can answer questions like "Is my Telegram bot online?".
 - **Intelligent Prompt Assistant**: Real-time intent detection and command auto-completion in the CLI.
 - **Omni-Search**: Unified search across local files, the web, and all connected peers simultaneously.
@@ -67,6 +69,11 @@ Epex Bot is designed to be a unified presence across all your hardware:
 
 ---
 ## 👑 CREATOR & RE-RUNNING
+To launch in **Safe Mode** (bypassing extended tools if the system is unstable):
+```bash
+python epex_run.py --safe-mode
+```
+
 Epex Bot was created by **Henry Calvin**. To rerun or restart the agent anytime (especially after a system shutdown), simply execute:
 ```bash
 python epex_run.py

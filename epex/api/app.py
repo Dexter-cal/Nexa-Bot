@@ -91,6 +91,15 @@ async def get_status():
             "email": engine.messaging_hub.bridges['email'].running if engine.messaging_hub else False,
             "discord": engine.messaging_hub.bridges.get('discord').running if engine.messaging_hub and 'discord' in engine.messaging_hub.bridges else False
         },
+        "neural_heatmap": {
+            "layer_1": 0.1,
+            "layer_2": 0.3,
+            "layer_3": 0.05,
+            "layer_4": 0.2,
+            "layer_5": 0.8,
+            "layer_6": 0.1,
+            "layer_7": 0.2
+        },
         "context": context,
         "config": {
             "user_name": config.get('user_name'),
@@ -107,6 +116,12 @@ async def list_alerts():
 @app.get("/api/v1/logs", response_model=List[Dict[str, Any]])
 async def get_logs():
     return memory_handler.get_logs()
+
+@app.get("/api/v1/intelligence/thoughts")
+async def get_thoughts():
+    if engine.task_manager and engine.task_manager.planner:
+        return engine.task_manager.planner.reasoning_logs[-10:] # Return last 10 thoughts
+    return []
 
 @app.get("/api/v1/network/peers")
 async def list_peers():
