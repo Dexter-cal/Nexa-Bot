@@ -117,3 +117,33 @@ class StrategicPlanner:
         """
         # Placeholder for complex evaluation logic
         return 0.85
+
+class ContextOptimizer:
+    """Neural Context Optimizer: Manages LLM context windows efficiently"""
+
+    def __init__(self, router: EnhancedLLMRouter):
+        self.router = router
+
+    async def optimize_history(self, history: List[Dict[str, str]], max_tokens: int = 4000) -> List[Dict[str, str]]:
+        """Summarize old history if it exceeds token limits"""
+        # Simplified token estimation
+        total_chars = sum(len(m['content']) for m in history)
+        if total_chars < max_tokens * 3:
+            return history
+
+        logger.info("Neural Context Optimizer: Optimizing conversation history...")
+
+        to_summarize = history[:-5] # Keep last 5 messages intact
+        keep_intact = history[-5:]
+
+        summary_prompt = f"Summarize the key points and context of the following conversation history for an AI assistant. Focus on facts, goals, and user preferences established.\n\nHistory:\n"
+        for m in to_summarize:
+            summary_prompt += f"{m['role']}: {m['content']}\n"
+
+        res = await self.router.execute(summary_prompt, model='gemini-2.0-flash')
+
+        optimized = [
+            {'role': 'system', 'content': f"Summary of previous conversation: {res['response']}"}
+        ] + keep_intact
+
+        return optimized

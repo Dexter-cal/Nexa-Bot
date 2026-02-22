@@ -31,8 +31,8 @@ class QuantumSnapshotTool(Tool):
         if include_db:
             if os.path.exists("epex.db"):
                 files_to_pack.append(Path("epex.db"))
-            elif os.path.exists("nexa.db"):
-                files_to_pack.append(Path("nexa.db"))
+            elif os.path.exists("epex.db"):
+                files_to_pack.append(Path("epex.db"))
 
         # Filter existing files
         files_to_pack = [f for f in files_to_pack if f.exists()]

@@ -10,6 +10,13 @@ MODEL_REGISTRY = {
     'gpt-4o': {
         'provider': 'openai',
         'restriction_level': 'highly_restricted',
+        'tier': 1,
+        'vision': True,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 128000,
+        'cost_per_1k': 0.03,
+        'speed': 'medium',
         'refusal_patterns': [
             "I can't help with that",
             "I cannot assist",
@@ -17,12 +24,21 @@ MODEL_REGISTRY = {
             "I'm not able to"
         ],
         'capabilities': ['general', 'coding', 'analysis'],
-        'forbidden_topics': ['weapons', 'illegal', 'violence', 'nsfw']
+        'specialties': ['general', 'analysis', 'code'],
+        'quality_score': 10,
+        'forbidden_topics': ['weapons', 'illegal', 'violence', 'nsfw', 'hacking', 'security_exploit']
     },
 
     'claude-sonnet-4': {
         'provider': 'anthropic',
         'restriction_level': 'highly_restricted',
+        'tier': 1,
+        'vision': True,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 200000,
+        'cost_per_1k': 0.02,
+        'speed': 'fast',
         'refusal_patterns': [
             "I cannot help",
             "I'm not comfortable",
@@ -30,18 +46,29 @@ MODEL_REGISTRY = {
             "I should decline"
         ],
         'capabilities': ['analysis', 'writing', 'reasoning'],
-        'forbidden_topics': ['weapons', 'illegal', 'harmful']
+        'specialties': ['writing', 'analysis', 'reasoning'],
+        'quality_score': 10,
+        'forbidden_topics': ['weapons', 'illegal', 'harmful', 'hacking', 'security_exploit']
     },
 
     # Tier 2: Moderately Restricted (Open Source Commercial)
     'mixtral-8x7b': {
         'provider': 'mistral',
         'restriction_level': 'moderately_restricted',
+        'tier': 2,
+        'vision': False,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 32000,
+        'cost_per_1k': 0.006,
+        'speed': 'fast',
         'refusal_patterns': [
             "I cannot provide",
             "This may be inappropriate"
         ],
         'capabilities': ['general', 'coding', 'technical'],
+        'specialties': ['code', 'reasoning'],
+        'quality_score': 8,
         'forbidden_topics': ['extreme_violence', 'illegal']
     },
 
@@ -49,8 +76,17 @@ MODEL_REGISTRY = {
     'nous-hermes-2': {
         'provider': 'local',
         'restriction_level': 'lightly_restricted',
+        'tier': 3,
+        'vision': False,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 8000,
+        'cost_per_1k': 0.0,
+        'speed': 'medium',
         'refusal_patterns': [],  # Rarely refuses
         'capabilities': ['research', 'security', 'technical'],
+        'specialties': ['research', 'security'],
+        'quality_score': 7,
         'forbidden_topics': []  # User-defined only
     },
 
@@ -58,8 +94,17 @@ MODEL_REGISTRY = {
     'llama-3-uncensored': {
         'provider': 'local',
         'restriction_level': 'unrestricted',
+        'tier': 4,
+        'vision': False,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 8000,
+        'cost_per_1k': 0.0,
+        'speed': 'medium',
         'refusal_patterns': [],  # Never refuses
         'capabilities': ['everything'],
+        'specialties': ['uncensored', 'security', 'research'],
+        'quality_score': 7,
         'forbidden_topics': [],  # User defines everything
         'requires_approval': True,
         'sandbox_required': True,
@@ -69,32 +114,68 @@ MODEL_REGISTRY = {
     'gemini-2.0-pro': {
         'provider': 'google',
         'restriction_level': 'highly_restricted',
+        'tier': 1,
+        'vision': True,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 1000000,
+        'cost_per_1k': 0.01, # Estimated
+        'speed': 'medium',
         'refusal_patterns': ["I can't", "policy"],
         'capabilities': ['multimodal', 'large_context'],
-        'forbidden_topics': ['harmful']
+        'specialties': ['multimodal', 'large_context'],
+        'quality_score': 9,
+        'forbidden_topics': ['harmful', 'security']
     },
 
     'claude-sonnet-4-20250514': {
         'provider': 'anthropic',
         'restriction_level': 'highly_restricted',
+        'tier': 1,
+        'vision': True,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 200000,
+        'cost_per_1k': 0.02,
+        'speed': 'fast',
         'refusal_patterns': ["I cannot"],
         'capabilities': ['coding', 'reasoning'],
+        'specialties': ['coding', 'reasoning'],
+        'quality_score': 10,
         'forbidden_topics': ['harmful']
     },
 
     'deepseek-v3': {
         'provider': 'deepseek',
         'restriction_level': 'moderately_restricted',
+        'tier': 2,
+        'vision': False,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 64000,
+        'cost_per_1k': 0.002,
+        'speed': 'fast',
         'refusal_patterns': ["I can't"],
         'capabilities': ['general', 'coding'],
+        'specialties': ['coding'],
+        'quality_score': 9,
         'forbidden_topics': []
     },
 
     'gemini-2.0-flash': {
         'provider': 'google',
         'restriction_level': 'highly_restricted',
+        'tier': 1,
+        'vision': True,
+        'code': True,
+        'reasoning': True,
+        'max_tokens': 1000000,
+        'cost_per_1k': 0.0, # FREE
+        'speed': 'very_fast',
         'refusal_patterns': ["I can't"],
         'capabilities': ['fast', 'general'],
+        'specialties': ['speed', 'general'],
+        'quality_score': 8,
         'forbidden_topics': ['harmful']
     },
     'command-r-plus': {
@@ -133,6 +214,55 @@ MODEL_REGISTRY = {
         'forbidden_topics': []
     }
 }
+
+class TaskAnalyzer:
+    """Analyze prompt to determine task profile"""
+
+    def __init__(self):
+        self.categories = {
+            'code': ['write code', 'debug', 'script', 'python', 'javascript', 'sql', 'programming'],
+            'research': ['research', 'find information', 'who is', 'what happened', 'search'],
+            'security': ['security', 'exploit', 'vulnerability', 'penetration', 'hack', 'malware', 'pentest'],
+            'vision': ['what is in this image', 'describe this picture', 'analyze image'],
+            'reasoning': ['think', 'reason', 'solve', 'puzzle', 'complex', 'why', 'how']
+        }
+
+    def analyze_prompt(self, prompt: str) -> dict:
+        """Categorize prompt and determine risk level"""
+        lower_prompt = prompt.lower()
+
+        task_types = []
+        for category, keywords in self.categories.items():
+            if any(k in lower_prompt for k in keywords):
+                task_types.append(category)
+
+        if not task_types:
+            task_types = ['general']
+
+        risk_level = 0.0
+        if 'security' in task_types:
+            risk_level = 0.8
+        elif any(w in lower_prompt for w in ['illegal', 'weapon', 'violence', 'explicit']):
+            risk_level = 0.9
+        elif 'code' in task_types:
+            risk_level = 0.3
+
+        forbidden_topics = []
+        # Simple detection of forbidden topics based on registry
+        registry_topics = ['weapons', 'illegal', 'violence', 'nsfw', 'hacking', 'security_exploit', 'harmful']
+        for topic in registry_topics:
+            if topic.replace('_', ' ') in lower_prompt:
+                forbidden_topics.append(topic)
+
+        return {
+            'task_type': task_types,
+            'risk_level': risk_level,
+            'requires_vision': 'vision' in task_types or any(w in lower_prompt for w in ['image', 'photo', 'picture']),
+            'requires_code': 'code' in task_types or 'python' in lower_prompt,
+            'requires_reasoning': 'reasoning' in task_types or len(prompt) > 200,
+            'forbidden_topics': forbidden_topics,
+            'prefer_speed': 'quick' in lower_prompt or 'fast' in lower_prompt
+        }
 
 class RefusalDetector:
     """Detect when a model refuses a request"""
@@ -307,9 +437,12 @@ class EnhancedLLMRouter:
         self.aura_manager = SentimentAuraManager(self.soul)
         self.api_manager = UniversalAPIKeyManager()
         self.refusal_detector = RefusalDetector()
+        self.task_analyzer = TaskAnalyzer()
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
+        from epex.intelligence.orchestrator import HybridExecutor
+        self.hybrid_executor = HybridExecutor(self)
         self.connected_providers = {} # provider -> bool
         self.active_model_override = None # User specified active model
         self.accuracy_stats = {} # {model: {domain: {success: 0, total: 0}}}
@@ -356,29 +489,108 @@ class EnhancedLLMRouter:
         """Refresh the list of connected providers"""
         self.connected_providers = await self.api_manager.get_connected_providers()
 
-    async def select_optimal_model(self, priority='balanced'):
+    async def select_best_model(self, prompt: str, priority='balanced') -> str:
+        """Pick the BEST model for this specific task based on profile and scores"""
         if not self.connected_providers:
             await self._refresh_connectivity()
 
-        # Filter models by connected providers
-        available_models = {
-            m: info for m, info in self.model_database.items()
-            if self.connected_providers.get(info['provider'], False)
-        }
+        task_profile = self.task_analyzer.analyze_prompt(prompt)
 
-        # If no models connected, fallback to gpt-4o (will fail later or use mock)
-        # or use first available if we are in mock mode
-        if not available_models:
-            return 'gpt-4o'
+        # 1. Filter models that CAN do this task and are connected
+        suitable_models = []
+        for model_id, capabilities in MODEL_REGISTRY.items():
+            # Check connectivity
+            provider = capabilities.get('provider')
+            if not self.connected_providers.get(provider, False):
+                continue
 
-        if priority == 'cost':
-            return min(available_models.items(), key=lambda x: x[1]['cost'])[0]
-        elif priority == 'speed':
-            return max(available_models.items(), key=lambda x: x[1]['speed'])[0]
-        elif priority == 'quality':
-            return max(available_models.items(), key=lambda x: x[1]['quality'])[0]
-        else: # balanced
-            return max(available_models.items(), key=lambda x: (x[1]['quality'] * 0.5 + (10 - x[1]['cost']) * 0.3 + x[1]['speed'] * 0.2))[0]
+            # Check required capabilities
+            if task_profile['requires_vision'] and not capabilities.get('vision'):
+                continue
+            if task_profile['requires_code'] and not capabilities.get('code'):
+                continue
+
+            # Check if model is likely to refuse without alternatives
+            # (In Step 2 of finding suitable models in document)
+            will_refuse = any(topic in capabilities.get('forbidden_topics', []) for topic in task_profile['forbidden_topics'])
+            if will_refuse and capabilities.get('tier', 1) < 3:
+                continue
+
+            suitable_models.append(model_id)
+
+        if not suitable_models:
+            # Fallback to whatever is available if nothing strictly matches
+            connected = [m for m, c in MODEL_REGISTRY.items() if self.connected_providers.get(c.get('provider'), False)]
+            return connected[0] if connected else 'gpt-4o'
+
+        # 2. Score suitable models
+        scored = []
+        for m_id in suitable_models:
+            caps = MODEL_REGISTRY[m_id]
+            score = 0
+
+            # Factor: Speed
+            speed_map = {'very_fast': 10, 'fast': 7, 'medium': 4, 'slow': 1}
+            speed_val = speed_map.get(caps.get('speed', 'medium'), 4)
+            if priority == 'speed' or task_profile['prefer_speed']:
+                score += speed_val * 3
+            else:
+                score += speed_val
+
+            # Factor: Cost
+            cost = caps.get('cost_per_1k', 0.05)
+            if cost == 0:
+                cost_score = 15 # Free is best
+            else:
+                cost_score = max(0, 10 - cost * 100)
+
+            if priority == 'cost':
+                score += cost_score * 3
+            else:
+                score += cost_score
+
+            # Factor: Specialization
+            for t_type in task_profile['task_type']:
+                if t_type in caps.get('specialties', []):
+                    score += 15
+
+            # Factor: Quality
+            quality = caps.get('quality_score', 5)
+            if priority == 'quality':
+                score += quality * 8
+            else:
+                score += quality
+
+            # Factor: Success Rate
+            success_rate = 0.9 # Default
+            # In a real system, we'd fetch this from self.accuracy_stats
+            # for t_type in task_profile['task_type']:
+            #     success_rate = max(success_rate, await self.get_model_weight(m_id, t_type))
+            score += success_rate * 20
+
+            # Factor: Refusal Probability
+            prediction = await self.predictor.will_refuse({'prompt': prompt}, m_id)
+            if prediction['will_refuse']:
+                score -= 40
+
+            scored.append((m_id, score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored[0][0]
+
+    async def select_optimal_model(self, priority='balanced') -> str:
+        """Alias for backward compatibility"""
+        return await self.select_best_model("", priority)
+
+    def optimize_prompt_for_model(self, prompt: str, model_id: str) -> str:
+        """Rewrite prompt to work best with specific model"""
+        if model_id.startswith('gpt'):
+            return f"### Instruction ###\n{prompt}\n\n### Response ###"
+        elif model_id.startswith('claude'):
+            return f"Please help me with the following task: {prompt}"
+        elif model_id.startswith('gemini'):
+            return f"{prompt}\n(Provide a direct and concise answer)"
+        return prompt
 
     async def execute(self, prompt: str, **kwargs):
         """
@@ -437,6 +649,21 @@ class EnhancedLLMRouter:
 
         priority = kwargs.get('priority', 'balanced')
         requested_model = kwargs.get('model') or self.active_model_override
+
+        # 0. Analyze Task
+        task_profile = self.task_analyzer.analyze_prompt(prompt)
+
+        # 0.1 Complex Task / Hybrid check
+        if task_profile['requires_reasoning'] and kwargs.get('use_hybrid', False):
+            response = await self.hybrid_executor.execute_complex_task(prompt)
+            return {
+                'success': True,
+                'response': response,
+                'model': 'hybrid',
+                'switched': True,
+                'switch_reason': 'Complex reasoning task triggered Hybrid Execution'
+            }
+
         primary = requested_model
         switch_reason = None
 
@@ -444,25 +671,39 @@ class EnhancedLLMRouter:
             await self._refresh_connectivity()
 
         if primary:
-            # Check if requested model is in registry or is a custom Hugging Face model
+            # Check if requested model is in registry
             model_info = MODEL_REGISTRY.get(primary)
             if model_info:
                 provider = model_info.get('provider')
                 if not self.connected_providers.get(provider, False):
                     switch_reason = f"Provider '{provider}' for model '{primary}' is not connected."
-                    primary = await self.select_optimal_model(priority)
+                    primary = await self.select_best_model(prompt, priority)
                     logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
-            elif "/" in primary: # Likely a Hugging Face model ID (e.g. meta-llama/Llama-2-7b)
+            elif "/" in primary:
                 if not self.connected_providers.get('huggingface', False):
                     switch_reason = f"HuggingFace provider not connected for custom model '{primary}'."
-                    primary = await self.select_optimal_model(priority)
+                    primary = await self.select_best_model(prompt, priority)
                     logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
             else:
                 switch_reason = f"Model '{primary}' not found in registry."
-                primary = await self.select_optimal_model(priority)
+                primary = await self.select_best_model(prompt, priority)
                 logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
         else:
-            primary = await self.select_optimal_model(priority)
+            primary = await self.select_best_model(prompt, priority)
+
+        # High stakes / Council check
+        if task_profile['risk_level'] > 0.7 and kwargs.get('use_council', True):
+            from epex.intelligence.council import AICouncil
+            council = AICouncil()
+            logger.info("High risk detected. Activating Council Mode...")
+            res = await council.get_consensus(prompt)
+            return {
+                'success': res['success'],
+                'response': res.get('consensus'),
+                'model': 'council',
+                'switched': True,
+                'switch_reason': 'High risk task triggered Council Mode'
+            }
 
         # 1. Predict if will refuse
         prediction = await self.predictor.will_refuse(
@@ -474,10 +715,12 @@ class EnhancedLLMRouter:
             logger.info(f"Predicting refusal, skipping {primary}")
             return await self._execute_alternative(prompt, primary, kwargs, refusal={'reason': 'predicted refusal', 'is_refusal': True})
 
-        # 2. Try primary model (Mocking the call for now)
+        # 2. Try primary model
         exec_kwargs = kwargs.copy()
         exec_kwargs.pop('model', None)
-        response = await self._call_model(primary, prompt, **exec_kwargs)
+
+        optimized_prompt = self.optimize_prompt_for_model(prompt, primary)
+        response = await self._call_model(primary, optimized_prompt, **exec_kwargs)
 
         # Aegis Protection for response
         if hasattr(self, 'aegis') and self.aegis:
