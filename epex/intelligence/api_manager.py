@@ -321,26 +321,38 @@ class UniversalAPIKeyManager:
 
     async def get_connected_providers(self) -> dict:
         """
-        Tests all detected keys and returns a mapping of provider -> status (bool)
+        Tests all detected keys and returns a mapping of provider -> status (bool).
+        It strictly validates that the key works before reporting Online.
         """
         detected = await self.auto_detect_keys()
         status = {}
 
+        # We also want to check local tools like ollama even if no key is detected
+        potential_providers = list(detected.keys())
+        for p in ['ollama', 'lmstudio']:
+            if p not in potential_providers:
+                potential_providers.append(p)
+
         tasks = []
-        for provider, keys in detected.items():
+        checked_providers = []
+
+        for provider in potential_providers:
+            keys = detected.get(provider, [])
             if keys:
                 key = keys[0] if isinstance(keys, list) else keys
                 tasks.append(self._test_provider_status(provider, key))
+                checked_providers.append(provider)
+            elif provider in ['ollama', 'lmstudio']:
+                # Test local tools even without keys
+                tasks.append(self._test_provider_status(provider, ""))
+                checked_providers.append(provider)
             else:
                 status[provider] = False
 
-        results = await asyncio.gather(*tasks)
-
-        idx = 0
-        for provider, keys in detected.items():
-            if keys:
-                status[provider] = results[idx]
-                idx += 1
+        if tasks:
+            results = await asyncio.gather(*tasks)
+            for i, res in enumerate(results):
+                status[checked_providers[i]] = res
 
         return status
 
@@ -552,3 +564,7 @@ class UniversalAPIKeyManager:
                     filtered_options = options
 
         return selected
+
+    def get_key_url(self, provider: str) -> str:
+        """Get the URL to obtain an API key for a specific provider"""
+        return self.providers.get(provider, {}).get('get_key_url', "No URL available.")

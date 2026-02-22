@@ -67,7 +67,7 @@ async def main():
             zshrc = home / ".zshrc"
             shell_configs = [bashrc, zshrc]
 
-            launcher_path = Path(__file__).parent / "epex_launcher.py"
+            launcher_path = Path(__file__).parent / "epex.py"
             alias_line = f"alias epex='python3 {launcher_path.absolute()}'"
 
             print("\n💡 Tip: Would you like to add 'epex' as a global command?")
@@ -104,16 +104,9 @@ async def main():
             iface = config.get('preferred_interface', 'TUI')
             print(f"✅ Configuration loaded. Launching {iface}...")
 
-            if iface == 'GUI':
-                from epex.interfaces.cli import launch_gui
-                await launch_gui()
-            elif iface == 'CLI':
-                from epex.interfaces.cli import start_chat_loop
-                await start_chat_loop()
-            else: # TUI
-                from epex.interfaces.tui import EpexTUI
-                tui = EpexTUI()
-                await tui.run()
+            # Run the unified launcher
+            launcher_path = Path(__file__).parent / "epex.py"
+            subprocess.run([sys.executable, str(launcher_path)])
 
         except Exception as e:
             print(f"❌ Execution error: {e}")

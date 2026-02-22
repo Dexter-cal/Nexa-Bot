@@ -230,10 +230,24 @@ class KillSwitch:
 
     def __init__(self):
         self.level = self.Level.NONE
+        self.biometric_authorized = False
 
-    def trigger(self, level: int):
+    def trigger(self, level: int, biometric_verified: bool = False):
         self.level = self.Level(level)
-        logger.warning(f"🚨 KILL SWITCH LEVEL {self.level.name} TRIGGERED!")
+        if biometric_verified:
+            logger.warning(f"🚨 GLOBAL BIOMETRIC KILL SWITCH LEVEL {self.level.name} TRIGGERED!")
+        else:
+            logger.warning(f"🚨 KILL SWITCH LEVEL {self.level.name} TRIGGERED!")
+
+        # Trigger global shutdown if level >= 3
+        if level >= 3:
+            from epex.core.engine import engine
+            asyncio.create_task(engine.stop(level=level))
+
+    def simulate_biometric_press(self):
+        """Simulate mobile biometric press"""
+        logger.info("📱 Mobile Biometric Pulse Detected...")
+        self.trigger(4, biometric_verified=True)
 
 class AegisContentFilter:
     """

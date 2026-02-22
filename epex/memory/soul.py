@@ -33,6 +33,12 @@ class SoulFile:
                 "long_term": []
             },
             "relationships": [],
+            "work_patterns": {
+                "peak_hours": [],
+                "preferred_environment": "undetermined",
+                "break_frequency": "standard"
+            },
+            "recent_learning": [],
             "current_mood": "efficient",
             "current_aura": "professional"
         }
@@ -94,14 +100,32 @@ class SoulFile:
         """
         Heuristic-based learning for the Soul File
         """
-        # Very simple heuristic for now
-        if "don't like" in user_input.lower() or "hate" in user_input.lower():
-            self.data["dislikes"].append(user_input)
-            self.save()
+        lower_input = user_input.lower()
 
-        if not user_feedback:
-             # If user rejects AI suggestion, note it
-             pass
+        # 1. Detect Dislikes
+        if any(w in lower_input for w in ["don't like", "hate", "stop using", "never"]):
+            self.data["dislikes"].append(user_input)
+
+        # 2. Detect Interests/Skills
+        if "learning" in lower_input or "tutorial" in lower_input:
+            topic = user_input.split("learning")[-1].strip()
+            if topic not in self.data["recent_learning"]:
+                self.data["recent_learning"].append(topic)
+
+        # 3. Detect Preferences (Bullet points, etc)
+        if "bullet points" in lower_input:
+            if "no" in lower_input or "don't" in lower_input:
+                self.data["personality"]["communication_style"] = "narrative"
+            else:
+                self.data["personality"]["communication_style"] = "structured"
+
+        # 4. Update Time of Activity
+        from datetime import datetime
+        hour = datetime.now().hour
+        if hour not in self.data["work_patterns"]["peak_hours"]:
+            self.data["work_patterns"]["peak_hours"].append(hour)
+
+        self.save()
 
     def update_mood(self, success_rate: float):
         if success_rate > 0.9:

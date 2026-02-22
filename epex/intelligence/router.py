@@ -583,14 +583,21 @@ class EnhancedLLMRouter:
         return await self.select_best_model("", priority)
 
     def optimize_prompt_for_model(self, prompt: str, model_id: str) -> str:
-        """Rewrite prompt to work best with specific model"""
+        """Rewrite prompt to work best with specific model and Digital Soul context"""
+        soul_ctx = ""
+        if self.soul:
+            p = self.soul.data.get('personality', {})
+            soul_ctx = f"\n[User Persona Context: Style={p.get('communication_style')}, Detail={p.get('detail_level')}]"
+            if p.get('communication_style') == 'narrative':
+                soul_ctx += " (AVOID BULLET POINTS)"
+
         if model_id.startswith('gpt'):
-            return f"### Instruction ###\n{prompt}\n\n### Response ###"
+            return f"### Instruction ###\n{prompt}{soul_ctx}\n\n### Response ###"
         elif model_id.startswith('claude'):
-            return f"Please help me with the following task: {prompt}"
+            return f"Please help me with the following task: {prompt}{soul_ctx}"
         elif model_id.startswith('gemini'):
-            return f"{prompt}\n(Provide a direct and concise answer)"
-        return prompt
+            return f"{prompt}{soul_ctx}\n(Provide a direct and concise answer)"
+        return f"{prompt}{soul_ctx}"
 
     async def execute(self, prompt: str, **kwargs):
         """
@@ -634,9 +641,11 @@ class EnhancedLLMRouter:
 
             status_msg += "\n\n❌ **Disconnected Providers:**\n"
             if disconnected:
-                status_msg += "\n".join([f"- {p.capitalize()}" for p in disconnected[:5]])
+                for p in disconnected[:5]:
+                    link = self.api_manager.get_key_url(p)
+                    status_msg += f"- {p.capitalize()} ([Get Key]({link}))\n"
                 if len(disconnected) > 5:
-                    status_msg += f"\n- ... and {len(disconnected) - 5} more"
+                    status_msg += f"- ... and {len(disconnected) - 5} more\n"
             else:
                 status_msg += "- None"
 
@@ -692,18 +701,29 @@ class EnhancedLLMRouter:
             primary = await self.select_best_model(prompt, priority)
 
         # High stakes / Council check
-        if task_profile['risk_level'] > 0.7 and kwargs.get('use_council', True):
+        use_council = kwargs.get('use_council', True)
+        # Force single model if specific model requested and not high risk override
+        if requested_model and task_profile['risk_level'] <= 0.7:
+            use_council = False
+
+        if task_profile['risk_level'] > 0.7 and use_council:
             from epex.intelligence.council import AICouncil
             council = AICouncil()
-            logger.info("High risk detected. Activating Council Mode...")
-            res = await council.get_consensus(prompt)
-            return {
-                'success': res['success'],
-                'response': res.get('consensus'),
-                'model': 'council',
-                'switched': True,
-                'switch_reason': 'High risk task triggered Council Mode'
-            }
+
+            # Check if enough connected models for council
+            connected_for_council = await council._get_connected_models()
+            if len(connected_for_council) >= 2:
+                logger.info("High risk detected. Activating Council Mode...")
+                res = await council.get_consensus(prompt)
+                return {
+                    'success': res['success'],
+                    'response': res.get('consensus'),
+                    'model': 'council',
+                    'switched': True,
+                    'switch_reason': 'High risk task triggered Council Mode'
+                }
+            else:
+                logger.warning("Council Mode requested but not enough models connected. Falling back to primary.")
 
         # 1. Predict if will refuse
         prediction = await self.predictor.will_refuse(

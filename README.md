@@ -1,55 +1,67 @@
-# ⚡ EPEX BOT - THE ULTIMATE AUTONOMOUS AI AGENT
-**Your Digital Twin – Sees, Thinks, Acts, Evolves**
+# ⚡ EPEX BOT - THE APEX NEURAL OPERATING SYSTEM
 
-Epex Bot is a state-of-the-art, multi-agent AI system designed for power, absolute security, and true autonomy.
+**"From Zero to Intelligent Mastery in 60 Seconds"**
 
-## 🚀 Key Features
-- **🧠 Strategic Brain**: Advanced planning and decision-making engine that decomposes high-level goals into executable multi-step plans with risk assessment.
-- **🏛️ AI Council**: A multi-model consensus system where different AIs (GPT-4o, Claude, Gemini) vote on critical or risky decisions to ensure accuracy and safety.
-- **Intelligent Model Routing**: Automatically switches between censored and uncensored models to ensure task completion without moralizing refusals.
-- **7-Layer Architecture**: A robust foundation covering Security, Memory, Tools, Orchestration, Intelligence, Control, and Interfaces.
-- **Agent Spawning**: Spawn specialized parallel agents (Hacker, Developer, Researcher) to work on complex goals simultaneously.
-- **Privacy Guardian**: 24/7 dark web monitoring, breach detection, and digital life scanning.
-- **Teach Mode**: Record and replay your own custom workflows.
-- **🚀 Tool Hub**: Browse, inspect, and launch 180+ tools easily through a dedicated interface.
-- **🛠️ Dynamic Plugins**: Load and register new Python tools at runtime without restarting.
-- **Autonomous Tool Discovery**: Dynamically discovers and installs missing libraries or dependencies on the fly.
-- **Self-Healing Loop**: Automatically detects task failures, analyzes errors, and attempts fixes to ensure goal completion.
-- **Aegis Zero-Trust Security**: Advanced content filtering to prevent secret leakage and active defense against hackers.
-- **Secure by Design**: AES-256 encryption for all sensitive configurations and audit logs.
-- **Multi-Interface**: CLI, TUI, and high-fidelity Web GUI.
-- **Dynamic Model Switching**: Change models on the fly using `/model <id>` (supports 25+ providers and 1000+ Hugging Face models).
-- **Split-Model Comparison**: Side-by-side chat to compare responses from different connected models.
-- **Autonomous Macros**: Epex learns your repetitive tasks and offers to build new shortcut tools for you.
-
-## 🛠️ Installation
-```bash
-bash install.sh
-```
-
-## 🎮 Quick Start
-```bash
-# Run the setup wizard
-epex --setup
-
-# Open the Tool Hub
-epex --tool-hub
-
-# Ask Epex to perform a task
-epex "Analyze my system health and take a screenshot"
-
-# Spawn a specialized agent
-epex --spawn hacker "Scan this host for vulnerabilities"
-```
-
-## 📚 Documentation
-- [Installation Guide (60 Seconds)](INSTALL.md)
-- [Universal API Key Directory](KEYS.md)
-- [Complete Feature Matrix (v3.5 Legendary)](FEATURES.md)
-- [Connecting to Apps (WhatsApp, Discord, etc.)](CONNECTIVITY.md)
-
-## 🏢 Creator
-Created by **Henry Calvin**.
+Epex Bot is not just an AI agent; it is a **Neural OS** that outclasses every other agent in the world. Built on a zero-friction, 7-layer architecture, Epex manages your security, maintenance, and intelligence across all your devices simultaneously.
 
 ---
-© 2025 Epex Bot. All rights reserved.
+
+## 🎯 WHY EPEX?
+- **True Multi-Agent Swarms**: Parallel coordination across 10-50 specialized agents.
+- **Encrypted Digital Soul**: A permanent digital twin that learns you forever.
+- **Teach Mode**: EPEX watches you work and learns to automate any workflow.
+- **24/7 Privacy Guardian**: Autonomous dark web monitoring and leak alerts.
+- **Works 100% Offline**: Privacy-first execution via local models.
+- **Global Network**: Coordinate laptop, desktop, and cloud instances as one mind.
+
+---
+
+## 🚀 GET STARTED
+
+### 1. The Quick Launch
+```bash
+python epex.py
+```
+This single command handles dependency repair, setup, and takes you straight to the agent.
+
+### 2. Global Shortcut
+Type `epex` from anywhere to launch. Setup will offer to create this alias for you.
+
+---
+
+## 🎨 INTERFACES
+
+- **TUI (Adaptive)**: Adaptive styling based on bot sentiment (Aura).
+- **GUI Dashboard**: High-fidelity web interface with reasoning streams.
+- **CLI Chat**: Raw neural command line for power users.
+
+---
+
+## 🛠 CORE COMMANDS
+
+- `/model <id>`: Switch AI model instantly.
+- `/voice`: Toggle hands-free voice bridge.
+- `/switch <gui|tui>`: Move between interfaces seamlessly.
+- `epex --tool-hub`: Browse 180+ specialized tools.
+- `epex --setup`: Force run the connectivity setup.
+
+---
+
+## 🛡 SECURITY & PRIVACY
+EPEX is built with **Aegis Zero-Trust**. All secrets are redacted in real-time, and your **Digital Soul** is encrypted with AES-256.
+
+Supports a **4-Level Kill Switch** and **Biometric Pulse** verification from mobile for critical actions.
+
+---
+
+## 🔗 DOCUMENTATION
+- **[FEATURES.md](FEATURES.md)**: Deep dive into 180+ tools and killer features.
+- **[INSTALL.md](INSTALL.md)**: Zero-friction installation and repair guide.
+- **[KEYS.md](KEYS.md)**: Directory of 25+ AI providers and key setup.
+- **[CONNECTIVITY.md](CONNECTIVITY.md)**: Linking Telegram, Discord, WhatsApp, and more.
+
+---
+
+## 👑 CREATOR
+EPEX Bot was created by **Henry Calvin**.
+*Bridging the gap between human intent and machine execution.*

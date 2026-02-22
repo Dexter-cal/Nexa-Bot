@@ -183,6 +183,13 @@ class PrivacyGuardian:
             'recent_findings': self.findings[-10:] if self.findings else []
         }
 
+    def get_status(self) -> Dict[str, Any]:
+        """Return simplified status for system context"""
+        return {
+            "active": self.monitoring,
+            "total_findings": len(self.findings)
+        }
+
     async def stop(self):
         """
         Stop monitoring and cancel tasks

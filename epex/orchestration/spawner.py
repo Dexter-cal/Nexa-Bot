@@ -58,16 +58,31 @@ class AgentSpawner:
         return agent.to_dict()
 
     async def spawn_swarm(self, goal: str, count: int = 5) -> List[Agent]:
-        """Spawn a swarm of agents to achieve a goal"""
+        """Spawn a swarm of specialized agents to achieve a complex goal in parallel"""
+        from epex.intelligence.brain import StrategicPlanner
+        planner = StrategicPlanner()
 
-        # Decompose goal into subtasks (mocked for now)
-        subtasks = [{"description": f"Subtask {idx} for goal: {goal}"} for idx in range(count)]
+        logger.info(f"⚡ Swarm Orchestrator: Decomposing goal '{goal}' for parallel execution...")
+        plan = await planner.create_plan(f"Break this goal into {count} parallel sub-goals: {goal}")
+
+        sub_goals = plan.get('primary_strategy', [])
+        if not sub_goals:
+            # Fallback
+            sub_goals = [{"description": f"Parallel segment {i} of {goal}"} for i in range(count)]
 
         agents = []
-        for subtask in subtasks:
-            agent = await self.spawn_agent(role="assistant", task=subtask, mode="autonomous")
+        for i, sub in enumerate(sub_goals[:count]):
+            # Assign roles based on sub-goal description (simple keyword mapping)
+            role = "assistant"
+            desc = sub.get('description', '').lower()
+            if "code" in desc: role = "developer"
+            elif "security" in desc or "audit" in desc: role = "hacker"
+            elif "research" in desc: role = "researcher"
+
+            agent = await self.spawn_agent(role=role, task=sub, mode="autonomous")
             agents.append(agent)
 
+        logger.info(f"✅ Swarm deployed: {len(agents)} agents coordinating on goal.")
         return agents
 
     async def terminate_agent(self, agent_id: str):

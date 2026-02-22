@@ -43,10 +43,12 @@ class SystemContext:
         """Return a natural language summary of system health"""
         connected_models = [m for m, active in self.status["models"].items() if active]
         active_bridges = [b for b, s in self.status["bridges"].items() if s["connected"]]
+        privacy_status = self.engine.privacy_guardian.get_status() if self.engine and hasattr(self.engine, 'privacy_guardian') else {"total_findings": 0}
 
         summary = f"EPEX System Status:\n"
         summary += f"- Models Online: {', '.join(connected_models) if connected_models else 'None'}\n"
         summary += f"- Active Bridges: {', '.join(active_bridges) if active_bridges else 'None'}\n"
+        summary += f"- Privacy Guardian: {privacy_status['total_findings']} issues detected\n"
         summary += f"- Core Engine: {'Running' if self.engine and self.engine.running else 'Idle'}"
 
         return summary

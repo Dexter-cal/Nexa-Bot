@@ -50,6 +50,14 @@ class TUISetupWizard:
         user_name = Prompt.ask("What should I call you?", default="User")
         epex_name = Prompt.ask("What should you call me?", default="Epex")
 
+        # Optional Password
+        password_hash = None
+        if Confirm.ask("\nWould you like to protect this agent with a password?", default=False):
+            password = Prompt.ask("Set Agent Password", password=True)
+            import bcrypt
+            password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+            self.console.print("[green]✓ Password secured.[/]")
+
         # Step 2: System Analysis Results
         self.console.print("\n[bold cyan]Step 2/5: System Capabilities[/]")
         sys_res = analysis['system_resources']
@@ -102,6 +110,7 @@ class TUISetupWizard:
         smart_config.update({
             "user_name": user_name,
             "epex_name": epex_name,
+            "password_hash": password_hash,
             "api_keys": detected,
             "preferred_interface": selected_iface,
             "setup_complete": True,
