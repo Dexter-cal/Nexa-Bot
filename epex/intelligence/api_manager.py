@@ -407,8 +407,9 @@ class UniversalAPIKeyManager:
             console.print()
 
         # Ask which to configure
+        console.print(f"[bold cyan]Total Available Providers: {len(self.providers)}[/]")
         console.print("Which providers would you like to set up?")
-        console.print("(You can add more later in settings)")
+        console.print("(You can search for any provider, e.g. 'openai', 'groq', 'deepseek', etc.)")
 
         choices = await self._multi_select([
             {'value': p, 'label': f"{info['name']} ({info['cost']})", 'default': p in detected}
@@ -452,15 +453,21 @@ class UniversalAPIKeyManager:
         from rich.console import Console
         from rich.prompt import Prompt, Confirm
         console = Console()
-        info = self.providers[provider]
+        info = self.providers.get(provider)
+        if not info:
+            console.print(f"[red]Error: Provider '{provider}' not found.[/]")
+            return None
 
         console.print(f"\n🔑 {info['name']} Setup")
         console.print(f"Get your API key: [link={info['get_key_url']}]{info['get_key_url']}[/link]")
 
-        open_browser = Confirm.ask("Open in browser?", default=True)
-        if open_browser:
-            import webbrowser
-            webbrowser.open(info['get_key_url'])
+        try:
+            open_browser = Confirm.ask("Open in browser?", default=True)
+            if open_browser:
+                import webbrowser
+                webbrowser.open(info['get_key_url'])
+        except Exception as e:
+            console.print(f"[dim]Note: Could not open browser automatically: {e}[/]")
 
         console.print(f"\nEnter your {info['name']} API key (Format: {info['key_format']}):")
         key = Prompt.ask("API Key", password=True)
@@ -538,41 +545,58 @@ class UniversalAPIKeyManager:
         console = Console()
 
         selected = []
-        filtered_options = options
+        search_query = ""
 
         while True:
             try:
                 console.clear()
                 console.print("[bold cyan]Select Providers to Configure[/]")
-                console.print("[dim](Type a name to search, numbers to select, 'done' to finish, 'all' for all)[/]\n")
+                console.print("[dim](Type a name to filter, numbers to select, 'done' to finish, 'all' for all, 'reset' to clear filter)[/]\n")
+
+                filtered_options = [o for o in options if search_query.lower() in o['label'].lower()]
+
+                if search_query:
+                    console.print(f"[bold yellow]Filter: {search_query}[/]")
 
                 for i, opt in enumerate(filtered_options):
                     status = "[green](detected)[/]" if opt.get('default') else ""
                     check = "[bold green]✓[/]" if opt['value'] in selected else "[ ]"
                     console.print(f" {i+1}. {check} {opt['label']} {status}")
 
-                choice = Prompt.ask("\nSearch/Select")
+                if not filtered_options:
+                    console.print("[red]No matches found.[/]")
 
-                if choice.lower() == 'done':
+                choice = Prompt.ask("\nAction/Search")
+
+                if not choice:
+                    continue
+
+                choice_low = choice.lower().strip()
+
+                if choice_low == 'done':
                     break
-                elif choice.lower() == 'all':
+                elif choice_low == 'all':
                     selected = [o['value'] for o in options]
-                    break
-                elif choice.isdigit():
-                    idx = int(choice) - 1
+                elif choice_low == 'reset':
+                    search_query = ""
+                elif choice_low.isdigit():
+                    idx = int(choice_low) - 1
                     if 0 <= idx < len(filtered_options):
                         val = filtered_options[idx]['value']
                         if val in selected: selected.remove(val)
                         else: selected.append(val)
-                else:
-                    # Search
-                    filtered_options = [o for o in options if choice.lower() in o['label'].lower()]
-                    if not filtered_options:
-                        console.print("[red]No matches found.[/]")
+                    else:
+                        console.print("[red]Invalid index.[/]")
                         await asyncio.sleep(1)
-                        filtered_options = options
+                else:
+                    # Treat as search query
+                    search_query = choice_low
+
             except (KeyboardInterrupt, EOFError):
                 break
+            except Exception as e:
+                console.print(f"[red]Input error: {e}[/]")
+                await asyncio.sleep(1)
 
         return selected
 

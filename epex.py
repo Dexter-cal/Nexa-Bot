@@ -13,11 +13,16 @@ async def check_environment():
     if install_lock.exists():
         return
 
+    # Only show this if we are actually checking
+    print("🔍 Initializing EPEX Neural Environment...")
     try:
         import rich
         import psutil
         import cryptography
         import aiohttp
+        import bcrypt
+        import fastapi
+        import uvicorn
         # If imports work, create the lock
         install_lock.parent.mkdir(parents=True, exist_ok=True)
         install_lock.touch()
@@ -124,13 +129,25 @@ async def main():
         result = sock.connect_ex(('127.0.0.1', 8000))
         if result == 0:
             console.print("[yellow]ℹ️ GUI is already running at http://127.0.0.1:8000[/]")
-            import webbrowser
-            webbrowser.open("http://127.0.0.1:8000")
+            try:
+                import webbrowser
+                webbrowser.open("http://127.0.0.1:8000")
+            except:
+                console.print("[dim]Please open http://127.0.0.1:8000 in your browser.[/]")
         else:
             console.print("[magenta]🚀 Launching EPEX GUI Dashboard...[/]")
-            # Launch GUI in background
-            subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            console.print("[dim]The dashboard should open in your browser at http://127.0.0.1:8000 shortly.[/]")
+            # Launch GUI in background and pipe output to log
+            log_file = open("epex_gui.log", "a")
+            subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=log_file, stderr=log_file)
+            console.print("[green]✓ GUI server started.[/]")
+            console.print("[dim]Opening browser at http://127.0.0.1:8000 shortly. Check 'epex_gui.log' if it fails.[/]")
+            import time
+            time.sleep(2)
+            try:
+                import webbrowser
+                webbrowser.open("http://127.0.0.1:8000")
+            except:
+                pass
         sock.close()
     elif choice == "3":
         from epex.interfaces.cli import start_chat_loop

@@ -1,5 +1,8 @@
 import logging
+import asyncio
 from fastapi import FastAPI, HTTPException, Depends, Request
+
+logger = logging.getLogger(__name__)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import List, Dict, Any, Optional
@@ -32,7 +35,11 @@ class TaskResponse(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     setup_memory_logging()
-    await engine.start()
+    try:
+        await asyncio.wait_for(engine.start(), timeout=30)
+        logger.info("EPEX Engine started successfully for API.")
+    except Exception as e:
+        logger.error(f"EPEX Engine failed to start: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
