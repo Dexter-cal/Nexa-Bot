@@ -418,18 +418,22 @@ class UniversalAPIKeyManager:
 
         configured = {}
         for provider in choices:
-            if provider in detected:
-                valid = await self.test_api_key(provider, detected[provider])
-                if valid:
-                    configured[provider] = detected[provider]
-                    console.print(f"✓ {self.providers[provider]['name']}: Valid")
+            try:
+                if provider in detected:
+                    valid = await self.test_api_key(provider, detected[provider][0] if isinstance(detected[provider], list) else detected[provider])
+                    if valid:
+                        configured[provider] = detected[provider]
+                        console.print(f"✓ {self.providers[provider]['name']}: Valid")
+                    else:
+                        console.print(f"✗ {self.providers[provider]['name']}: Invalid or offline, please enter manually")
+                        key = await self._get_key_manual(provider)
+                        if key: configured[provider] = key
                 else:
-                    console.print(f"✗ {self.providers[provider]['name']}: Invalid, please enter manually")
                     key = await self._get_key_manual(provider)
                     if key: configured[provider] = key
-            else:
-                key = await self._get_key_manual(provider)
-                if key: configured[provider] = key
+            except Exception as e:
+                console.print(f"[red]Error setting up {provider}: {e}[/]")
+                continue
 
         # Save to vault
         if configured:
@@ -477,11 +481,15 @@ class UniversalAPIKeyManager:
 
     async def test_api_key(self, provider: str, key: str):
         """
-        Test if API key is valid
+        Test if API key is valid with robust error handling
         """
-        info = self.providers[provider]
+        if not key: return False
+        info = self.providers.get(provider)
+        if not info: return False
+
         try:
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 if provider == 'openai':
                     async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
                         return r.status == 200
@@ -533,35 +541,38 @@ class UniversalAPIKeyManager:
         filtered_options = options
 
         while True:
-            console.clear()
-            console.print("[bold cyan]Select Providers to Configure[/]")
-            console.print("[dim](Type a name to search, numbers to select, 'done' to finish, 'all' for all)[/]\n")
+            try:
+                console.clear()
+                console.print("[bold cyan]Select Providers to Configure[/]")
+                console.print("[dim](Type a name to search, numbers to select, 'done' to finish, 'all' for all)[/]\n")
 
-            for i, opt in enumerate(filtered_options):
-                status = "[green](detected)[/]" if opt.get('default') else ""
-                check = "[bold green]✓[/]" if opt['value'] in selected else "[ ]"
-                console.print(f" {i+1}. {check} {opt['label']} {status}")
+                for i, opt in enumerate(filtered_options):
+                    status = "[green](detected)[/]" if opt.get('default') else ""
+                    check = "[bold green]✓[/]" if opt['value'] in selected else "[ ]"
+                    console.print(f" {i+1}. {check} {opt['label']} {status}")
 
-            choice = Prompt.ask("\nSearch/Select")
+                choice = Prompt.ask("\nSearch/Select")
 
-            if choice.lower() == 'done':
+                if choice.lower() == 'done':
+                    break
+                elif choice.lower() == 'all':
+                    selected = [o['value'] for o in options]
+                    break
+                elif choice.isdigit():
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(filtered_options):
+                        val = filtered_options[idx]['value']
+                        if val in selected: selected.remove(val)
+                        else: selected.append(val)
+                else:
+                    # Search
+                    filtered_options = [o for o in options if choice.lower() in o['label'].lower()]
+                    if not filtered_options:
+                        console.print("[red]No matches found.[/]")
+                        await asyncio.sleep(1)
+                        filtered_options = options
+            except (KeyboardInterrupt, EOFError):
                 break
-            elif choice.lower() == 'all':
-                selected = [o['value'] for o in options]
-                break
-            elif choice.isdigit():
-                idx = int(choice) - 1
-                if 0 <= idx < len(filtered_options):
-                    val = filtered_options[idx]['value']
-                    if val in selected: selected.remove(val)
-                    else: selected.append(val)
-            else:
-                # Search
-                filtered_options = [o for o in options if choice.lower() in o['label'].lower()]
-                if not filtered_options:
-                    console.print("[red]No matches found.[/]")
-                    await asyncio.sleep(1)
-                    filtered_options = options
 
         return selected
 

@@ -106,7 +106,7 @@ class ToolRegistry:
         from epex.tools.legendary_ext import LinodeDeployTool, HuggingFaceHubTool
         from epex.tools.legendary_forensics import SocialMediaLookupTool, DomainIntelligenceTool, DeepFileRecoveryTool, MemoryDumpAnalysisTool
         from epex.tools.document import DocumentParseTool, VisionAnalyzeAttachmentTool
-        from epex.tools.intelligence import NeuroLinkTool
+        from epex.tools.intelligence import NeuroLinkTool, ParallelSystemAuditTool, AuraPersonaSwitchTool
         from epex.intelligence.council import CouncilCalibrateTool
         from epex.tools.snapshot import QuantumSnapshotTool, QuantumRestoreTool
         from epex.intelligence.macros import MacroSuggesterTool, MacroRegisterTool
@@ -233,6 +233,8 @@ class ToolRegistry:
         self.register(VisionAnalyzeAttachmentTool())
         self.register(GenerateMockupsTool())
         self.register(NeuroLinkTool())
+        self.register(ParallelSystemAuditTool())
+        self.register(AuraPersonaSwitchTool())
         self.register(CouncilCalibrateTool())
         self.register(QuantumSnapshotTool())
         self.register(QuantumRestoreTool())

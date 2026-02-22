@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import sys
+from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
@@ -136,15 +137,16 @@ class TUISetupWizard:
     async def launch_interface(self, interface: str):
         """Immediately take the user to the selected interface"""
         if interface == "TUI":
-            from epex.interfaces.tui import EpexTUI
             tui = EpexTUI()
             await tui.run()
         elif interface == "GUI":
-            self.console.print("[yellow]Starting GUI... (Ensure dependencies are installed)[/]")
-            # In a real scenario, we might trigger a subprocess or an Electron app
-            os.system("epex gui &")
+            self.console.print("[yellow]Starting GUI...[/]")
+            import subprocess
+            subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.console.print("[dim]The dashboard should open in your browser shortly.[/]")
         else: # CLI
-            self.console.print("[white]Switching to CLI mode. Type 'epex --help' for commands.[/]")
+            from epex.interfaces.cli import start_chat_loop
+            await start_chat_loop()
 
 class EpexTUI:
     """

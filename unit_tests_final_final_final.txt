@@ -1,0 +1,189 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: mock-3.15.1, asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 30 items
+
+tests/unit/core/test_engine.py ...                                       [ 10%]
+tests/unit/core/test_security.py ..                                      [ 16%]
+tests/unit/core/test_task_manager.py ..F                                 [ 26%]
+tests/unit/test_aegis.py ...                                             [ 36%]
+tests/unit/test_alerts.py ..                                             [ 43%]
+tests/unit/test_autonomous.py ...                                        [ 53%]
+tests/unit/test_enhanced_features.py .....                               [ 70%]
+tests/unit/test_final.py F...                                            [ 83%]
+tests/unit/test_self_improvement.py ...                                  [ 93%]
+tests/unit/tools/test_system_tools.py ..                                 [100%]
+
+=================================== FAILURES ===================================
+_________________ TestTaskManager.test_execute_task_with_tools _________________
+
+self = <test_task_manager.TestTaskManager object at 0x7f182ac674d0>
+task_manager = <epex.core.task_manager.TaskManager object at 0x7f180dec78f0>
+
+    @pytest.mark.asyncio
+    async def test_execute_task_with_tools(self, task_manager):
+        from epex.tools.registry import registry
+        from epex.core.database import init_db
+        await init_db()
+>       await registry.load_default_tools()
+
+tests/unit/core/test_task_manager.py:42:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <epex.tools.registry.ToolRegistry object at 0x7f182c2e5640>
+
+    async def load_default_tools(self):
+        """Load and register built-in tools"""
+        from epex.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool, TerminalTool, VisionAnalyzeTool, SelectCaptureTool, ServiceManagerTool, RegistryExpertTool
+        from epex.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
+        from epex.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool, WebWhoisTool, WebHttpRequestTool
+        from epex.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
+        from epex.tools.productivity import NoteTakingTool, CalendarTool
+        from epex.tools.network import PingTool, DNSLookupTool, PortScanTool
+        from epex.tools.meta import ToolGeneratorTool, ApexToolBuilderTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool, ScenarioTemplateTool, NeuralBridgeSyncTool
+        from epex.tools.dream import DreamSimulationTool
+        from epex.tools.security import VulnerabilityScannerTool, DataLockdownTool
+        from epex.tools.anonymity import StealthModeTool, MetadataScrubberTool
+        from epex.tools.defense import HoneyPotTool, SystemIntegrityMonitorTool
+        from epex.tools.intuition import SelfSecurityAuditTool as SelfAISecurityAuditTool, IntentPredictionTool
+        from epex.tools.security_audit import SelfSecurityAuditTool
+        from epex.tools.learning import ResearchTopicTool, FindAcademicPapersTool
+        from epex.tools.creative import StoryWriterTool, ImageGenTool
+        from epex.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool, DiscordWebhookTool, TelegramBotManagerTool, WhatsAppGatewayTool
+        from epex.tools.finance import StockPriceTool, CryptoPriceTool
+        from epex.tools.pdf import PDFMergeTool, PDFSplitTool
+        from epex.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool, PredictiveMaintenanceTool
+        from epex.tools.auto_repair import AutoRepairWizardTool
+        from epex.tools.voice import TextToSpeechTool, SpeechToTextTool
+        from epex.tools.voice_profiles import VoiceProfileTool, ListVoicesTool
+        from epex.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
+        from epex.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
+        from epex.tools.forensics import ForensicOSINTTool
+        from epex.tools.forensics_v2 import BreachCheckTool, MalwarePersistenceScannerTool
+        from epex.tools.dev_tools import NeuralReviewTool, AutoDocTool
+        from epex.tools.spatial import SpatialIntelligenceTool
+        from epex.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
+        from epex.tools.automation import InternetInteractorTool, AccountCreatorTool
+        from epex.tools.omni_search import OmniSearchTool
+        from epex.tools.visualizer import GenerateMockupsTool
+        from epex.tools.monitoring import SignalMonitorTool
+        from epex.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
+        from epex.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
+        from epex.tools.final_legendary import SystemAuditTool, SecurityHardeningTool, DeepOSINTTool
+        from epex.tools.model_zoo import ModelZooExplorerTool
+        from epex.tools.pairing import GeneratePairingQRTool
+        from epex.tools.evolution import SelfEvolutionTool, LogicRefactorTool
+        from epex.tools.security import FirewallOverrideTool
+        from epex.tools.advanced_hardware import BiometricAuthTool, NeuralPulseTool, IoTControlTool
+        from epex.tools.ethereal_sync import EtherealSyncTool
+        from epex.tools.chronos import ChronosBranchTool
+        from epex.tools.neural_graph import NeuralGraphTool
+        from epex.tools.stego import SteganographyTool
+        from epex.tools.plugins import PluginLoaderTool
+        from epex.tools.swarm_evolution import EvolveSwarmTool
+        from epex.tools.soundscape import NeuralSoundscapeTool
+        from epex.tools.legendary_ext import LinodeDeployTool, HuggingFaceHubTool
+        from epex.tools.legendary_forensics import SocialMediaLookupTool, DomainIntelligenceTool, DeepFileRecoveryTool, MemoryDumpAnalysisTool
+        from epex.tools.document import DocumentParseTool, VisionAnalyzeAttachmentTool
+>       from epex.tools.intelligence import NeuroLinkTool
+E       ImportError: cannot import name 'NeuroLinkTool' from 'epex.tools.intelligence' (/app/epex/tools/intelligence.py)
+
+epex/tools/registry.py:109: ImportError
+------------------------------ Captured log setup ------------------------------
+WARNING  epex.core.security:security.py:34 No event loop running. AI Immune System background task not started in constructor.
+____________ TestFinalProject.test_engine_startup_with_all_modules _____________
+
+self = <test_final.TestFinalProject object at 0x7f1827221370>
+
+    @pytest.mark.asyncio
+    async def test_engine_startup_with_all_modules(self):
+        # This will initialize all modules including PrivacyGuardian and Innovation
+>       await engine.start()
+
+tests/unit/test_final.py:12:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+epex/core/engine.py:65: in start
+    await registry.load_default_tools()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <epex.tools.registry.ToolRegistry object at 0x7f182c2e5640>
+
+    async def load_default_tools(self):
+        """Load and register built-in tools"""
+        from epex.tools.system import SystemInfoTool, ScreenshotTool, MouseControlTool, KeyboardControlTool, ProcessListTool, NetworkStatsTool, TerminalTool, VisionAnalyzeTool, SelectCaptureTool, ServiceManagerTool, RegistryExpertTool
+        from epex.tools.file import FileReadTool, FileWriteTool, FileDeleteTool
+        from epex.tools.web import WebSearchTool, WebScrapeTool, WebScreenshotTool, WebWhoisTool, WebHttpRequestTool
+        from epex.tools.multimedia import ImageResizeTool, ImageOCRTool, ImageConvertTool
+        from epex.tools.productivity import NoteTakingTool, CalendarTool
+        from epex.tools.network import PingTool, DNSLookupTool, PortScanTool
+        from epex.tools.meta import ToolGeneratorTool, ApexToolBuilderTool, ToolTesterTool, SelfUpdaterTool, MirrorWorldSimulateTool, ShareToolWithPeerTool, RequestToolFromPeerTool, ScenarioTemplateTool, NeuralBridgeSyncTool
+        from epex.tools.dream import DreamSimulationTool
+        from epex.tools.security import VulnerabilityScannerTool, DataLockdownTool
+        from epex.tools.anonymity import StealthModeTool, MetadataScrubberTool
+        from epex.tools.defense import HoneyPotTool, SystemIntegrityMonitorTool
+        from epex.tools.intuition import SelfSecurityAuditTool as SelfAISecurityAuditTool, IntentPredictionTool
+        from epex.tools.security_audit import SelfSecurityAuditTool
+        from epex.tools.learning import ResearchTopicTool, FindAcademicPapersTool
+        from epex.tools.creative import StoryWriterTool, ImageGenTool
+        from epex.tools.social import TwitterPostTool, HashtagGeneratorTool, MonitorMentionsTool, DiscordWebhookTool, TelegramBotManagerTool, WhatsAppGatewayTool
+        from epex.tools.finance import StockPriceTool, CryptoPriceTool
+        from epex.tools.pdf import PDFMergeTool, PDFSplitTool
+        from epex.tools.maint import DiskHealthTool, FileRecoveryTool, SystemOptimizerTool, RegistryRepairTool, DiskUsageAnalyzerTool, BootRepairTool, DriverManagerTool, DeepScrubTool, PredictiveMaintenanceTool
+        from epex.tools.auto_repair import AutoRepairWizardTool
+        from epex.tools.voice import TextToSpeechTool, SpeechToTextTool
+        from epex.tools.voice_profiles import VoiceProfileTool, ListVoicesTool
+        from epex.tools.communication import TelegramSendTool, EmailSendTool, AlertPushTool, GmailSearchTool, WhatsAppSendTool
+        from epex.tools.hardware import AndroidControlTool, GPIOControlTool, BluetoothManagerTool, WiFiManagerTool
+        from epex.tools.forensics import ForensicOSINTTool
+        from epex.tools.forensics_v2 import BreachCheckTool, MalwarePersistenceScannerTool
+        from epex.tools.dev_tools import NeuralReviewTool, AutoDocTool
+        from epex.tools.spatial import SpatialIntelligenceTool
+        from epex.tools.automation_finance import SignUpAutomationTool, BudgetManagerTool, AccountSyncTool
+        from epex.tools.automation import InternetInteractorTool, AccountCreatorTool
+        from epex.tools.omni_search import OmniSearchTool
+        from epex.tools.visualizer import GenerateMockupsTool
+        from epex.tools.monitoring import SignalMonitorTool
+        from epex.tools.memory_ops import MemoryIndexingTool, MemorySearchTool
+        from epex.tools.network_ops import TunnelManagerTool, PeerDiscoveryTool
+        from epex.tools.final_legendary import SystemAuditTool, SecurityHardeningTool, DeepOSINTTool
+        from epex.tools.model_zoo import ModelZooExplorerTool
+        from epex.tools.pairing import GeneratePairingQRTool
+        from epex.tools.evolution import SelfEvolutionTool, LogicRefactorTool
+        from epex.tools.security import FirewallOverrideTool
+        from epex.tools.advanced_hardware import BiometricAuthTool, NeuralPulseTool, IoTControlTool
+        from epex.tools.ethereal_sync import EtherealSyncTool
+        from epex.tools.chronos import ChronosBranchTool
+        from epex.tools.neural_graph import NeuralGraphTool
+        from epex.tools.stego import SteganographyTool
+        from epex.tools.plugins import PluginLoaderTool
+        from epex.tools.swarm_evolution import EvolveSwarmTool
+        from epex.tools.soundscape import NeuralSoundscapeTool
+        from epex.tools.legendary_ext import LinodeDeployTool, HuggingFaceHubTool
+        from epex.tools.legendary_forensics import SocialMediaLookupTool, DomainIntelligenceTool, DeepFileRecoveryTool, MemoryDumpAnalysisTool
+        from epex.tools.document import DocumentParseTool, VisionAnalyzeAttachmentTool
+>       from epex.tools.intelligence import NeuroLinkTool
+E       ImportError: cannot import name 'NeuroLinkTool' from 'epex.tools.intelligence' (/app/epex/tools/intelligence.py)
+
+epex/tools/registry.py:109: ImportError
+=============================== warnings summary ===============================
+epex/models/base.py:6
+  /app/epex/models/base.py:6: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/unit/core/test_security.py::TestSecurityGuardian::test_assess_risk
+tests/unit/core/test_security.py::TestSecurityGuardian::test_require_approval
+tests/unit/core/test_task_manager.py::TestTaskManager::test_create_task
+tests/unit/core/test_task_manager.py::TestTaskManager::test_process_queue
+tests/unit/core/test_task_manager.py::TestTaskManager::test_execute_task_with_tools
+  /app/epex/core/security.py:34: RuntimeWarning: coroutine 'SecurityGuardian._immune_system_loop' was never awaited
+    logger.warning("No event loop running. AI Immune System background task not started in constructor.")
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/core/test_task_manager.py::TestTaskManager::test_execute_task_with_tools
+FAILED tests/unit/test_final.py::TestFinalProject::test_engine_startup_with_all_modules
+=================== 2 failed, 28 passed, 6 warnings in 4.13s ===================
