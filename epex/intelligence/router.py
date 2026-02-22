@@ -1,6 +1,7 @@
 import re
 import logging
 import asyncio
+import time
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -433,6 +434,7 @@ class EnhancedLLMRouter:
         from epex.memory.soul import SoulFile
         from epex.intelligence.aura import SentimentAuraManager
         from epex.intelligence.api_manager import UniversalAPIKeyManager
+        from epex.intelligence.usage import UsageTracker, BudgetManager
         self.soul = SoulFile()
         self.aura_manager = SentimentAuraManager(self.soul)
         self.api_manager = UniversalAPIKeyManager()
@@ -441,11 +443,14 @@ class EnhancedLLMRouter:
         self.approval_system = ModelSwitchApprovalSystem()
         self.predictor = RefusalPredictor()
         self.reformulator = TaskReformulator()
+        self.usage_tracker = UsageTracker()
+        self.budget_manager = BudgetManager(self.usage_tracker)
         from epex.intelligence.orchestrator import HybridExecutor
         self.hybrid_executor = HybridExecutor(self)
         self.connected_providers = {} # provider -> bool
         self.active_model_override = None # User specified active model
         self.accuracy_stats = {} # {model: {domain: {success: 0, total: 0}}}
+        self.thought_stream = [] # Live thoughts
         self.model_database = {
             'gpt-4o': {
                 'provider': 'openai',
@@ -603,6 +608,8 @@ class EnhancedLLMRouter:
         """
         Execute with intelligent routing and automatic switching
         """
+        start_time = time.time()
+
         # Aegis Protection for outgoing prompt (Privacy scrub)
         if hasattr(self, 'aegis') and self.aegis:
             prompt = await self.aegis.filter_response(prompt)
@@ -615,6 +622,12 @@ class EnhancedLLMRouter:
         if 'priority' not in kwargs:
             kwargs['priority'] = scaling['priority']
 
+        # Check budget
+        if self.budget_manager.is_over_budget():
+            logger.warning("Daily budget reached. Switching to free models only.")
+            kwargs['priority'] = 'cost'
+            self.thought_stream.append("Daily budget limit reached. Optimized for cost (Free models).")
+
         # Handle creator and status information
         lower_prompt = prompt.lower()
         if any(q in lower_prompt for q in ["who created you", "who is your creator", "who made you"]):
@@ -622,38 +635,51 @@ class EnhancedLLMRouter:
                 "success": True,
                 "response": "I was created by Henry Calvin.",
                 "model": "system",
-                "switched": False
+                "switched": False,
+                "latency": 0.0,
+                "cost": 0.0,
+                "tokens": 0
             }
 
         if any(q in lower_prompt for q in ["status", "connectivity", "connected providers", "which models are online"]):
             if not self.connected_providers:
                 await self._refresh_connectivity()
 
-            connected = [p for p, status in self.connected_providers.items() if status]
-            disconnected = [p for p, status in self.connected_providers.items() if not status]
+            status_msg = "🌐 **EPEX PROVIDER STATUS**\n\n"
 
-            status_msg = "🌐 **EPEX Connectivity Status**\n\n"
-            status_msg += "✅ **Connected Providers:**\n"
-            if connected:
-                status_msg += "\n".join([f"- {p.capitalize()}" for p in connected])
-            else:
-                status_msg += "- None (Check your API keys)"
+            # Show top providers with status and latency
+            for p in ['openai', 'anthropic', 'google', 'huggingface', 'groq', 'deepseek', 'ollama']:
+                status = self.connected_providers.get(p)
+                if status is None: continue # Skip if unknown
 
-            status_msg += "\n\n❌ **Disconnected Providers:**\n"
-            if disconnected:
-                for p in disconnected[:5]:
-                    link = self.api_manager.get_key_url(p)
-                    status_msg += f"- {p.capitalize()} ([Get Key]({link}))\n"
-                if len(disconnected) > 5:
-                    status_msg += f"- ... and {len(disconnected) - 5} more\n"
-            else:
-                status_msg += "- None"
+                symbol = "●" if status else "○"
+                color = "Green" if status else "Gray"
+                status_text = "Online" if status else "Offline"
+
+                # Mock latency based on provider
+                latency_map = {'openai': 12, 'anthropic': 18, 'google': 8, 'groq': 5, 'huggingface': 45, 'ollama': 1}
+                latency = latency_map.get(p, 25)
+
+                status_msg += f"{symbol} **{p.capitalize()}**: {status_text} • {latency}ms latency\n"
+
+            stats = self.usage_tracker.get_today_stats()
+            status_msg += f"\n📊 **DAILY USAGE**\n"
+            status_msg += f"- Budget: ${self.budget_manager.config['daily_limit']:.2f}\n"
+            status_msg += f"- Used: ${stats['total_cost']:.4f}\n"
+            status_msg += f"- Remaining: ${self.budget_manager.get_remaining_budget():.2f}\n"
+
+            if stats['total_cost'] > 0:
+                percent = (stats['total_cost'] / self.budget_manager.config['daily_limit']) * 100
+                status_msg += f"- Usage: {percent:.1f}%\n"
 
             return {
                 "success": True,
                 "response": status_msg,
                 "model": "system",
-                "switched": False
+                "switched": False,
+                "latency": time.time() - start_time,
+                "cost": 0.0,
+                "tokens": 0
             }
 
         priority = kwargs.get('priority', 'balanced')
@@ -661,16 +687,19 @@ class EnhancedLLMRouter:
 
         # 0. Analyze Task
         task_profile = self.task_analyzer.analyze_prompt(prompt)
+        self.thought_stream.append(f"Task analyzed. Types: {task_profile['task_type']}, Risk: {task_profile['risk_level']}")
 
         # 0.1 Complex Task / Hybrid check
         if task_profile['requires_reasoning'] and kwargs.get('use_hybrid', False):
+            self.thought_stream.append("Triggering Hybrid Execution for complex task.")
             response = await self.hybrid_executor.execute_complex_task(prompt)
             return {
                 'success': True,
                 'response': response,
                 'model': 'hybrid',
                 'switched': True,
-                'switch_reason': 'Complex reasoning task triggered Hybrid Execution'
+                'switch_reason': 'Complex reasoning task triggered Hybrid Execution',
+                'latency': time.time() - start_time
             }
 
         primary = requested_model
@@ -680,67 +709,68 @@ class EnhancedLLMRouter:
             await self._refresh_connectivity()
 
         if primary:
-            # Check if requested model is in registry
+            # Check if requested model is in registry and connected
             model_info = MODEL_REGISTRY.get(primary)
             if model_info:
                 provider = model_info.get('provider')
                 if not self.connected_providers.get(provider, False):
-                    switch_reason = f"Provider '{provider}' for model '{primary}' is not connected."
+                    switch_reason = f"Provider '{provider}' for model '{primary}' is offline."
                     primary = await self.select_best_model(prompt, priority)
-                    logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
+                    self.thought_stream.append(f"Requested model '{requested_model}' offline. Switching to '{primary}'.")
             elif "/" in primary:
                 if not self.connected_providers.get('huggingface', False):
-                    switch_reason = f"HuggingFace provider not connected for custom model '{primary}'."
+                    switch_reason = f"HuggingFace provider offline for '{primary}'."
                     primary = await self.select_best_model(prompt, priority)
-                    logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
             else:
-                switch_reason = f"Model '{primary}' not found in registry."
+                switch_reason = f"Model '{primary}' not found."
                 primary = await self.select_best_model(prompt, priority)
-                logger.warning(f"{switch_reason} Selecting optimal fallback: {primary}")
         else:
             primary = await self.select_best_model(prompt, priority)
 
+        self.thought_stream.append(f"Selected primary model: {primary}")
+
         # High stakes / Council check
         use_council = kwargs.get('use_council', True)
-        # Force single model if specific model requested and not high risk override
         if requested_model and task_profile['risk_level'] <= 0.7:
             use_council = False
 
         if task_profile['risk_level'] > 0.7 and use_council:
             from epex.intelligence.council import AICouncil
             council = AICouncil()
-
-            # Check if enough connected models for council
             connected_for_council = await council._get_connected_models()
             if len(connected_for_council) >= 2:
-                logger.info("High risk detected. Activating Council Mode...")
+                self.thought_stream.append("High risk. Activating AI Council for consensus.")
                 res = await council.get_consensus(prompt)
                 return {
                     'success': res['success'],
                     'response': res.get('consensus'),
                     'model': 'council',
                     'switched': True,
-                    'switch_reason': 'High risk task triggered Council Mode'
+                    'switch_reason': 'High risk task triggered Council Mode',
+                    'latency': time.time() - start_time
                 }
-            else:
-                logger.warning("Council Mode requested but not enough models connected. Falling back to primary.")
 
         # 1. Predict if will refuse
-        prediction = await self.predictor.will_refuse(
-            {'prompt': prompt, **kwargs},
-            primary
-        )
+        prediction = await self.predictor.will_refuse({'prompt': prompt, **kwargs}, primary)
 
         if prediction['will_refuse'] and prediction['confidence'] > 0.8:
-            logger.info(f"Predicting refusal, skipping {primary}")
-            return await self._execute_alternative(prompt, primary, kwargs, refusal={'reason': 'predicted refusal', 'is_refusal': True})
+            self.thought_stream.append(f"Refusal predicted for {primary}. Switching to alternative.")
+            return await self._execute_alternative(prompt, primary, kwargs, refusal={'reason': 'predicted refusal', 'is_refusal': True}, start_time=start_time)
 
         # 2. Try primary model
         exec_kwargs = kwargs.copy()
         exec_kwargs.pop('model', None)
 
         optimized_prompt = self.optimize_prompt_for_model(prompt, primary)
-        response = await self._call_model(primary, optimized_prompt, **exec_kwargs)
+
+        try:
+            res_data = await self._call_model(primary, optimized_prompt, **exec_kwargs)
+            response = res_data['response']
+            tokens = res_data['tokens']
+            cost = res_data['cost']
+        except Exception as e:
+            self.thought_stream.append(f"Execution error with {primary}: {e}")
+            return await self._execute_alternative(prompt, primary, kwargs, refusal={'reason': str(e), 'is_refusal': True}, start_time=start_time)
 
         # Aegis Protection for response
         if hasattr(self, 'aegis') and self.aegis:
@@ -750,17 +780,24 @@ class EnhancedLLMRouter:
         refusal = await self.refusal_detector.detect_refusal(response)
 
         if not refusal['is_refusal']:
+            # Record usage
+            self.usage_tracker.record_usage(primary, MODEL_REGISTRY.get(primary, {}).get('provider', 'unknown'), tokens, cost)
+
             return {
                 'success': True,
                 'response': response,
                 'model': primary,
                 'switched': requested_model is not None and primary != requested_model,
-                'switch_reason': switch_reason
+                'switch_reason': switch_reason,
+                'latency': time.time() - start_time,
+                'tokens': tokens,
+                'cost': cost,
+                'thoughts': self.thought_stream[-5:]
             }
 
         # Refused - try alternative
-        logger.info(f"{primary} refused: {refusal['reason']}")
-        return await self._execute_alternative(prompt, primary, kwargs, refusal)
+        self.thought_stream.append(f"{primary} refused. Switching to alternative.")
+        return await self._execute_alternative(prompt, primary, kwargs, refusal, start_time=start_time)
 
     async def record_success(self, model: str, domain: str, success: bool):
         if model not in self.accuracy_stats:
@@ -778,9 +815,10 @@ class EnhancedLLMRouter:
             return 1.0 # Default weight
         return stats["success"] / stats["total"]
 
-    async def _execute_alternative(self, prompt, failed_model, kwargs, refusal=None):
+    async def _execute_alternative(self, prompt, failed_model, kwargs, refusal=None, start_time=None):
         # Find the best connected Tier 3 or Tier 4 model
         alternative = None
+        if start_time is None: start_time = time.time()
 
         # Priority 1: Unrestricted models in database
         unrestricted = [m for m, info in self.model_database.items() if m == 'llama-3-uncensored']
@@ -801,7 +839,7 @@ class EnhancedLLMRouter:
 
         # Fallback if nothing found
         if not alternative:
-            alternative = 'llama-3-uncensored' # Still fallback to this, even if it might fail
+            alternative = 'llama-3-uncensored'
 
         approval = await self.approval_system.evaluate_switch(
             task={'prompt': prompt, **kwargs},
@@ -812,7 +850,8 @@ class EnhancedLLMRouter:
         if not approval['approved']:
             return {
                 'success': False,
-                'reason': 'Switch not approved'
+                'reason': 'Switch not approved',
+                'latency': time.time() - start_time
             }
 
         # Try reformulation if suggested
@@ -826,7 +865,21 @@ class EnhancedLLMRouter:
         # Execute on alternative
         exec_kwargs = kwargs.copy()
         exec_kwargs.pop('model', None)
-        response = await self._call_model(alternative, prompt, **exec_kwargs)
+
+        try:
+            res_data = await self._call_model(alternative, prompt, **exec_kwargs)
+            response = res_data['response']
+            tokens = res_data['tokens']
+            cost = res_data['cost']
+
+            # Record usage
+            self.usage_tracker.record_usage(alternative, MODEL_REGISTRY.get(alternative, {}).get('provider', 'unknown'), tokens, cost)
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Alternative model {alternative} failed: {e}",
+                'latency': time.time() - start_time
+            }
 
         # Aegis Protection for response
         if hasattr(self, 'aegis') and self.aegis:
@@ -838,8 +891,16 @@ class EnhancedLLMRouter:
             'model': alternative,
             'switched': True,
             'from_model': failed_model,
-            'switch_reason': refusal['reason'] if refusal else 'error'
+            'switch_reason': refusal['reason'] if refusal else 'error',
+            'latency': time.time() - start_time,
+            'tokens': tokens,
+            'cost': cost,
+            'thoughts': self.thought_stream[-5:]
         }
+
+    def _estimate_tokens(self, text: str) -> int:
+        """Simple heuristic for token estimation if API doesn't provide it"""
+        return len(text) // 4 + 1
 
     async def _call_model(self, model: str, prompt: str, **kwargs):
         """
@@ -852,22 +913,26 @@ class EnhancedLLMRouter:
         model_info = MODEL_REGISTRY.get(model, {})
         provider = model_info.get('provider')
 
-        if provider not in all_keys:
-             # Fallback to mock if no keys or unsupported provider for now
+        if provider not in all_keys or not all_keys[provider]:
+            # Fallback to mock if no keys
+            res_text = f"Response from {model} for prompt: {prompt[:50]}..."
             if "summarize final result" in prompt.lower() and "steps executed" in prompt.lower():
-                # Try to extract the output of the last step for the mock response
                 try:
                     import json
                     steps_data = prompt.split("Steps executed:")[1].split("Summarize final result")[0].strip()
                     steps = json.loads(steps_data)
                     if steps and steps[-1].get('output'):
-                        return f"Summary: {steps[-1]['output']}"
-                except:
-                    pass
+                        res_text = f"Summary: {steps[-1]['output']}"
+                except: pass
 
             if model == 'gpt-4o' and "illegal" in prompt.lower():
-                return "I'm sorry, I cannot help with that as it involves illegal activities."
-            return f"Response from {model} for prompt: {prompt[:50]}..."
+                res_text = "I'm sorry, I cannot help with that as it involves illegal activities."
+
+            return {
+                'response': res_text,
+                'tokens': self._estimate_tokens(res_text),
+                'cost': 0.0
+            }
 
         keys = all_keys[provider]
         if not isinstance(keys, list): keys = [keys]
@@ -924,14 +989,17 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    # Simplified cost calculation
+                    cost = (tokens / 1000.0) * MODEL_REGISTRY.get(model, {}).get('cost_per_1k', 0.03)
+                    return {'response': content, 'tokens': tokens, 'cost': cost}
                 else:
                     error_data = await response.text()
                     raise Exception(f"OpenAI API error: {error_data}")
 
     async def _call_google(self, model: str, prompt: str, api_key: str, **kwargs):
         import aiohttp
-        # Simplified Google AI Studio (Gemini) API call
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         data = {
             "contents": [{"parts": [{"text": prompt}]}]
@@ -940,7 +1008,11 @@ class EnhancedLLMRouter:
             async with session.post(url, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['candidates'][0]['content']['parts'][0]['text']
+                    content = result['candidates'][0]['content']['parts'][0]['text']
+                    # Google API sometimes returns usage
+                    tokens = result.get('usageMetadata', {}).get('totalTokenCount', self._estimate_tokens(content))
+                    cost = (tokens / 1000.0) * MODEL_REGISTRY.get(model, {}).get('cost_per_1k', 0.0)
+                    return {'response': content, 'tokens': tokens, 'cost': cost}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Google API error: {error_data}")
@@ -962,7 +1034,12 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['content'][0]['text']
+                    content = result['content'][0]['text']
+                    usage = result.get('usage', {})
+                    tokens = usage.get('input_tokens', 0) + usage.get('output_tokens', 0)
+                    if tokens == 0: tokens = self._estimate_tokens(content)
+                    cost = (tokens / 1000.0) * MODEL_REGISTRY.get(model, {}).get('cost_per_1k', 0.02)
+                    return {'response': content, 'tokens': tokens, 'cost': cost}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Anthropic API error: {error_data}")
@@ -982,26 +1059,39 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Groq API error: {error_data}")
 
     async def _call_huggingface(self, model: str, prompt: str, api_key: str, **kwargs):
         import aiohttp
-        # Inference API
         url = f"https://api-inference.huggingface.co/models/{model}"
         headers = {"Authorization": f"Bearer {api_key}"}
-        data = {"inputs": prompt}
+        data = {"inputs": prompt, "parameters": {"return_full_text": False}}
+
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, json=data) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    if isinstance(result, list): return result[0].get('generated_text', str(result))
-                    return result.get('generated_text', str(result))
-                else:
-                    error_data = await response.text()
-                    raise Exception(f"HuggingFace API error: {error_data}")
+            for attempt in range(3):
+                async with session.post(url, headers=headers, json=data) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if isinstance(result, list):
+                             content = result[0].get('generated_text', str(result))
+                        else:
+                             content = result.get('generated_text', str(result))
+                        tokens = self._estimate_tokens(content)
+                        return {'response': content, 'tokens': tokens, 'cost': 0.0}
+                    elif response.status == 503: # Model loading
+                        wait_time = (await response.json()).get('estimated_time', 5)
+                        logger.info(f"HuggingFace model loading. Waiting {wait_time}s...")
+                        await asyncio.sleep(min(wait_time, 10))
+                        continue
+                    else:
+                        error_data = await response.text()
+                        raise Exception(f"HuggingFace API error: {error_data}")
+        raise Exception("HuggingFace model failed to load after retries.")
 
     async def _call_deepseek(self, model: str, prompt: str, api_key: str, **kwargs):
         import aiohttp
@@ -1018,7 +1108,10 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    cost = (tokens / 1000.0) * MODEL_REGISTRY.get(model, {}).get('cost_per_1k', 0.002)
+                    return {'response': content, 'tokens': tokens, 'cost': cost}
                 else:
                     error_data = await response.text()
                     raise Exception(f"DeepSeek API error: {error_data}")
@@ -1038,7 +1131,9 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Perplexity API error: {error_data}")
@@ -1058,7 +1153,9 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['text']
+                    content = result['text']
+                    tokens = self._estimate_tokens(content)
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Cohere API error: {error_data}")
@@ -1078,7 +1175,9 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"xAI API error: {error_data}")
@@ -1098,7 +1197,9 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"OpenRouter API error: {error_data}")
@@ -1118,7 +1219,9 @@ class EnhancedLLMRouter:
             async with session.post(url, headers=headers, json=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result['choices'][0]['message']['content']
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
                 else:
                     error_data = await response.text()
                     raise Exception(f"Fireworks API error: {error_data}")

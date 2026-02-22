@@ -742,9 +742,24 @@
         }
 
         // Chat UI
-        function addMessage(text, role = 'ai') {
+        function addMessage(text, role = 'ai', meta = {}) {
             const div = document.createElement('div');
             div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            let metaHtml = '';
+            if (role === 'ai' && meta.model) {
+                metaHtml = `
+                    <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-white/5 text-[9px] text-slate-500 font-mono">
+                        <span>🤖 ${meta.model}</span>
+                        <span>•</span>
+                        <span>⚡ ${meta.latency ? meta.latency.toFixed(1) + 's' : ''}</span>
+                        <span>•</span>
+                        <span>${meta.tokens || ''} tokens</span>
+                        <span>•</span>
+                        <span class="text-green-500">${meta.cost ? '$' + meta.cost.toFixed(4) : ''}</span>
+                    </div>
+                `;
+            }
 
             const inner = `
                 <div class="max-w-[80%] ${role === 'user' ? 'chat-bubble-user p-4 rounded-2xl' : 'chat-bubble-ai p-5 rounded-3xl'} shadow-xl">
@@ -753,8 +768,10 @@
                         <span class="text-[10px] font-bold uppercase tracking-widest ${role === 'user' ? 'text-slate-400' : 'text-sky-400'}">
                             ${role === 'user' ? 'You' : 'Epex Bot'}
                         </span>
+                        ${meta.switched ? `<span class="text-[8px] bg-yellow-500/10 text-yellow-500 px-1.5 py-0.5 rounded ml-2">🔄 AUTO-SWITCHED</span>` : ''}
                     </div>
                     <div class="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap">${text}</div>
+                    ${metaHtml}
                 </div>
             `;
             div.innerHTML = inner;
@@ -850,7 +867,7 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        addMessage(result.response, 'ai');
+                        addMessage(result.response, 'ai', result);
                         animateLayers([1, 2, 3, 4, 5, 6, 7]);
                         setTimeout(() => animateLayers([]), 2000);
                     } else {
@@ -1032,7 +1049,7 @@
                 const data = await response.json();
                 const apiKeys = data.config.api_keys || {};
 
-                const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'jina', 'telegram', 'twilio'];
+                const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'novita', 'jina', 'elevenlabs', 'assemblyai', 'telegram', 'twilio'];
 
                 document.getElementById('api-settings-list').innerHTML = providers.map(p => `
                     <div class="space-y-2">
@@ -1047,7 +1064,7 @@
 
         document.getElementById('save-settings-btn').onclick = async () => {
             const keys = {};
-            const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'jina', 'telegram', 'twilio'];
+            const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'novita', 'jina', 'elevenlabs', 'assemblyai', 'telegram', 'twilio'];
 
             providers.forEach(p => {
                 const el = document.getElementById(`key-${p}`);

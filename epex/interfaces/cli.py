@@ -77,6 +77,7 @@ async def start_chat_loop():
     from rich.panel import Panel
     from rich.markdown import Markdown
     from rich.text import Text
+    from rich.table import Table
     from epex.foundation.storage import SecureConfigStorage
     from epex.interfaces.prompt_assistant import PromptAssistant
 
@@ -126,10 +127,31 @@ async def start_chat_loop():
                 user_name = config.get('user_name', 'User')
                 epex_name = config.get('epex_name', 'Epex')
 
+                # Model Badge
+                model_str = result.get('model', 'unknown')
+                latency = result.get('latency', 0)
+                cost = result.get('cost', 0)
+
+                badge_table = Table.grid(expand=False)
+                badge_table.add_row(f"[bold cyan]🤖 {model_str}[/] • [dim]latency: {latency:.1f}s[/] • [bold green]${cost:.4f}[/]")
+                console.print(Panel(badge_table, border_style="dim", expand=False))
+
+                # Thinking Stream
+                thoughts = result.get('thoughts', [])
+                if thoughts:
+                    with console.status("[dim]Reasoning complete."):
+                        pass
+                    thought_text = "\n".join([f"💭 {t}" for t in thoughts])
+                    console.print(Panel(thought_text, title="THOUGHT STREAM", border_style="dim", width=100))
+
                 console.print(f"\n[bold sky_blue1]{epex_name} >[/]")
                 console.print(Markdown(result['response']))
+
                 if result.get('switched'):
-                    console.print(f"\n[dim italic text_slate_500]Note: Switched from {result['from_model']} to {result['model']} because: {result['switch_reason']}[/]")
+                    console.print(Panel(f"[yellow]🔄 Auto-Switched Model[/]\n[dim]Reason: {result.get('switch_reason', 'Policy refusal')}[/]\n[dim]From: {result.get('from_model')} → To: {result.get('model')}[/]", border_style="yellow", expand=False))
+
+                # Performance Footer
+                console.print(f"\n[dim]⚡ {latency:.2f}s  •  {result.get('tokens', 0)} tokens  •  Cost: ${cost:.4f}[/]")
 
                 # Handle Control Signals
                 signal = result.get('control_signal')

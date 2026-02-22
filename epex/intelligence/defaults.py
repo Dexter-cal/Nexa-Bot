@@ -49,17 +49,20 @@ class SmartDefaultsEngine:
 
         # Priority 1: High Quality if available
         if keys.get('openai'): return 'gpt-4o'
-        if keys.get('anthropic'): return 'claude-3-5-sonnet-20240620'
+        if keys.get('anthropic'): return 'claude-sonnet-4'
 
         # Priority 2: Free Cloud
-        if keys.get('google'): return 'gemini-1.5-flash'
-        if keys.get('groq'): return 'llama-3.1-70b-versatile'
+        if keys.get('google'): return 'gemini-2.0-flash'
+        if keys.get('groq'): return 'mixtral-8x7b'
 
-        # Priority 3: Local if capable
+        # Priority 3: DeepSeek
+        if keys.get('deepseek'): return 'deepseek-v3'
+
+        # Priority 4: Local if capable
         if system['system_resources']['gpu'] and system['system_resources']['gpu_memory'] >= 8:
-            return 'ollama/llama3.1'
+            return 'llama-3-uncensored'
 
-        return 'gemini-1.5-flash' # Default recommendation
+        return 'gemini-2.0-flash' # Default recommendation
 
     def _select_fallback_models(self, system: dict):
         return ['llama-3-uncensored', 'mixtral-8x7b']

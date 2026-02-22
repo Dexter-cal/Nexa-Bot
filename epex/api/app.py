@@ -126,9 +126,26 @@ async def get_logs():
 
 @app.get("/api/v1/intelligence/thoughts")
 async def get_thoughts():
+    thoughts = []
     if engine.task_manager and engine.task_manager.planner:
-        return engine.task_manager.planner.reasoning_logs[-10:] # Return last 10 thoughts
-    return []
+        thoughts.extend(engine.task_manager.planner.reasoning_logs[-10:])
+
+    if engine.llm_router and hasattr(engine.llm_router, 'thought_stream'):
+        # Convert router thought_stream strings to the format expected by GUI
+        import time
+        router_thoughts = [
+            {
+                "timestamp": time.time(),
+                "response": t,
+                "model": engine.llm_router.active_model_override or "auto"
+            }
+            for t in engine.llm_router.thought_stream[-10:]
+        ]
+        thoughts.extend(router_thoughts)
+
+    # Sort by timestamp and return last 10
+    thoughts.sort(key=lambda x: x.get('timestamp', 0))
+    return thoughts[-10:]
 
 @app.get("/api/v1/network/peers")
 async def list_peers():

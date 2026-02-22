@@ -157,7 +157,8 @@ class TaskManager:
             await self._log_to_return_report(task, final_response['response'])
             self.shadow_tasks.remove(task.id)
 
-        return {"success": True, "response": final_response['response'], "steps": results}
+        final_response['steps'] = results
+        return final_response
 
     async def _log_to_return_report(self, task: Task, summary: str):
         """Log background task completion for the Return Report"""

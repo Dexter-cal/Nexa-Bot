@@ -178,16 +178,29 @@ class EpexTUI:
             }
             color, title = aura_styles.get(aura, ('cyan', '⚡ EPEX BOT'))
 
+            # Usage Stats for Header
+            stats = engine.llm_router.usage_tracker.get_today_stats()
+            remaining_budget = engine.llm_router.budget_manager.get_remaining_budget()
+
             active_model = engine.llm_router.active_model_override or "Intelligent Auto"
             voice_status = "[green]ON[/]" if is_voice_active else "[red]OFF[/]"
 
+            header_table = Table.grid(expand=True)
+            header_table.add_column(justify="left")
+            header_table.add_column(justify="right")
+            header_table.add_row(
+                f"[bold {color}]{title} MODE ACTIVATED[/]",
+                f"[dim]💰 ${stats['total_cost']:.3f} spent | Remaining: ${remaining_budget:.2f}[/]"
+            )
+
             self.console.print(Panel(
-                f"[bold {color}]{title} MODE ACTIVATED[/]\n"
-                f"[dim]Model: [bold]{active_model}[/] | Voice Bridge: {voice_status} | Type 'exit' to quit[/]",
+                header_table,
+                subtitle=f"[dim]Model: [bold]{active_model}[/] | Voice: {voice_status} | 📊 {stats['total_tokens']} tokens used[/]",
                 border_style=color
             ))
 
             cmd = Prompt.ask(f"[bold {color}]User[/]")
+            if not cmd: continue
             if cmd.lower() in ["exit", "quit"]:
                 break
 
@@ -197,8 +210,8 @@ class EpexTUI:
                 if target == "gui":
                     self.console.print("[yellow]Switching to GUI...[/]")
                     await asyncio.sleep(1)
-                    # We'd need to launch GUI here, but for simplicity we'll just note it
-                    os.system("epex --gui &")
+                    import subprocess
+                    subprocess.Popen([sys.executable, "epex.py", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     break
                 elif target == "cli":
                     self.console.print("[white]Switching to CLI mode.[/]")
@@ -209,25 +222,59 @@ class EpexTUI:
                 status = "activated" if is_voice_active else "deactivated"
                 self.console.print(f"[cyan]Voice Bridge {status}.[/]")
                 if is_voice_active:
-                    # Start listening in background
                     asyncio.create_task(engine.voice_bridge.start_listening_loop())
                 else:
                     engine.voice_bridge.stop()
                 continue
 
-            from epex.core.engine import engine
+            if cmd.lower() == "/help":
+                self.show_help()
+                continue
+
             with self.console.status(f"[bold {color}]Epex is thinking..."):
                 response = await engine.execute_command(cmd)
 
-            self.console.print(Panel(response.get('response', 'Error'), title=f"[bold {color}]Epex[/]", border_style=color))
+            # Thinking Stream / Thoughts
+            thoughts = response.get('thoughts', [])
+            if thoughts:
+                thought_text = "\n".join([f"• {t}" for t in thoughts])
+                self.console.print(Panel(thought_text, title="💭 REASONING", border_style="dim", width=80))
+
+            # Main Response
+            resp_title = f"[bold {color}]Epex[/] • [dim]{response.get('model', 'unknown')}[/]"
+            if response.get('switched'):
+                resp_title += f" [yellow]🔄 Switched: {response.get('switch_reason', 'policy')}[/]"
+
+            self.console.print(Panel(
+                response.get('response', 'Error'),
+                title=resp_title,
+                border_style=color,
+                subtitle=f"[dim]⚡ {response.get('latency', 0):.1f}s • {response.get('tokens', 0)} tokens • ${response.get('cost', 0):.4f}[/]"
+            ))
 
             # Handle Control Signals
             signal = response.get('control_signal')
             if signal == "switch_gui":
-                os.system("epex --gui &")
+                import subprocess
+                subprocess.Popen([sys.executable, "epex.py", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 break
             elif signal == "switch_cli":
                 break
+
+    def show_help(self):
+        from rich.table import Table
+        help_table = Table(title="⌨️  EPEX COMMANDS", border_style="cyan")
+        help_table.add_column("Command", style="bold yellow")
+        help_table.add_column("Description")
+
+        help_table.add_row("/switch gui", "Launch graphical dashboard")
+        help_table.add_row("/switch cli", "Switch to raw command line")
+        help_table.add_row("/model <id>", "Override active model")
+        help_table.add_row("/model reset", "Back to auto-selection")
+        help_table.add_row("/voice", "Toggle voice command bridge")
+        help_table.add_row("exit/quit", "Close EPEX")
+
+        self.console.print(help_table)
 
     async def run_health_check(self):
         """
