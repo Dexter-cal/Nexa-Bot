@@ -9,6 +9,7 @@ from rich.prompt import Prompt, Confirm
 from rich.table import Table
 from rich.live import Live
 from rich.layout import Layout
+from rich.align import Align
 from epex.intelligence.api_manager import UniversalAPIKeyManager
 from epex.intelligence.detector import IntelligentProviderDetector
 from epex.intelligence.defaults import SmartDefaultsEngine
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class TUISetupWizard:
     """
-    Beautiful TUI setup interface
+    Polished 5-Step Setup Wizard for EPEX APEX v5.0
     """
 
     def __init__(self):
@@ -30,127 +31,119 @@ class TUISetupWizard:
 
     async def run(self):
         """
-        Run TUI setup wizard
+        Run the interactive onboarding experience
         """
         self.console.clear()
 
-        # Welcome screen
-        self.console.print(Panel(
-            "[bold cyan]🤖 Welcome to EPEX APEX v5.0![/]\n\n"
-            "[white]Let's get you set up with zero friction. I'm analyzing your system...[/]",
-            border_style="cyan",
-            title="⚡ EPEX BOT"
-        ))
+        # Step 1: Welcome & User Identity
+        self.console.print(Panel(Align.center(
+            "[bold cyan]🎉 WELCOME TO EPEX APEX![/]\n\n"
+            "[white]Let's get you set up in less than 60 seconds.[/]"
+        ), title="Step 1/5", border_style="cyan"))
 
-        # Background analysis
-        with self.console.status("[bold green]Analyzing system..."):
-            analysis = await self.detector.analyze_system()
+        user_name = Prompt.ask("\n[bold]What should we call you?[/]", default="User")
 
-        # Step 1: Personalization
-        self.console.print("\n[bold cyan]Step 1/5: Personalization[/]")
-        user_name = Prompt.ask("What is your name? (e.g. Max)", default="User")
-        epex_name = Prompt.ask("What should I be named? (e.g. Bill)", default="Epex")
+        # Step 2: Agent Identity
+        self.console.clear()
+        self.console.print(Panel(Align.center(
+            "[bold cyan]🤖 NAME YOUR AGENT[/]\n\n"
+            "[white]Choose a designation for your system identity.[/]\n"
+            "[dim]Popular names: Nexus, Atlas, Echo, Nova, Sage[/]"
+        ), title="Step 2/5", border_style="cyan"))
 
-        # Optional Password
+        agent_name = Prompt.ask("\n[bold]Agent name[/]", default="Epex")
+
+        # Step 3: Security Configuration
+        self.console.clear()
+        self.console.print(Panel(Align.center(
+            "[bold cyan]🔐 SECURITY & PRIVACY[/]\n\n"
+            "[white]Set a master password to protect your digital soul.[/]\n"
+            "[dim]Authentication will be required to launch interfaces or access sensitive keys.[/]"
+        ), title="Step 3/5", border_style="cyan"))
+
         password_hash = None
-        self.console.print("\n[dim]A password adds an extra layer of security before launching any interface.[/]")
-        if Confirm.ask("Would you like to enable password protection?", default=False):
+        if Confirm.ask("\nWould you like to enable password protection?", default=True):
             password = ""
             while len(password) < 4:
-                password = Prompt.ask("Set Agent Password (min 4 chars)", password=True)
+                password = Prompt.ask("Set Master Password (min 4 chars)", password=True)
                 if len(password) < 4:
                     self.console.print("[red]Password too short.[/]")
 
             import bcrypt
             password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             self.console.print("[green]✓ Security credentials established.[/]")
+        else:
+            self.console.print("[yellow]⚠ Proceeding without password protection.[/]")
+            await asyncio.sleep(1)
 
-        # Step 2: System Analysis Results
-        self.console.print("\n[bold cyan]Step 2/5: System Capabilities[/]")
-        sys_res = analysis['system_resources']
-        table = Table(show_header=False, box=None)
-        table.add_row("CPU Cores:", f"{sys_res['cpu_cores']}")
-        table.add_row("RAM:", f"{sys_res['ram']:.1f} GB")
-        table.add_row("GPU Detected:", "[green]Yes[/]" if sys_res['gpu'] else "[yellow]No[/]")
-        if sys_res['gpu']:
-            table.add_row("GPU Memory:", f"{sys_res['gpu_memory']:.1f} GB")
-        table.add_row("Network:", "[green]Online[/]" if analysis['network_access']['online'] else "[red]Offline[/]")
-        self.console.print(table)
+        # Step 4: Intelligence Provisioning
+        self.console.clear()
+        self.console.print(Panel(Align.center(
+            "[bold cyan]🔑 INTELLIGENCE PROVISIONING[/]\n\n"
+            "[white]Connect at least one provider to activate neural functions.[/]\n"
+            "[dim]Recommended: Google AI Studio or HuggingFace (FREE)[/]"
+        ), title="Step 4/5", border_style="cyan"))
 
-        # Step 3: API Keys & Connectivity
-        self.console.print(f"\n[bold cyan]Step 3/5: Intelligence Providers[/]")
-
-        # Show detected keys
-        detected = analysis['detected_keys']
+        # Detect environment keys first
+        detected = await self.api_manager.auto_detect_keys()
         if detected:
-            self.console.print(f"\n[green]✓ Auto-detected {len(detected)} API keys from your environment.[/]")
+            self.console.print(f"\n[green]✓ Found {len(detected)} keys in environment variables.[/]")
+            for p in detected:
+                self.console.print(f"  • {p.capitalize()}")
 
-            # Test detected keys
-            self.console.print("\n[bold]Testing detected connections...[/]")
-            connected_map = await self.api_manager.get_connected_providers()
-            for provider, valid in connected_map.items():
-                if provider in detected:
-                    status = "[green]✓ Online[/]" if valid else "[red]✗ Offline[/]"
-                    self.console.print(f"  • {self.api_manager.providers[provider]['name']}: {status}")
-
-        setup_providers = Confirm.ask("\nWould you like to search and connect more models?", default=False)
-
-        if setup_providers:
+        if Confirm.ask("\nWould you like to configure or add more API providers now?", default=not bool(detected)):
             configured = await self.api_manager.guided_setup()
             detected.update(configured)
 
-        # Step 4: Interface Selection
-        self.console.print(f"\n[bold cyan]Step 4/5: Choose Your Interface[/]")
-        self.console.print("1. [bold cyan]TUI[/] (Terminal User Interface - Recommended for speed)")
-        self.console.print("2. [bold magenta]GUI[/] (Graphical User Interface - High fidelity)")
-        self.console.print("3. [bold white]CLI[/] (Command Line Interface - For power users)")
+        # Step 5: Interface & Finalization
+        self.console.clear()
+        self.console.print(Panel(Align.center(
+            "[bold cyan]✨ ALL SET![/]\n\n"
+            f"[white]Profile: [bold cyan]{user_name}[/] | Agent: [bold]{agent_name}[/][/]\n"
+            f"[white]Security: {'[green]PASSWORD ENABLED[/]' if password_hash else '[yellow]OPEN ACCESS[/]'}[/]\n"
+            f"[white]Intelligence: [green]{len(detected)} Providers Connected[/][/]"
+        ), title="Step 5/5", border_style="cyan"))
 
-        iface_choice = Prompt.ask("Select interface", choices=["1", "2", "3"], default="1")
-        interface_map = {"1": "TUI", "2": "GUI", "3": "CLI"}
-        selected_iface = interface_map[iface_choice]
+        self.console.print("\n[bold]Where would you like to start?[/]")
+        self.console.print("1. [bold cyan]TUI[/] - Terminal Dashboard (Recommended)")
+        self.console.print("2. [bold magenta]GUI[/] - High-Fidelity Web Interface")
+        self.console.print("3. [bold white]CLI[/] - Raw Command Line")
 
-        # Step 5: Finalizing
-        self.console.print(f"\n[bold cyan]Step 5/5: Finalizing[/]")
-        with self.console.status("[bold green]Generating smart defaults..."):
-            smart_config = await self.defaults.generate_config()
+        choice = Prompt.ask("Select interface", choices=["1", "2", "3"], default="1")
+        iface_map = {"1": "TUI", "2": "GUI", "3": "CLI"}
+        selected_iface = iface_map[choice]
 
-        smart_config.update({
-            "user_name": user_name,
-            "epex_name": epex_name,
-            "password_hash": password_hash,
-            "api_keys": detected,
-            "preferred_interface": selected_iface,
-            "setup_complete": True,
-            "setup_date": datetime.now().isoformat()
-        })
+        # Generate final config
+        with self.console.status("[bold green]Synthesizing Neural Config..."):
+            config = await self.defaults.generate_config()
+            config.update({
+                "user_name": user_name,
+                "epex_name": agent_name,
+                "password_hash": password_hash,
+                "api_keys": detected,
+                "preferred_interface": selected_iface,
+                "setup_complete": True,
+                "setup_date": datetime.now().isoformat(),
+                "ui_settings": {
+                    "show_tokens": True,
+                    "show_rates": True,
+                    "show_model_info": True
+                }
+            })
+            await self.storage.store_config(config)
 
-        await self.storage.store_config(smart_config)
-
-        # Health Check
-        await self.run_health_check()
-
-        # Done!
-        self.console.print(Panel.fit(
-            f"[bold green]✓ Setup Complete![/]\n\n"
-            f"[white]I'm {epex_name}, nice to meet you {user_name}![/]\n"
-            f"[white]Launching {selected_iface} immediately...[/]",
-            border_style="green"
-        ))
-
+        self.console.print(f"\n[bold green]✓ Setup Complete! Launching {selected_iface} immediately...[/]")
         await asyncio.sleep(2)
         await self.launch_interface(selected_iface)
 
     async def launch_interface(self, interface: str):
-        """Immediately take the user to the selected interface"""
         if interface == "TUI":
             tui = EpexTUI()
             await tui.run()
         elif interface == "GUI":
-            self.console.print("[yellow]Starting GUI...[/]")
             import subprocess
-            subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            self.console.print("[dim]The dashboard should open in your browser shortly.[/]")
-        else: # CLI
+            subprocess.Popen([sys.executable, "epex.py", "3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
             from epex.interfaces.cli import start_chat_loop
             await start_chat_loop()
 
@@ -160,7 +153,6 @@ class EpexTUI:
     """
     def __init__(self):
         self.console = Console()
-        self.layout = Layout()
 
     async def run(self):
         self.console.clear()
@@ -185,7 +177,8 @@ class EpexTUI:
             color, title = aura_styles.get(aura, ('cyan', '⚡ EPEX BOT'))
 
             # UI Settings
-            ui_settings = engine.llm_router.api_manager.vault.load_config_sync().get('ui_settings', {})
+            storage = SecureConfigStorage()
+            ui_settings = storage.load_config_sync().get('ui_settings', {})
 
             # Usage Stats for Header
             stats = engine.llm_router.usage_tracker.get_today_stats()
@@ -197,6 +190,7 @@ class EpexTUI:
             header_table = Table.grid(expand=True)
             header_table.add_column(justify="left")
             header_table.add_column(justify="right")
+
             stats_str = ""
             if ui_settings.get('show_rates', True):
                 stats_str = f"[dim]💰 ${stats['total_cost']:.3f} spent | Remaining: ${remaining_budget:.2f}[/]"
@@ -252,6 +246,14 @@ class EpexTUI:
                 await self.show_status()
                 continue
 
+            if cmd.lower().startswith("/search"):
+                query = cmd[8:].strip()
+                if not query:
+                    self.console.print("[red]Please provide a search query. Usage: /search <model_name>[/]")
+                    continue
+                await self.search_models(query)
+                continue
+
             with self.console.status(f"[bold {color}]Epex is thinking..."):
                 response = await engine.execute_command(cmd)
 
@@ -283,12 +285,12 @@ class EpexTUI:
                 break
 
     def show_help(self):
-        from rich.table import Table
         help_table = Table(title="⌨️  EPEX COMMANDS", border_style="cyan")
         help_table.add_column("Command", style="bold yellow")
         help_table.add_column("Description")
 
         help_table.add_row("/status", "Show provider and model status")
+        help_table.add_row("/search <q>", "Search HuggingFace for models")
         help_table.add_row("/switch gui", "Launch graphical dashboard")
         help_table.add_row("/switch cli", "Switch to raw command line")
         help_table.add_row("/model <id>", "Override active model")
@@ -300,7 +302,6 @@ class EpexTUI:
 
     async def show_status(self):
         from epex.core.engine import engine
-        from rich.table import Table
 
         # Provider Table
         p_table = Table(title="🌐 PROVIDER STATUS", border_style="cyan")
@@ -334,21 +335,23 @@ class EpexTUI:
 
              self.console.print(c_table)
 
-    async def run_health_check(self):
-        """
-        Comprehensive health check on first run
-        """
-        self.console.print("\n[bold]Running final health check...[/]")
+    async def search_models(self, query: str):
+        from epex.intelligence.api_manager import UniversalAPIKeyManager
+        manager = UniversalAPIKeyManager()
 
-        checks = {
-            'Python Version': sys.version_info >= (3, 10),
-            'Secure Storage': os.path.exists(self.storage.config_path),
-            'Database': os.path.exists('epex.db') or True, # Placeholder
-            'Network': (await self.detector._check_network())['online']
-        }
+        with self.console.status(f"[bold cyan]Searching HuggingFace for '{query}'..."):
+            models = await manager.search_huggingface(query)
 
-        for check, passed in checks.items():
-            status = "[green]✓[/]" if passed else "[red]✗[/]"
-            self.console.print(f"  {status} {check}")
+        if not models:
+            self.console.print(f"[yellow]No models found for '{query}'.[/]")
+            return
 
-        return all(checks.values())
+        table = Table(title=f"🔍 HUGGINGFACE MODELS: {query}", border_style="cyan")
+        table.add_column("Model ID", style="bold yellow")
+        table.add_column("Capabilities")
+
+        for m in models:
+            table.add_row(m['id'], ", ".join(m['capabilities']))
+
+        self.console.print(table)
+        self.console.print("[dim]Use /model <id> to try one of these (requires HF key).[/]")

@@ -2,7 +2,9 @@ import os
 import sys
 import asyncio
 import subprocess
+import time
 from pathlib import Path
+from datetime import datetime
 
 # Add current directory to path
 sys.path.append(os.getcwd())
@@ -13,7 +15,6 @@ async def check_environment():
     if install_lock.exists():
         return
 
-    # Only show this if we are actually checking
     print("🔍 Initializing EPEX Neural Environment...")
     try:
         import rich
@@ -23,13 +24,11 @@ async def check_environment():
         import bcrypt
         import fastapi
         import uvicorn
-        # If imports work, create the lock
         install_lock.parent.mkdir(parents=True, exist_ok=True)
         install_lock.touch()
     except ImportError:
         print("📦 Missing core dependencies. Launching EPEX Repair & Install...")
         subprocess.run([sys.executable, "epex_run.py"], check=True)
-        # Restart the script after repair
         os.execv(sys.executable, ['python3'] + sys.argv)
 
 async def check_config():
@@ -49,9 +48,12 @@ async def main():
     from rich.prompt import Prompt, Confirm
     from rich.align import Align
     from rich.table import Table
+    from rich.layout import Layout
+    from rich.text import Text
     from epex.core.constants import BANNER, VERSION
     from epex.foundation.storage import SecureConfigStorage
     from epex.intelligence.api_manager import UniversalAPIKeyManager
+    import psutil
 
     console = Console()
     storage = SecureConfigStorage()
@@ -59,37 +61,32 @@ async def main():
     while True:
         console.clear()
 
-        # 1. Show Banner
+        # 1. Show Banner (Updated design)
         console.print(Align.center(f"[bold cyan]{BANNER}[/]"))
-        console.print(Align.center(f"[italic sky_blue1]v{VERSION} | The Neural Operating System[/]\n"))
+        console.print(Align.center(f"[italic sky_blue1]v{VERSION} | Your AI Command Center[/]\n"))
 
         # 2. Check Config & Setup
         if not await check_config():
-            # If setup just finished, reload
             os.execv(sys.executable, ['python3'] + sys.argv)
 
         config = await storage.load_config()
 
-        # Initialize UI Settings if missing
-        if 'ui_settings' not in config:
-            config['ui_settings'] = {
-                'show_model_count': True,
-                'show_rates': True,
-                'show_tokens': True
-            }
+        # Update last active
+        last_active = config.get('last_active_time', "Unknown")
+        config['last_active_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        await storage.store_config(config)
 
-        # 3. Password Protection & Session Memory
+        # 3. Password Protection
         if config.get('password_hash'):
             import bcrypt
-            import time
             last_login = config.get('last_login_time', 0)
             session_timeout = 3600 # 1 hour
 
             if time.time() - last_login > session_timeout:
-                console.print("[bold yellow]🔐 System Locked. Please authenticate.[/]")
+                console.print(Panel("[bold yellow]🔐 SYSTEM LOCKED[/]\nPlease enter your password to access the Command Center.", border_style="yellow"))
                 attempts = 0
                 while attempts < 3:
-                    pwd = Prompt.ask("Enter Password", password=True)
+                    pwd = Prompt.ask("Password", password=True)
                     if bcrypt.checkpw(pwd.encode(), config['password_hash'].encode()):
                         console.print("[green]✓ Authentication Successful.[/]\n")
                         config['last_login_time'] = time.time()
@@ -99,206 +96,186 @@ async def main():
                         attempts += 1
                         console.print(f"[red]✗ Incorrect password. ({3 - attempts} attempts left)[/]")
                 else:
-                    console.print("[bold red]Access Denied. Locking system.[/]")
+                    console.print("[bold red]Access Denied. Terminal Locked.[/]")
                     return
-            else:
-                pass # Session active
-                # console.print("[dim green]✓ Session active. (Last login: {:.1f}m ago)[/]\n".format((time.time() - last_login)/60))
 
-        # 4. Personalized Greeting & Status
+        # 4. Profile & Welcome
         user_name = config.get('user_name', 'User')
-        epex_name = config.get('epex_name', 'Epex')
-        preferred = config.get('preferred_interface', '1')
-        if preferred == "TUI": preferred = "1"
-        elif preferred == "GUI": preferred = "2"
-        elif preferred == "CLI": preferred = "3"
+        agent_name = config.get('epex_name', 'Epex')
 
-        # Status Summary Table
-        status_table = Table.grid(expand=True)
-        status_table.add_column(justify="left")
-        status_table.add_column(justify="right")
+        console.print(Panel(
+            f"👤 Welcome back, [bold cyan]{user_name}[/]!\nAgent: [bold]{agent_name}[/]  •  Last active: [dim]{last_active}[/]",
+            border_style="cyan"
+        ))
 
-        connected_keys = config.get('api_keys', {})
-        online_count = len([k for k, v in connected_keys.items() if v])
+        # 5. Interface Selection Grid
+        iface_table = Table.grid(expand=True, padding=(1, 2))
+        iface_table.add_column(justify="center")
+        iface_table.add_column(justify="center")
+        iface_table.add_column(justify="center")
 
-        status_table.add_row(
-            f"Welcome back, [bold cyan]{user_name}[/].",
-            f"[dim]Agent: [bold]{epex_name}[/] | [green]●[/] {online_count} Keys Active[/]"
+        iface_table.add_row(
+            Panel("[bold white]💻 CLI[/]\n[dim]Terminal\nInterface[/]", border_style="white", width=25),
+            Panel("[bold cyan]🖥️ TUI[/]\n[dim]Dashboard\nInterface[/]", border_style="cyan", width=25),
+            Panel("[bold magenta]🎨 GUI[/]\n[dim]Desktop\nApp[/]", border_style="magenta", width=25)
         )
+        console.print(iface_table)
 
-        console.print(Panel(status_table, border_style="cyan"))
+        # 6. System Status Panel
+        api_manager = UniversalAPIKeyManager()
+        keys = config.get('api_keys', {})
+        active_keys = len([k for k, v in keys.items() if v])
 
-        # 5. Launcher Main Menu
+        # Discovered models count
+        discovered = config.get('discovered_models', {})
+        total_models = sum(len(m_list) for m_list in discovered.values())
+
+        cpu_usage = psutil.cpu_percent()
+        ram_usage = psutil.virtual_memory().percent
+        disk_free = psutil.disk_usage('/').free / (1024**3)
+
+        status_text = (
+            f"● [bold]{active_keys}[/] API keys connected  •  ⚡ [bold]{total_models}[/] models discovered\n"
+            f"● [bold]CPU:[/] {cpu_usage}%  [bold]RAM:[/] {ram_usage}%     •  💾 [bold]Disk:[/] {disk_free:.0f} GB free\n"
+            f"● [bold]Network:[/] Connected        •  [bold]Agent:[/] {agent_name} Ready"
+        )
+        console.print(Panel(status_text, title="📊 SYSTEM STATUS", border_style="blue"))
+
+        # 7. Integrations Panel
+        from epex.interfaces.messaging import messaging_hub
+        int_parts = []
+        for name, bridge in messaging_hub.bridges.items():
+            symbol = "[green]●[/]" if bridge.running else "[grey50]○[/]"
+            int_parts.append(f"{symbol} {name.capitalize()}")
+
+        console.print(Panel("   ".join(int_parts), title="🔗 INTEGRATIONS", border_style="green"))
+
+        # 8. Main Menu
         menu = Table.grid(padding=(0, 2))
-        menu.add_column(style="bold cyan")
+        menu.add_column(style="bold yellow")
         menu.add_column(style="white")
 
-        menu.add_row("1. TUI", "Launch Adaptive Terminal Interface")
-        menu.add_row("2. GUI", "Open High-Fidelity Web Dashboard")
-        menu.add_row("3. CLI", "Start Neural Command Line loop")
-        menu.add_row("4. APPS", "Manage Connectivity (Telegram, Discord, etc.)")
-        menu.add_row("5. MODELS", "Manage Intelligence Providers & Models")
-        menu.add_row("6. REPAIR", "System Health, Dependencies & Repair")
-        menu.add_row("7. EXIT", "Shutdown EPEX Neural OS")
+        menu.add_row("1.", "Launch CLI")
+        menu.add_row("2.", "Launch TUI")
+        menu.add_row("3.", "Launch GUI")
+        menu.add_row("4.", "Manage API Keys")
+        menu.add_row("5.", "App Integrations")
+        menu.add_row("6.", "User Profile & Settings")
+        menu.add_row("7.", "System Repair")
+        menu.add_row("8.", "Exit Command Center")
 
         console.print(menu)
 
-        choice = Prompt.ask("\nSelect option", choices=["1", "2", "3", "4", "5", "6", "7"], default=preferred)
+        choice = Prompt.ask("\nSelect action", choices=["1", "2", "3", "4", "5", "6", "7", "8"], default="2")
 
-        if choice == "1": # TUI
+        if choice == "1": # CLI
+            from epex.interfaces.cli import start_chat_loop
+            await start_chat_loop()
+        elif choice == "2": # TUI
             from epex.interfaces.tui import EpexTUI
             tui = EpexTUI()
             await tui.run()
-
-        elif choice == "2": # GUI
+        elif choice == "3": # GUI
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex(('127.0.0.1', 8000))
-            if result == 0:
-                console.print("[yellow]ℹ️ GUI is already running at http://127.0.0.1:8000[/]")
-                try:
-                    import webbrowser
-                    webbrowser.open("http://127.0.0.1:8000")
-                except:
-                    console.print("[dim]Please open http://127.0.0.1:8000 in your browser.[/]")
+            if sock.connect_ex(('127.0.0.1', 8000)) == 0:
+                console.print("[yellow]ℹ️ GUI already running at http://127.0.0.1:8000[/]")
+                import webbrowser
+                webbrowser.open("http://127.0.0.1:8000")
             else:
-                console.print("[magenta]🚀 Launching EPEX GUI Dashboard...[/]")
-                log_file = open("epex_gui.log", "a")
-                subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=log_file, stderr=log_file)
-                console.print("[green]✓ GUI server started.[/]")
-                import time
+                console.print("[magenta]🚀 Launching GUI Dashboard...[/]")
+                subprocess.Popen([sys.executable, "-m", "epex.interfaces.cli", "--gui"], stdout=open("epex_gui.log", "a"), stderr=subprocess.STDOUT)
                 time.sleep(2)
-                try:
-                    import webbrowser
-                    webbrowser.open("http://127.0.0.1:8000")
-                except: pass
+                import webbrowser
+                webbrowser.open("http://127.0.0.1:8000")
             sock.close()
-            Prompt.ask("\nPress Enter to return to launcher")
-
-        elif choice == "3": # CLI
-            from epex.interfaces.cli import start_chat_loop
-            await start_chat_loop()
-
-        elif choice == "4": # APPS SUBMENU
-            while True:
-                console.clear()
-                console.print(Align.center(f"[bold cyan]{BANNER}[/]"))
-                console.print(Panel("[bold]APP CONNECTIVITY MANAGER[/]", border_style="green"))
-
-                # Check app status
-                from epex.interfaces.messaging import messaging_hub
-                app_table = Table(box=None, header_style="bold blue")
-                app_table.add_column("Application")
-                app_table.add_column("Status")
-                app_table.add_column("Action")
-
-                for app_id, bridge in messaging_hub.bridges.items():
-                    status = "[green]✓ Active[/]" if bridge.running else "[grey50]○ Inactive[/]"
-                    action = "Deactivate" if bridge.running else "Activate/Connect"
-                    app_table.add_row(bridge.name, status, action)
-
-                console.print(app_table)
-                console.print("\n1. Connect Telegram\n2. Connect Discord\n3. Connect Slack\n4. Connect WhatsApp\n5. Back to Launcher")
-                app_choice = Prompt.ask("Select action", choices=["1", "2", "3", "4", "5"], default="5")
-
-                if app_choice == "5": break
-
-                # Activate flow
-                app_map = {"1": "telegram", "2": "discord", "3": "slack", "4": "whatsapp"}
-                selected_app = app_map[app_choice]
-
-                api_manager = UniversalAPIKeyManager()
-                await api_manager.guided_setup() # In a real app we'd filter by app
-                break
-
-        elif choice == "5": # MODELS SUBMENU
-            while True:
-                console.clear()
-                console.print(Align.center(f"[bold cyan]{BANNER}[/]"))
-
-                # Model Settings
-                ui_settings = config.get('ui_settings', {})
-
-                # Display Current Stats
-                manager = UniversalAPIKeyManager()
-                connected_status = await manager.get_connected_providers()
-
-                m_table = Table(title="INTELLIGENCE PROVIDERS", border_style="magenta")
-                m_table.add_column("Provider")
-                m_table.add_column("Status")
-                if ui_settings.get('show_model_count'): m_table.add_column("Models")
-
-                discovered = config.get('discovered_models', {})
-
-                for p, online in connected_status.items():
-                    status = "[green]ONLINE[/]" if online else "[red]OFFLINE[/]"
-                    row = [p.capitalize(), status]
-                    if ui_settings.get('show_model_count'):
-                        count = len(discovered.get(p, []))
-                        row.append(str(count) if online else "-")
-                    m_table.add_row(*row)
-
-                console.print(m_table)
-
-                console.print("\n[bold]Model Display Settings:[/]")
-                console.print(f"1. Toggle Model Count Display: [bold]{'ON' if ui_settings.get('show_model_count') else 'OFF'}[/]")
-                console.print(f"2. Toggle Rates Display:      [bold]{'ON' if ui_settings.get('show_rates') else 'OFF'}[/]")
-                console.print(f"3. Toggle Tokens Display:     [bold]{'ON' if ui_settings.get('show_tokens') else 'OFF'}[/]")
-                console.print("4. Add/Connect New Provider Key")
-                console.print("5. Search HuggingFace for Models")
-                console.print("6. Back to Launcher")
-
-                m_choice = Prompt.ask("\nSelect action", choices=["1", "2", "3", "4", "5", "6"], default="6")
-
-                if m_choice == "6": break
-                elif m_choice == "1": config['ui_settings']['show_model_count'] = not ui_settings.get('show_model_count')
-                elif m_choice == "2": config['ui_settings']['show_rates'] = not ui_settings.get('show_rates')
-                elif m_choice == "3": config['ui_settings']['show_tokens'] = not ui_settings.get('show_tokens')
-                elif m_choice == "4":
-                    await manager.guided_setup()
-                elif m_choice == "5":
-                    query = Prompt.ask("Search models (e.g. llama, vision)")
-                    results = await manager.search_huggingface(query)
-                    if results:
-                        res_table = Table(title=f"Results for '{query}'")
-                        res_table.add_column("Model ID")
-                        for r in results[:10]: res_table.add_row(r['id'])
-                        console.print(res_table)
-                        Prompt.ask("Press Enter")
-
-                await storage.store_config(config)
-
-        elif choice == "6": # REPAIR
-            console.print("[bold cyan]🔍 EPEX SYSTEM REPAIR & HEALTH CHECK[/]")
-            console.print("1. [bold yellow]Re-run dependency check[/]")
-            console.print("2. [bold green]Test all AI provider connections[/]")
-            console.print("3. [bold red]Clear session and relog[/]")
-            console.print("4. [bold white]Back[/]")
-
-            repair_choice = Prompt.ask("\nSelect action", choices=["1", "2", "3", "4"], default="4")
-            if repair_choice == "1":
-                install_lock = Path.home() / '.epex' / '.installed'
-                if install_lock.exists(): install_lock.unlink()
-                subprocess.run([sys.executable, "epex_run.py"], check=True)
-            elif repair_choice == "2":
-                manager = UniversalAPIKeyManager()
-                with console.status("[bold green]Testing all connections..."):
-                    status = await manager.get_connected_providers()
-                for p, connected in status.items():
-                    symbol = "[green]✓[/]" if connected else "[red]✗[/]"
-                    console.print(f" {symbol} {p.capitalize()}")
-                Prompt.ask("\nPress Enter to continue")
-            elif repair_choice == "3":
-                config['last_login_time'] = 0
-                await storage.store_config(config)
-                console.print("[green]✓ Session cleared.[/]")
-
-        elif choice == "7": # EXIT
-            console.print("[dim]Goodbye.[/]")
+            Prompt.ask("\nPress Enter to return")
+        elif choice == "4": # KEYS
+            await api_manager.guided_setup()
+        elif choice == "5": # APPS
+            await show_apps_menu(console, messaging_hub, api_manager)
+        elif choice == "6": # PROFILE
+            await show_profile_menu(console, storage, config)
+        elif choice == "7": # REPAIR
+            await run_repair(console)
+        elif choice == "8":
+            console.print("[dim]Shutting down Neural OS... Goodbye.[/]")
             break
+
+async def show_apps_menu(console, hub, manager):
+    while True:
+        console.clear()
+        console.print(Panel("[bold]🔗 INTEGRATIONS MANAGER[/]", border_style="green"))
+
+        table = Table(title="Messaging Bridges", box=None, header_style="bold blue")
+        table.add_column("Service")
+        table.add_column("Status")
+
+        for name, bridge in hub.bridges.items():
+            status = "[green]● Active[/]" if bridge.running else "[grey50]○ Inactive[/]"
+            table.add_row(name.capitalize(), status)
+
+        console.print(table)
+        console.print("\n[bold cyan]Actions:[/]")
+        console.print("1. [bold]Activate All Bridges[/]")
+        console.print("2. [bold]Configure Telegram Bot[/]")
+        console.print("3. [bold]Configure Discord Bot[/]")
+        console.print("4. [bold]Add Other API Key[/]")
+        console.print("5. [bold]Back to Main Menu[/]")
+
+        c = Prompt.ask("\nSelect action", choices=["1", "2", "3", "4", "5"], default="5")
+        if c == "5": break
+
+        if c == "1":
+            with console.status("[bold green]Starting Messaging Hub..."):
+                await hub.start_all()
+            console.print("[green]✓ All bridges with valid credentials started.[/]")
+            time.sleep(1)
+        elif c == "2":
+            await manager._get_key_manual("telegram")
+        elif c == "3":
+            await manager._get_key_manual("discord")
+        elif c == "4":
+            await manager.guided_setup()
+
+async def show_profile_menu(console, storage, config):
+    while True:
+        console.clear()
+        console.print(Panel("[bold]👤 USER PROFILE & SETTINGS[/]", border_style="cyan"))
+
+        console.print(f"1. User Name:  [bold]{config.get('user_name', 'User')}[/]")
+        console.print(f"2. Agent Name: [bold]{config.get('epex_name', 'Epex')}[/]")
+
+        opts = config.get('ui_settings', {})
+        console.print(f"3. Show Token Counts: [bold]{'YES' if opts.get('show_tokens', True) else 'NO'}[/]")
+        console.print(f"4. Show API Costs:    [bold]{'YES' if opts.get('show_rates', True) else 'NO'}[/]")
+        console.print(f"5. Set Password")
+        console.print(f"6. Back")
+
+        c = Prompt.ask("Select setting to change", choices=["1", "2", "3", "4", "5", "6"], default="6")
+        if c == "6": break
+        elif c == "1": config['user_name'] = Prompt.ask("Enter new name")
+        elif c == "2": config['epex_name'] = Prompt.ask("Enter new agent name")
+        elif c == "3": config['ui_settings']['show_tokens'] = not opts.get('show_tokens', True)
+        elif c == "4": config['ui_settings']['show_rates'] = not opts.get('show_rates', True)
+        elif c == "5":
+            pwd = Prompt.ask("New Password", password=True)
+            import bcrypt
+            config['password_hash'] = bcrypt.hashpw(pwd.encode(), bcrypt.gensalt()).decode()
+            console.print("[green]✓ Password updated.[/]")
+            time.sleep(1)
+
+        await storage.store_config(config)
+
+async def run_repair(console):
+    console.print("\n[bold yellow]🛠️ Initializing System Repair...[/]")
+    install_lock = Path.home() / '.epex' / '.installed'
+    if install_lock.exists(): install_lock.unlink()
+    subprocess.run([sys.executable, "epex_run.py"], check=True)
+    Prompt.ask("\nRepair complete. Press Enter.")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n👋 EPEX Session Closed.")
+        print("\n👋 EPEX Command Center Closed.")
