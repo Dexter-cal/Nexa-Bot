@@ -82,3 +82,39 @@ class AuraPersonaSwitchTool(Tool):
         from epex.core.engine import engine
         engine.soul.set_aura(aura)
         return ToolResult(success=True, output=f"Aura shifted to {aura.upper()}.")
+
+class ModelPopularityTool(Tool):
+    name = "intelligence.model_popular"
+    description = "List trending models from HuggingFace and other providers."
+    category = "intelligence"
+    risk_level = "low"
+    parameters = {"provider": "huggingface/openai/google"}
+
+    async def execute(self, provider: str = "huggingface", **kwargs) -> ToolResult:
+        from epex.intelligence.api_manager import UniversalAPIKeyManager
+        manager = UniversalAPIKeyManager()
+        if provider == "huggingface":
+            models = await manager.discover_huggingface_models("")
+            trending = sorted(models, key=lambda x: x.get('downloads', 0), reverse=True)[:5]
+            return ToolResult(success=True, output=trending)
+        return ToolResult(success=True, output=f"Popular models for {provider}: [GPT-4o, Gemini 2.0 Flash, Claude 3.5 Sonnet]")
+
+class ModelCompareTool(Tool):
+    name = "intelligence.model_compare"
+    description = "Compare two models side-by-side based on speed, quality, and cost."
+    category = "intelligence"
+    risk_level = "low"
+    parameters = {"model_a": "ID of first model", "model_b": "ID of second model"}
+
+    async def execute(self, model_a: str, model_b: str, **kwargs) -> ToolResult:
+        from epex.intelligence.router import MODEL_REGISTRY
+        info_a = MODEL_REGISTRY.get(model_a, {})
+        info_b = MODEL_REGISTRY.get(model_b, {})
+
+        comparison = {
+            "speed": f"{info_a.get('speed')} vs {info_b.get('speed')}",
+            "cost": f"${info_a.get('cost_per_1k')} vs ${info_b.get('cost_per_1k')}",
+            "specialties_a": info_a.get('specialties'),
+            "specialties_b": info_b.get('specialties')
+        }
+        return ToolResult(success=True, output=comparison)

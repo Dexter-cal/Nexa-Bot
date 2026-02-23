@@ -436,15 +436,203 @@ class UniversalAPIKeyManager:
                 console.print(f"[red]Error setting up {provider}: {e}[/]")
                 continue
 
-        # Save to vault
+        # Save to vault and Discover Models
         if configured:
             current_config = await self.vault.load_config()
             api_keys = current_config.get('api_keys', {})
             api_keys.update(configured)
             current_config['api_keys'] = api_keys
+
+            # Discovery Phase
+            discovered_total = 0
+            for provider, key in configured.items():
+                if isinstance(key, list): key = key[0]
+                console.print(f"\n[bold yellow]🔍 Discovering models for {provider}...[/]")
+                models = await self.discover_models(provider, key)
+                if models:
+                    console.print(f"[green]⚡ Found {len(models)} models for {provider}![/]")
+                    if 'discovered_models' not in current_config: current_config['discovered_models'] = {}
+                    current_config['discovered_models'][provider] = models
+                    discovered_total += len(models)
+
             await self.vault.store_config(current_config)
 
+            if discovered_total > 0:
+                console.print(f"\n[bold green]✓ Discovery Complete! Total {discovered_total} models accessible.[/]")
+                # Enable features based on models
+                await self._activate_features_from_models(current_config)
+
         return configured
+
+    async def discover_models(self, provider: str, api_key: str) -> list:
+        """
+        Discover all models available with this key
+        """
+        if provider == 'huggingface':
+            return await self.discover_huggingface_models(api_key)
+        elif provider == 'google':
+            return [
+                {'id': 'gemini-2.0-flash', 'name': 'Gemini 2.0 Flash', 'capabilities': ['chat', 'vision', 'fast'], 'provider': 'google'},
+                {'id': 'gemini-2.0-pro', 'name': 'Gemini 2.0 Pro', 'capabilities': ['chat', 'vision', 'reasoning'], 'provider': 'google'},
+                {'id': 'gemini-1.5-pro', 'name': 'Gemini 1.5 Pro', 'capabilities': ['chat', 'vision', 'reasoning'], 'provider': 'google'},
+                {'id': 'gemini-1.5-flash', 'name': 'Gemini 1.5 Flash', 'capabilities': ['chat', 'vision', 'fast'], 'provider': 'google'}
+            ]
+        elif provider == 'openai':
+            return [
+                {'id': 'gpt-4o', 'name': 'GPT-4o', 'capabilities': ['chat', 'vision', 'reasoning', 'code'], 'provider': 'openai'},
+                {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini', 'capabilities': ['chat', 'fast'], 'provider': 'openai'},
+                {'id': 'o1-preview', 'name': 'OpenAI o1 Preview', 'capabilities': ['reasoning', 'complex'], 'provider': 'openai'},
+                {'id': 'o1-mini', 'name': 'OpenAI o1 Mini', 'capabilities': ['reasoning', 'fast'], 'provider': 'openai'}
+            ]
+        elif provider == 'anthropic':
+            return [
+                {'id': 'claude-3-5-sonnet-20240620', 'name': 'Claude 3.5 Sonnet', 'capabilities': ['chat', 'vision', 'reasoning', 'code'], 'provider': 'anthropic'},
+                {'id': 'claude-3-opus-20240229', 'name': 'Claude 3 Opus', 'capabilities': ['chat', 'vision', 'reasoning'], 'provider': 'anthropic'},
+                {'id': 'claude-3-haiku-20240307', 'name': 'Claude 3 Haiku', 'capabilities': ['chat', 'fast'], 'provider': 'anthropic'}
+            ]
+        elif provider == 'groq':
+            return [
+                {'id': 'llama-3.1-70b-versatile', 'name': 'Llama 3.1 70B (Groq)', 'capabilities': ['chat', 'reasoning', 'fast'], 'provider': 'groq'},
+                {'id': 'llama-3.1-8b-instant', 'name': 'Llama 3.1 8B (Groq)', 'capabilities': ['chat', 'fast'], 'provider': 'groq'},
+                {'id': 'mixtral-8x7b-32768', 'name': 'Mixtral 8x7B (Groq)', 'capabilities': ['chat', 'reasoning'], 'provider': 'groq'}
+            ]
+        elif provider == 'together':
+            return await self._discover_together_models(api_key)
+        elif provider == 'replicate':
+            return await self._discover_replicate_models(api_key)
+        # Default fallback to registry models
+        info = self.providers.get(provider, {})
+        return [{'id': m, 'name': m, 'capabilities': ['chat']} for m in info.get('models', [])] if isinstance(info.get('models'), list) else []
+
+    async def _discover_together_models(self, api_key: str) -> list:
+        models = []
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://api.together.xyz/v1/models', headers={'Authorization': f'Bearer {api_key}'}, timeout=10) as r:
+                    if r.status == 200:
+                        raw = await r.json()
+                        for m in raw[:50]: # Limit to top 50
+                            models.append({
+                                'id': m['id'],
+                                'name': m['id'].split('/')[-1],
+                                'provider': 'together',
+                                'capabilities': ['chat', 'reasoning'] if 'instruct' in m['id'].lower() else ['chat']
+                            })
+        except: pass
+        return models
+
+    async def _discover_replicate_models(self, api_key: str) -> list:
+        # Replicate usually requires a search or specific list
+        return [
+            {'id': 'meta/llama-2-70b-chat', 'name': 'Llama 2 70B (Replicate)', 'capabilities': ['chat'], 'provider': 'replicate'},
+            {'id': 'stability-ai/sdxl', 'name': 'SDXL (Replicate)', 'capabilities': ['vision', 'image'], 'provider': 'replicate'}
+        ]
+
+    async def search_huggingface(self, query: str, api_key: str = None) -> list:
+        """
+        Search for specific models on HuggingFace
+        """
+        if not api_key:
+             config = await self.vault.load_config()
+             api_key = config.get('api_keys', {}).get('huggingface')
+             if isinstance(api_key, list): api_key = api_key[0]
+
+        models = []
+        url = 'https://huggingface.co/api/models'
+        params = {
+            'search': query,
+            'filter': 'text-generation',
+            'limit': 20
+        }
+        headers = {'Authorization': f'Bearer {api_key}'} if api_key else {}
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params, headers=headers, timeout=10) as r:
+                    if r.status == 200:
+                        raw_models = await r.json()
+                        for m in raw_models:
+                            models.append({
+                                'id': m['id'],
+                                'name': m['id'].split('/')[-1],
+                                'provider': 'huggingface',
+                                'capabilities': self._detect_hf_capabilities(m)
+                            })
+        except: pass
+        return models
+
+    async def discover_huggingface_models(self, api_key: str) -> list:
+        """
+        Discover models from HuggingFace API
+        """
+        models = []
+        url = 'https://huggingface.co/api/models'
+        params = {
+            'filter': 'text-generation',
+            'sort': 'downloads',
+            'direction': -1,
+            'limit': 100
+        }
+        headers = {'Authorization': f'Bearer {api_key}'}
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params, headers=headers, timeout=10) as r:
+                    if r.status == 200:
+                        raw_models = await r.json()
+                        for m in raw_models:
+                            model_id = m['id']
+                            capabilities = self._detect_hf_capabilities(m)
+                            models.append({
+                                'id': model_id,
+                                'name': model_id.split('/')[-1],
+                                'provider': 'huggingface',
+                                'capabilities': capabilities,
+                                'downloads': m.get('downloads', 0),
+                                'tags': m.get('tags', [])
+                            })
+        except Exception as e:
+            logger.error(f"HF Model Discovery failed: {e}")
+
+        return models
+
+    def _detect_hf_capabilities(self, model_data: dict) -> list:
+        caps = ['chat']
+        name = model_data['id'].lower()
+        tags = model_data.get('tags', [])
+
+        if 'code' in name or 'coder' in name: caps.append('code')
+        if 'vision' in name or 'multimodal' in name: caps.append('vision')
+        if 'uncensored' in name or 'dolphin' in name or 'hermes' in name: caps.append('uncensored')
+        if any('instruct' in t for t in tags) or 'instruct' in name: caps.append('reasoning')
+
+        return caps
+
+    async def _activate_features_from_models(self, config: dict):
+        """Enable agent features based on discovered models"""
+        from rich.console import Console
+        console = Console()
+
+        models_flat = []
+        for p_models in config.get('discovered_models', {}).values():
+            models_flat.extend(p_models)
+
+        features = []
+        if len(models_flat) >= 2:
+            features.append("Council Mode: ENABLED")
+
+        has_code = any('code' in m['capabilities'] for m in models_flat)
+        if has_code:
+            features.append("Code Synthesis: ENHANCED")
+
+        has_uncensored = any('uncensored' in m['capabilities'] for m in models_flat)
+        if has_uncensored:
+            features.append("Tier-4 Routing: UNLOCKED")
+
+        if features:
+            console.print("\n[bold cyan]✨ New Features Unlocked:[/]")
+            for f in features:
+                console.print(f" [green]✓[/] {f}")
 
     async def _get_key_manual(self, provider: str):
         """

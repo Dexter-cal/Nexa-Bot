@@ -377,10 +377,23 @@
                     </div>
 
                     <div class="glass p-8 rounded-3xl space-y-8">
-                        <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400">AI Model Providers</h3>
+                        <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400">Model Discovery & Search</h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="api-settings-list">
-                            <!-- Injected via JS -->
+                        <div class="flex items-center space-x-4">
+                            <input id="model-search-query" type="text" placeholder="Search HuggingFace for new models..."
+                                class="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-sky-500 outline-none">
+                            <button id="model-search-btn" class="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 rounded-xl text-xs font-bold transition-all">SEARCH</button>
+                        </div>
+
+                        <div id="model-search-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto p-2">
+                             <!-- Results -->
+                        </div>
+
+                        <div class="pt-4 border-t border-white/5">
+                            <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400 mb-6">AI Model Providers</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="api-settings-list">
+                                <!-- Injected via JS -->
+                            </div>
                         </div>
 
                         <div class="pt-8 border-t border-white/5 flex justify-end">
@@ -1061,6 +1074,53 @@
                 `).join('');
             } catch(err) {}
         }
+
+        document.getElementById('model-search-btn').onclick = async () => {
+            const query = document.getElementById('model-search-query').value.trim();
+            if (!query) return;
+
+            const resultsDiv = document.getElementById('model-search-results');
+            resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-slate-500 italic"><i class="fas fa-spinner animate-spin mr-2"></i> Querying HuggingFace API...</div>';
+
+            try {
+                const response = await fetch(`/api/v1/models/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-slate-500 italic">No models found for this query.</div>';
+                } else {
+                    resultsDiv.innerHTML = data.map(m => `
+                        <div class="p-4 bg-slate-900/50 rounded-2xl border border-white/5 flex flex-col justify-between">
+                            <div>
+                                <div class="text-[10px] text-sky-400 font-bold uppercase mb-1">${m.provider}</div>
+                                <div class="text-xs font-bold text-slate-200 truncate">${m.name}</div>
+                                <div class="text-[9px] text-slate-500 mt-1">${m.id}</div>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    ${m.capabilities.map(c => `<span class="text-[7px] bg-slate-800 px-1 py-0.5 rounded text-slate-400 uppercase">${c}</span>`).join('')}
+                                </div>
+                            </div>
+                            <button onclick="useModel('${m.id}')" class="mt-4 py-1.5 bg-slate-800 hover:bg-sky-500 hover:text-white rounded-lg text-[9px] font-bold transition-all">SET AS ACTIVE</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-red-500 italic">Search failed. Check your API key.</div>';
+            }
+        };
+
+        window.useModel = async (id) => {
+            const res = await fetch('/api/v1/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: `/model ${id}` })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('current-model-name').innerText = id;
+                addMessage(data.response, 'ai');
+                switchTab('chat');
+            }
+        };
 
         document.getElementById('save-settings-btn').onclick = async () => {
             const keys = {};

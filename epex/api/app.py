@@ -177,6 +177,22 @@ async def search_memory(query: str, limit: int = 5):
     results = await engine.memory.search(query, limit=limit)
     return results
 
+@app.get("/api/v1/models/search")
+async def search_models(query: str, provider: str = 'huggingface'):
+    from epex.intelligence.api_manager import UniversalAPIKeyManager
+    manager = UniversalAPIKeyManager()
+    if provider == 'huggingface':
+        results = await manager.search_huggingface(query)
+        return results
+    return []
+
+@app.get("/api/v1/models/discovered")
+async def list_discovered_models():
+    from epex.foundation.storage import SecureConfigStorage
+    storage = SecureConfigStorage()
+    config = await storage.load_config()
+    return config.get('discovered_models', {})
+
 @app.get("/api/v1/tools", response_model=List[Dict[str, Any]])
 async def list_tools():
     from epex.tools.registry import registry

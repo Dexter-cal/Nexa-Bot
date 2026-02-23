@@ -216,6 +216,33 @@ MODEL_REGISTRY = {
     }
 }
 
+class ModelCategorizer:
+    """Group discovered models into meaningful categories for the user"""
+    def categorize(self, model_ids: list) -> dict:
+        categories = {
+            'ultra_fast': [],
+            'balanced': [],
+            'powerful': [],
+            'code_specialist': [],
+            'uncensored': [],
+            'reasoning': []
+        }
+        for m_id in model_ids:
+            caps = MODEL_REGISTRY.get(m_id, {})
+            name = m_id.lower()
+
+            if 'uncensored' in caps.get('specialties', []): categories['uncensored'].append(m_id)
+            if 'code' in caps.get('specialties', []): categories['code_specialist'].append(m_id)
+
+            speed = caps.get('speed')
+            if speed == 'very_fast': categories['ultra_fast'].append(m_id)
+            elif speed == 'fast': categories['balanced'].append(m_id)
+            elif speed == 'medium': categories['powerful'].append(m_id)
+
+            if 'reasoning' in caps.get('specialties', []): categories['reasoning'].append(m_id)
+
+        return categories
+
 class TaskAnalyzer:
     """Analyze prompt to determine task profile"""
 
@@ -438,6 +465,7 @@ class EnhancedLLMRouter:
         self.soul = SoulFile()
         self.aura_manager = SentimentAuraManager(self.soul)
         self.api_manager = UniversalAPIKeyManager()
+        self.categorizer = ModelCategorizer()
         self.refusal_detector = RefusalDetector()
         self.task_analyzer = TaskAnalyzer()
         self.approval_system = ModelSwitchApprovalSystem()
@@ -491,8 +519,78 @@ class EnhancedLLMRouter:
         }
 
     async def _refresh_connectivity(self):
-        """Refresh the list of connected providers"""
+        """Refresh the list of connected providers and load discovered models"""
         self.connected_providers = await self.api_manager.get_connected_providers()
+        await self._load_discovered_models()
+
+    async def _load_discovered_models(self):
+        """Load models found during setup into the runtime registry"""
+        config = await self.api_manager.vault.load_config()
+        discovered = config.get('discovered_models', {})
+
+        for provider, models in discovered.items():
+            for m in models:
+                if m['id'] not in MODEL_REGISTRY:
+                    # Map discovered capabilities to registry format
+                    MODEL_REGISTRY[m['id']] = {
+                        'provider': provider,
+                        'tier': 4 if 'uncensored' in m['capabilities'] else 2,
+                        'vision': 'vision' in m['capabilities'],
+                        'code': 'code' in m['capabilities'],
+                        'reasoning': 'reasoning' in m['capabilities'],
+                        'cost_per_1k': 0.0, # Most discovered are free API or estimated
+                        'speed': 'fast' if 'fast' in m['capabilities'] else 'medium',
+                        'specialties': m['capabilities'],
+                        'quality_score': 8 if 'reasoning' in m['capabilities'] else 7,
+                        'forbidden_topics': [] if 'uncensored' in m['capabilities'] else ['harmful']
+                    }
+
+    async def select_best_model_for_provider(self, provider: str, prompt: str, priority='balanced') -> str:
+        """Choose the best model within a specific provider for the task"""
+        if not self.connected_providers: await self._refresh_connectivity()
+
+        suitable = []
+        for m_id, caps in MODEL_REGISTRY.items():
+            if caps.get('provider') == provider:
+                suitable.append(m_id)
+
+        if not suitable: return None
+        return await self._score_and_select(suitable, prompt, priority)
+
+    async def _score_and_select(self, model_ids: list, prompt: str, priority='balanced') -> str:
+        task_profile = self.task_analyzer.analyze_prompt(prompt)
+        scored = []
+        for m_id in model_ids:
+            caps = MODEL_REGISTRY[m_id]
+            score = 0
+
+            # Speed
+            speed_map = {'very_fast': 10, 'fast': 7, 'medium': 4, 'slow': 1}
+            speed_val = speed_map.get(caps.get('speed', 'medium'), 4)
+            score += speed_val * (3 if priority == 'speed' or task_profile['prefer_speed'] else 1)
+
+            # Cost
+            cost = caps.get('cost_per_1k', 0.05)
+            cost_score = 15 if cost == 0 else max(0, 10 - cost * 100)
+            score += cost_score * (3 if priority == 'cost' else 1)
+
+            # Specialization
+            for t_type in task_profile['task_type']:
+                if t_type in caps.get('specialties', []):
+                    score += 15
+
+            # Quality
+            quality = caps.get('quality_score', 5)
+            score += quality * (8 if priority == 'quality' else 1)
+
+            # Prediction
+            prediction = await self.predictor.will_refuse({'prompt': prompt}, m_id)
+            if prediction['will_refuse']: score -= 40
+
+            scored.append((m_id, score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored[0][0]
 
     async def select_best_model(self, prompt: str, priority='balanced') -> str:
         """Pick the BEST model for this specific task based on profile and scores"""
@@ -516,7 +614,6 @@ class EnhancedLLMRouter:
                 continue
 
             # Check if model is likely to refuse without alternatives
-            # (In Step 2 of finding suitable models in document)
             will_refuse = any(topic in capabilities.get('forbidden_topics', []) for topic in task_profile['forbidden_topics'])
             if will_refuse and capabilities.get('tier', 1) < 3:
                 continue
@@ -529,59 +626,7 @@ class EnhancedLLMRouter:
             return connected[0] if connected else 'gpt-4o'
 
         # 2. Score suitable models
-        scored = []
-        for m_id in suitable_models:
-            caps = MODEL_REGISTRY[m_id]
-            score = 0
-
-            # Factor: Speed
-            speed_map = {'very_fast': 10, 'fast': 7, 'medium': 4, 'slow': 1}
-            speed_val = speed_map.get(caps.get('speed', 'medium'), 4)
-            if priority == 'speed' or task_profile['prefer_speed']:
-                score += speed_val * 3
-            else:
-                score += speed_val
-
-            # Factor: Cost
-            cost = caps.get('cost_per_1k', 0.05)
-            if cost == 0:
-                cost_score = 15 # Free is best
-            else:
-                cost_score = max(0, 10 - cost * 100)
-
-            if priority == 'cost':
-                score += cost_score * 3
-            else:
-                score += cost_score
-
-            # Factor: Specialization
-            for t_type in task_profile['task_type']:
-                if t_type in caps.get('specialties', []):
-                    score += 15
-
-            # Factor: Quality
-            quality = caps.get('quality_score', 5)
-            if priority == 'quality':
-                score += quality * 8
-            else:
-                score += quality
-
-            # Factor: Success Rate
-            success_rate = 0.9 # Default
-            # In a real system, we'd fetch this from self.accuracy_stats
-            # for t_type in task_profile['task_type']:
-            #     success_rate = max(success_rate, await self.get_model_weight(m_id, t_type))
-            score += success_rate * 20
-
-            # Factor: Refusal Probability
-            prediction = await self.predictor.will_refuse({'prompt': prompt}, m_id)
-            if prediction['will_refuse']:
-                score -= 40
-
-            scored.append((m_id, score))
-
-        scored.sort(key=lambda x: x[1], reverse=True)
-        return scored[0][0]
+        return await self._score_and_select(suitable_models, prompt, priority)
 
     async def select_optimal_model(self, priority='balanced') -> str:
         """Alias for backward compatibility"""
@@ -729,25 +774,43 @@ class EnhancedLLMRouter:
 
         self.thought_stream.append(f"Selected primary model: {primary}")
 
-        # High stakes / Council check
+        # Council Mode Check (Auto-activate if 2+ models from same provider or high risk)
         use_council = kwargs.get('use_council', True)
-        if requested_model and task_profile['risk_level'] <= 0.7:
-            use_council = False
+        from epex.intelligence.council import AICouncil
 
-        if task_profile['risk_level'] > 0.7 and use_council:
-            from epex.intelligence.council import AICouncil
+        # Determine if we should engage council automatically
+        should_council = False
+        council_reason = ""
+
+        if task_profile['risk_level'] > 0.7:
+             should_council = True
+             council_reason = "High risk task"
+        elif not requested_model:
+             # Check if we have multiple models for the same provider
+             provider_counts = {}
+             for m_id, caps in MODEL_REGISTRY.items():
+                 if self.connected_providers.get(caps.get('provider')):
+                     p = caps.get('provider')
+                     provider_counts[p] = provider_counts.get(p, 0) + 1
+
+             if any(count >= 3 for count in provider_counts.values()):
+                  should_council = True
+                  council_reason = "Provider has multiple models (Council active)"
+
+        if should_council and use_council:
             council = AICouncil()
             connected_for_council = await council._get_connected_models()
             if len(connected_for_council) >= 2:
-                self.thought_stream.append("High risk. Activating AI Council for consensus.")
+                self.thought_stream.append(f"Activating Council Mode: {council_reason}")
                 res = await council.get_consensus(prompt)
                 return {
                     'success': res['success'],
                     'response': res.get('consensus'),
                     'model': 'council',
                     'switched': True,
-                    'switch_reason': 'High risk task triggered Council Mode',
-                    'latency': time.time() - start_time
+                    'switch_reason': f'Council active: {council_reason}',
+                    'latency': time.time() - start_time,
+                    'individual_responses': res.get('individual_responses', [])
                 }
 
         # 1. Predict if will refuse

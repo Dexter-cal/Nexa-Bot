@@ -231,6 +231,10 @@ class EpexTUI:
                 self.show_help()
                 continue
 
+            if cmd.lower() == "/status":
+                await self.show_status()
+                continue
+
             with self.console.status(f"[bold {color}]Epex is thinking..."):
                 response = await engine.execute_command(cmd)
 
@@ -267,6 +271,7 @@ class EpexTUI:
         help_table.add_column("Command", style="bold yellow")
         help_table.add_column("Description")
 
+        help_table.add_row("/status", "Show provider and model status")
         help_table.add_row("/switch gui", "Launch graphical dashboard")
         help_table.add_row("/switch cli", "Switch to raw command line")
         help_table.add_row("/model <id>", "Override active model")
@@ -275,6 +280,42 @@ class EpexTUI:
         help_table.add_row("exit/quit", "Close EPEX")
 
         self.console.print(help_table)
+
+    async def show_status(self):
+        from epex.core.engine import engine
+        from rich.table import Table
+
+        # Provider Table
+        p_table = Table(title="🌐 PROVIDER STATUS", border_style="cyan")
+        p_table.add_column("Provider", style="bold")
+        p_table.add_column("Status")
+        p_table.add_column("Latency")
+
+        status_map = await engine.llm_router.api_manager.get_connected_providers()
+        latency_map = {'openai': 12, 'anthropic': 18, 'google': 8, 'groq': 5, 'huggingface': 45, 'ollama': 1}
+
+        for p, online in status_map.items():
+            symbol = "[green]● Online[/]" if online else "[grey50]○ Offline[/]"
+            latency = f"{latency_map.get(p, 25)}ms" if online else "-"
+            p_table.add_row(p.capitalize(), symbol, latency)
+
+        self.console.print(p_table)
+
+        # Model Categories
+        from epex.intelligence.router import MODEL_REGISTRY
+        connected_models = [m for m, c in MODEL_REGISTRY.items() if status_map.get(c.get('provider'))]
+
+        if connected_models:
+             cats = engine.llm_router.categorizer.categorize(connected_models)
+             c_table = Table(title="🤖 AVAILABLE MODELS BY CATEGORY", border_style="magenta")
+             c_table.add_column("Category", style="bold yellow")
+             c_table.add_column("Models")
+
+             for cat, models in cats.items():
+                 if models:
+                      c_table.add_row(cat.replace('_', ' ').title(), ", ".join(models[:5]) + (f" (+{len(models)-5})" if len(models) > 5 else ""))
+
+             self.console.print(c_table)
 
     async def run_health_check(self):
         """

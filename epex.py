@@ -52,19 +52,21 @@ async def main():
     from epex.foundation.storage import SecureConfigStorage
 
     console = Console()
-    console.clear()
 
-    # 1. Show Banner
-    console.print(Align.center(f"[bold cyan]{BANNER}[/]"))
-    console.print(Align.center(f"[italic sky_blue1]v{VERSION} | The Neural Operating System[/]\n"))
+    while True:
+        console.clear()
 
-    # 2. Check Config & Setup
-    if not await check_config():
-        # If setup just finished, reload
-        os.execv(sys.executable, ['python3'] + sys.argv)
+        # 1. Show Banner
+        console.print(Align.center(f"[bold cyan]{BANNER}[/]"))
+        console.print(Align.center(f"[italic sky_blue1]v{VERSION} | The Neural Operating System[/]\n"))
 
-    storage = SecureConfigStorage()
-    config = await storage.load_config()
+        # 2. Check Config & Setup
+        if not await check_config():
+            # If setup just finished, reload
+            os.execv(sys.executable, ['python3'] + sys.argv)
+
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
 
     # 3. Password Protection & Session Memory
     if config.get('password_hash'):
@@ -183,9 +185,14 @@ async def main():
             await storage.store_config(config)
             console.print("[green]✓ Session cleared.[/]")
 
-        os.execv(sys.executable, ['python3'] + sys.argv)
+        # Refresh and continue loop
+        continue
+    elif choice == "6":
+        console.print("[dim]Goodbye.[/]")
+        break
     else:
         console.print("[dim]Goodbye.[/]")
+        break
 
 if __name__ == "__main__":
     try:

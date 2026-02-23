@@ -105,13 +105,44 @@ async def start_chat_loop():
                     console.print("[yellow]Switching to GUI...[/]")
                     await asyncio.sleep(1)
                     await launch_gui()
-                    break
+                    continue
                 elif target == "tui":
                     console.print("[cyan]Switching to TUI...[/]")
                     from epex.interfaces.tui import EpexTUI
                     tui = EpexTUI()
                     await tui.run()
-                    break
+                    continue
+
+            if user_input.lower() == "/status":
+                from epex.core.engine import engine
+                await engine.system_context.refresh()
+                summary = engine.system_context.get_summary()
+                console.print(Panel(summary, title="SYSTEM STATUS", border_style="cyan"))
+                continue
+
+            if user_input.lower() == "/cost":
+                from epex.core.engine import engine
+                stats = engine.llm_router.usage_tracker.get_today_stats()
+                console.print(Panel(f"💰 **Total Cost Today**: ${stats['total_cost']:.4f}\n📊 **Tokens Used**: {stats['total_tokens']}", title="USAGE STATS", border_style="green"))
+                continue
+
+            if user_input.lower().startswith("/model search"):
+                query = user_input.split("/model search")[-1].strip()
+                from epex.intelligence.api_manager import UniversalAPIKeyManager
+                manager = UniversalAPIKeyManager()
+                with console.status(f"[bold yellow]Searching HuggingFace for '{query}'..."):
+                     results = await manager.search_huggingface(query)
+
+                if results:
+                    table = Table(title=f"HF Models Matching: {query}")
+                    table.add_column("Model ID", style="cyan")
+                    table.add_column("Capabilities")
+                    for m in results:
+                        table.add_row(m['id'], ", ".join(m['capabilities']))
+                    console.print(table)
+                else:
+                    console.print("[red]No models found.[/]")
+                continue
 
             # Intent Detection
             intent_tool = assistant.detect_intent(user_input)

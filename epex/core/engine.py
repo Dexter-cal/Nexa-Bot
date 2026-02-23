@@ -99,7 +99,35 @@ class EpexEngine:
         # 8. Refresh System Context
         asyncio.create_task(self.system_context.refresh())
 
+        # 9. Dynamic Model Refresh
+        self.background_tasks.append(asyncio.create_task(self._model_refresh_loop()))
+
         logger.info("Epex Bot started successfully!")
+
+    async def _model_refresh_loop(self):
+        """Periodically refresh model list from HuggingFace and other providers"""
+        while self.running:
+            try:
+                from epex.intelligence.api_manager import UniversalAPIKeyManager
+                manager = UniversalAPIKeyManager()
+                config = await manager.vault.load_config()
+
+                hf_key = config.get('api_keys', {}).get('huggingface')
+                if hf_key:
+                    if isinstance(hf_key, list): hf_key = hf_key[0]
+                    logger.info("Auto-refreshing model list from HuggingFace...")
+                    models = await manager.discover_huggingface_models(hf_key)
+                    if models:
+                        config['discovered_models']['huggingface'] = models
+                        await manager.vault.store_config(config)
+                        # Update router's registry if active
+                        if self.llm_router:
+                             await self.llm_router._load_discovered_models()
+
+                await asyncio.sleep(43200) # Every 12 hours
+            except Exception as e:
+                logger.error(f"Model refresh loop error: {e}")
+                await asyncio.sleep(3600)
 
     async def _memory_synthesis_loop(self):
         """Periodically synthesize experiences"""
@@ -216,7 +244,7 @@ class EpexEngine:
         if attachment_context:
             command = f"Context from attachments: {attachment_context}\n\nTask: {command}"
 
-        # Model Switching Command
+        # Model Management Commands
         if command.lower().startswith("/model "):
             model_id = command.split("/model ", 1)[1].strip()
             if self.llm_router:
@@ -227,6 +255,21 @@ class EpexEngine:
             if self.llm_router:
                 self.llm_router.active_model_override = None
                 return {"success": True, "response": "Active model reset to intelligent auto-selection."}
+
+        if command.lower().startswith("/model popular"):
+            provider = command.split()[-1] if len(command.split()) > 2 else "huggingface"
+            from epex.tools.registry import registry
+            tool = registry.get("intelligence.model_popular")
+            res = await tool.execute(provider=provider)
+            return {"success": True, "response": f"Trending models for {provider}:\n" + str(res.output)}
+
+        if command.lower().startswith("/model compare"):
+            parts = command.split()
+            if len(parts) >= 4:
+                from epex.tools.registry import registry
+                tool = registry.get("intelligence.model_compare")
+                res = await tool.execute(model_a=parts[2], model_b=parts[3])
+                return {"success": True, "response": f"Comparison:\n" + str(res.output)}
 
         # AI-Driven Interface Switching
         if "switch to gui" in command.lower() or "open the dashboard" in command.lower():
