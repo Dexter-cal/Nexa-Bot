@@ -77,3 +77,18 @@ class SecureConfigStorage:
         config = json.loads(decrypted.decode())
 
         return config
+
+    def load_config_sync(self):
+        """
+        Sync version of load_config
+        """
+        if not self.config_path.exists():
+            return {}
+
+        with open(self.config_path, 'rb') as f:
+            encrypted = f.read()
+
+        decrypted = self.cipher.decrypt(encrypted)
+        config = json.loads(decrypted.decode())
+
+        return config

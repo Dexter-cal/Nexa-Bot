@@ -213,6 +213,35 @@ MODEL_REGISTRY = {
         'refusal_patterns': [],
         'capabilities': ['coding', 'reasoning'],
         'forbidden_topics': []
+    },
+    'llama3.1-70b': {
+        'provider': 'cerebras',
+        'restriction_level': 'moderately_restricted',
+        'speed': 'very_fast',
+        'capabilities': ['coding', 'reasoning', 'chat'],
+        'forbidden_topics': []
+    },
+    'llama3-70b': {
+        'provider': 'sambanova',
+        'restriction_level': 'moderately_restricted',
+        'speed': 'very_fast',
+        'capabilities': ['coding', 'reasoning', 'chat'],
+        'forbidden_topics': []
+    },
+    'pplx-llama-3.1-70b': {
+        'provider': 'perplexity',
+        'capabilities': ['search', 'chat'],
+        'forbidden_topics': []
+    },
+    'command-r': {
+        'provider': 'cohere',
+        'capabilities': ['rag', 'chat'],
+        'forbidden_topics': []
+    },
+    'claude-3-5-sonnet': {
+        'provider': 'anthropic',
+        'capabilities': ['reasoning', 'vision', 'code'],
+        'forbidden_topics': ['harmful']
     }
 }
 
@@ -1025,6 +1054,10 @@ class EnhancedLLMRouter:
                     return await self._call_openrouter(model, prompt, key, **kwargs)
                 elif provider == 'fireworks':
                     return await self._call_fireworks(model, prompt, key, **kwargs)
+                elif provider == 'cerebras':
+                    return await self._call_cerebras(model, prompt, key, **kwargs)
+                elif provider == 'sambanova':
+                    return await self._call_sambanova(model, prompt, key, **kwargs)
             except Exception as e:
                 logger.warning(f"Key failure for {provider}: {e}. Rotating...")
                 last_error = e
@@ -1288,3 +1321,47 @@ class EnhancedLLMRouter:
                 else:
                     error_data = await response.text()
                     raise Exception(f"Fireworks API error: {error_data}")
+
+    async def _call_cerebras(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.cerebras.ai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"Cerebras API error: {error_data}")
+
+    async def _call_sambanova(self, model: str, prompt: str, api_key: str, **kwargs):
+        import aiohttp
+        url = "https://api.sambanova.ai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    content = result['choices'][0]['message']['content']
+                    tokens = result.get('usage', {}).get('total_tokens', self._estimate_tokens(content))
+                    return {'response': content, 'tokens': tokens, 'cost': 0.0}
+                else:
+                    error_data = await response.text()
+                    raise Exception(f"SambaNova API error: {error_data}")

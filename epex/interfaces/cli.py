@@ -158,13 +158,21 @@ async def start_chat_loop():
                 user_name = config.get('user_name', 'User')
                 epex_name = config.get('epex_name', 'Epex')
 
+                # UI Settings
+                ui_settings = storage.load_config_sync().get('ui_settings', {})
+
                 # Model Badge
                 model_str = result.get('model', 'unknown')
                 latency = result.get('latency', 0)
                 cost = result.get('cost', 0)
 
+                badge_parts = [f"[bold cyan]🤖 {model_str}[/]"]
+                badge_parts.append(f"[dim]latency: {latency:.1f}s[/]")
+                if ui_settings.get('show_rates', True):
+                    badge_parts.append(f"[bold green]${cost:.4f}[/]")
+
                 badge_table = Table.grid(expand=False)
-                badge_table.add_row(f"[bold cyan]🤖 {model_str}[/] • [dim]latency: {latency:.1f}s[/] • [bold green]${cost:.4f}[/]")
+                badge_table.add_row(" • ".join(badge_parts))
                 console.print(Panel(badge_table, border_style="dim", expand=False))
 
                 # Thinking Stream
@@ -182,7 +190,13 @@ async def start_chat_loop():
                     console.print(Panel(f"[yellow]🔄 Auto-Switched Model[/]\n[dim]Reason: {result.get('switch_reason', 'Policy refusal')}[/]\n[dim]From: {result.get('from_model')} → To: {result.get('model')}[/]", border_style="yellow", expand=False))
 
                 # Performance Footer
-                console.print(f"\n[dim]⚡ {latency:.2f}s  •  {result.get('tokens', 0)} tokens  •  Cost: ${cost:.4f}[/]")
+                footer_parts = [f"⚡ {latency:.2f}s"]
+                if ui_settings.get('show_tokens', True):
+                    footer_parts.append(f"{result.get('tokens', 0)} tokens")
+                if ui_settings.get('show_rates', True):
+                    footer_parts.append(f"Cost: ${cost:.4f}")
+
+                console.print(f"\n[dim]{'  •  '.join(footer_parts)}[/]")
 
                 # Handle Control Signals
                 signal = result.get('control_signal')

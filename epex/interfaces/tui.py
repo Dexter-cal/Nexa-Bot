@@ -48,16 +48,22 @@ class TUISetupWizard:
 
         # Step 1: Personalization
         self.console.print("\n[bold cyan]Step 1/5: Personalization[/]")
-        user_name = Prompt.ask("What should I call you?", default="User")
-        epex_name = Prompt.ask("What should you call me?", default="Epex")
+        user_name = Prompt.ask("What is your name? (e.g. Max)", default="User")
+        epex_name = Prompt.ask("What should I be named? (e.g. Bill)", default="Epex")
 
         # Optional Password
         password_hash = None
-        if Confirm.ask("\nWould you like to protect this agent with a password?", default=False):
-            password = Prompt.ask("Set Agent Password", password=True)
+        self.console.print("\n[dim]A password adds an extra layer of security before launching any interface.[/]")
+        if Confirm.ask("Would you like to enable password protection?", default=False):
+            password = ""
+            while len(password) < 4:
+                password = Prompt.ask("Set Agent Password (min 4 chars)", password=True)
+                if len(password) < 4:
+                    self.console.print("[red]Password too short.[/]")
+
             import bcrypt
             password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            self.console.print("[green]✓ Password secured.[/]")
+            self.console.print("[green]✓ Security credentials established.[/]")
 
         # Step 2: System Analysis Results
         self.console.print("\n[bold cyan]Step 2/5: System Capabilities[/]")
@@ -178,6 +184,9 @@ class EpexTUI:
             }
             color, title = aura_styles.get(aura, ('cyan', '⚡ EPEX BOT'))
 
+            # UI Settings
+            ui_settings = engine.llm_router.api_manager.vault.load_config_sync().get('ui_settings', {})
+
             # Usage Stats for Header
             stats = engine.llm_router.usage_tracker.get_today_stats()
             remaining_budget = engine.llm_router.budget_manager.get_remaining_budget()
@@ -188,14 +197,22 @@ class EpexTUI:
             header_table = Table.grid(expand=True)
             header_table.add_column(justify="left")
             header_table.add_column(justify="right")
+            stats_str = ""
+            if ui_settings.get('show_rates', True):
+                stats_str = f"[dim]💰 ${stats['total_cost']:.3f} spent | Remaining: ${remaining_budget:.2f}[/]"
+
             header_table.add_row(
                 f"[bold {color}]{title} MODE ACTIVATED[/]",
-                f"[dim]💰 ${stats['total_cost']:.3f} spent | Remaining: ${remaining_budget:.2f}[/]"
+                stats_str
             )
+
+            subtitle_parts = [f"Model: [bold]{active_model}[/]", f"Voice: {voice_status}"]
+            if ui_settings.get('show_tokens', True):
+                subtitle_parts.append(f"📊 {stats['total_tokens']} tokens used")
 
             self.console.print(Panel(
                 header_table,
-                subtitle=f"[dim]Model: [bold]{active_model}[/] | Voice: {voice_status} | 📊 {stats['total_tokens']} tokens used[/]",
+                subtitle=f"[dim]{' | '.join(subtitle_parts)}[/]",
                 border_style=color
             ))
 

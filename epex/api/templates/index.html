@@ -759,17 +759,26 @@
             const div = document.createElement('div');
             div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
 
+            // Get UI Settings from global state or fetch
+            const ui_settings = window.current_ui_settings || {};
+
             let metaHtml = '';
             if (role === 'ai' && meta.model) {
+                const parts = [];
+                parts.push(`<span>🤖 ${meta.model}</span>`);
+                parts.push(`<span>⚡ ${meta.latency ? meta.latency.toFixed(1) + 's' : ''}</span>`);
+
+                if (ui_settings.show_tokens !== false) {
+                    parts.push(`<span>${meta.tokens || ''} tokens</span>`);
+                }
+
+                if (ui_settings.show_rates !== false) {
+                    parts.push(`<span class="text-green-500">${meta.cost ? '$' + meta.cost.toFixed(4) : ''}</span>`);
+                }
+
                 metaHtml = `
                     <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-white/5 text-[9px] text-slate-500 font-mono">
-                        <span>🤖 ${meta.model}</span>
-                        <span>•</span>
-                        <span>⚡ ${meta.latency ? meta.latency.toFixed(1) + 's' : ''}</span>
-                        <span>•</span>
-                        <span>${meta.tokens || ''} tokens</span>
-                        <span>•</span>
-                        <span class="text-green-500">${meta.cost ? '$' + meta.cost.toFixed(4) : ''}</span>
+                        ${parts.join('<span>•</span>')}
                     </div>
                 `;
             }
@@ -929,6 +938,9 @@
                 if (Object.values(models).some(v => v)) {
                     document.getElementById('current-model-name').classList.add('text-green-400');
                 }
+
+                // UI Settings Update
+                window.current_ui_settings = data.config.ui_settings;
 
                 // Heatmap Update
                 if (data.neural_heatmap) {

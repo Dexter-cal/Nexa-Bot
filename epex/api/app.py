@@ -111,6 +111,7 @@ async def get_status():
         "config": {
             "user_name": config.get('user_name'),
             "epex_name": config.get('epex_name'),
+            "ui_settings": config.get('ui_settings', {}),
             "api_keys": {k: "********" for k in config.get('api_keys', {}).keys()}
         }
     }

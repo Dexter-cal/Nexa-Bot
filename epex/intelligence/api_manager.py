@@ -247,6 +247,48 @@ class UniversalAPIKeyManager:
                 'get_key_url': 'https://www.assemblyai.com/dashboard/signup',
                 'free_tier': True,
                 'cost': '$'
+            },
+            'cerebras': {
+                'name': 'Cerebras',
+                'key_format': 'csk-...',
+                'test_endpoint': 'https://api.cerebras.ai/v1/models',
+                'get_key_url': 'https://cloud.cerebras.ai/',
+                'free_tier': True,
+                'cost': 'FREE (Beta)',
+                'models': ['llama3.1-70b', 'llama3.1-8b']
+            },
+            'sambanova': {
+                'name': 'SambaNova',
+                'key_format': '...',
+                'test_endpoint': 'https://api.sambanova.ai/v1/models',
+                'get_key_url': 'https://cloud.sambanova.ai/',
+                'free_tier': True,
+                'cost': 'FREE (Beta)',
+                'models': ['llama3-70b', 'llama3-8b']
+            },
+            'deepinfra': {
+                'name': 'DeepInfra',
+                'key_format': '...',
+                'test_endpoint': 'https://api.deepinfra.com/v1/models',
+                'get_key_url': 'https://deepinfra.com/dash/api_keys',
+                'free_tier': True,
+                'cost': '$'
+            },
+            'octoai': {
+                'name': 'OctoAI',
+                'key_format': '...',
+                'test_endpoint': 'https://api.octoai.cloud/v1/models',
+                'get_key_url': 'https://octoai.cloud/settings',
+                'free_tier': True,
+                'cost': '$$'
+            },
+            'cloudflare': {
+                'name': 'Cloudflare Workers AI',
+                'key_format': '...',
+                'test_endpoint': 'https://api.cloudflare.com/client/v4/accounts',
+                'get_key_url': 'https://dash.cloudflare.com/',
+                'free_tier': True,
+                'cost': 'FREE → $'
             }
         }
 
@@ -275,7 +317,12 @@ class UniversalAPIKeyManager:
             'novita': ['NOVITA_API_KEY'],
             'jina': ['JINA_API_KEY'],
             'elevenlabs': ['ELEVENLABS_API_KEY'],
-            'assemblyai': ['ASSEMBLY_API_KEY']
+            'assemblyai': ['ASSEMBLY_API_KEY'],
+            'cerebras': ['CEREBRAS_API_KEY'],
+            'sambanova': ['SAMBANOVA_API_KEY'],
+            'deepinfra': ['DEEPINFRA_API_KEY'],
+            'octoai': ['OCTOAI_API_KEY'],
+            'cloudflare': ['CLOUDFLARE_API_KEY']
         }
 
         for provider, patterns in env_patterns.items():
@@ -721,6 +768,12 @@ class UniversalAPIKeyManager:
                         return r.status == 200
                 elif provider == 'assemblyai':
                     async with session.get('https://api.assemblyai.com/v2/user', headers={'authorization': key}) as r:
+                        return r.status == 200
+                elif provider == 'cerebras':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'sambanova':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
                         return r.status == 200
                 return False
         except Exception as e:
