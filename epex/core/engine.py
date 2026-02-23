@@ -230,8 +230,8 @@ class EpexEngine:
                         attachment_context += f"\n[DOCUMENT ATTACHMENT: {path}]\n{res.output['content']}\n"
                 elif ext in ['.wav', '.mp3', '.ogg', '.m4a']:
                     from epex.tools.registry import registry
-                    tool = registry.get("voice.stt")
-                    res = await tool.execute(path)
+                    tool = registry.get("voice.listen")
+                    res = await tool.execute(duration=30) # Default capture duration
                     if res.success:
                         attachment_context += f"\n[AUDIO ATTACHMENT: {path}]\nTranscript: {res.output['text']}\n"
                 elif ext in ['.jpg', '.jpeg', '.png', '.webp']:
@@ -280,7 +280,6 @@ class EpexEngine:
             return {"success": True, "response": "Switching to CLI interface...", "control_signal": "switch_cli"}
 
         # Load personalization
-        config = await self.messaging_hub.bridges['telegram'].api_manager.vault.load_config() if hasattr(self.messaging_hub.bridges['telegram'], 'api_manager') else {}
         # Or better from SecureConfigStorage
         from epex.foundation.storage import SecureConfigStorage
         storage = SecureConfigStorage()

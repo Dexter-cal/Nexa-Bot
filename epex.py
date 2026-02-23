@@ -172,9 +172,9 @@ async def main():
             from epex.interfaces.cli import start_chat_loop
             await start_chat_loop()
         elif choice == "2": # TUI
-            from epex.interfaces.tui import EpexTUI
-            tui = EpexTUI()
-            await tui.run()
+            from epex.interfaces.textual_tui import EpexTextualApp
+            app = EpexTextualApp()
+            app.run()
         elif choice == "3": # GUI
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
