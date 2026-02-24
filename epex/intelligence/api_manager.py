@@ -289,6 +289,38 @@ class UniversalAPIKeyManager:
                 'get_key_url': 'https://dash.cloudflare.com/',
                 'free_tier': True,
                 'cost': 'FREE → $'
+            },
+            'discord': {
+                'name': 'Discord Bot',
+                'key_format': '...',
+                'test_endpoint': 'https://discord.com/api/v10/users/@me',
+                'get_key_url': 'https://discord.com/developers/applications',
+                'free_tier': True,
+                'cost': 'FREE'
+            },
+            'slack': {
+                'name': 'Slack App',
+                'key_format': 'xoxb-...',
+                'test_endpoint': 'https://slack.com/api/auth.test',
+                'get_key_url': 'https://api.slack.com/apps',
+                'free_tier': True,
+                'cost': 'FREE'
+            },
+            'twitter': {
+                'name': 'Twitter/X API',
+                'key_format': '...',
+                'test_endpoint': 'https://api.twitter.com/2/users/me',
+                'get_key_url': 'https://developer.twitter.com/en/portal/dashboard',
+                'free_tier': False,
+                'cost': '$$'
+            },
+            'messenger': {
+                'name': 'FB Messenger',
+                'key_format': '...',
+                'test_endpoint': 'https://graph.facebook.com/v17.0/me',
+                'get_key_url': 'https://developers.facebook.com/',
+                'free_tier': True,
+                'cost': 'FREE'
             }
         }
 
@@ -774,6 +806,18 @@ class UniversalAPIKeyManager:
                         return r.status == 200
                 elif provider == 'sambanova':
                     async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'discord':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bot {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'slack':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'twitter':
+                    async with session.get(info['test_endpoint'], headers={'Authorization': f'Bearer {key}'}) as r:
+                        return r.status == 200
+                elif provider == 'messenger':
+                    async with session.get(f"{info['test_endpoint']}?access_token={key}") as r:
                         return r.status == 200
                 return False
         except Exception as e:

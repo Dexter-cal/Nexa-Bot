@@ -43,13 +43,32 @@ class EpexNetworkNode:
         await self.storage.store_config(config)
         logger.info(f"Disconnected from peer: {name}")
 
-    async def ping_peer(self, name: str) -> bool:
+    async def ping_peer(self, name: str) -> Dict[str, Any]:
+        """Ping peer and measure latency and get basic info"""
+        import time
+        start = time.time()
         try:
             res = await self.send_to_peer(name, "/api/v1/system/status", {}, method="GET")
-            return res.get('status') == 'active'
+            latency = (time.time() - start) * 1000
+
+            # Update status in local storage
+            await self.load_peers()
+            for p in self.peers:
+                if p['name'] == name:
+                    p['status'] = 'online'
+                    p['latency'] = latency
+                    p['version'] = res.get('config', {}).get('version', 'unknown')
+                    p['agents'] = res.get('agents', 0)
+                    break
+
+            config = await self.storage.load_config()
+            config['network_peers'] = self.peers
+            await self.storage.store_config(config)
+
+            return {'online': True, 'latency': latency, 'info': res}
         except Exception as e:
             logger.error(f"Failed to ping peer {name}: {e}")
-            return False
+            return {'online': False, 'error': str(e)}
 
     async def send_to_peer(self, peer_name: str, endpoint: str, data: Dict[str, Any] = None, method: str = "POST") -> Dict[str, Any]:
         peer = next((p for p in self.peers if p['name'] == peer_name), None)

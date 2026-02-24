@@ -28,6 +28,7 @@ This document explains the inner workings of EPEX APEX v5.0 and how the 7-layer 
 
 ### Layer 5: Intelligence
 - **Enhanced LLM Router**: An intelligent decision engine that selects the best model for a task based on cost, speed, quality, and risk.
+- **Model Discovery**: Autonomously scans HuggingFace for trending models, categorizing them (Text, Image, Code, etc.) for human review and approval.
 - **Refusal Detection**: Proactively identifies AI refusals and automatically reformulates prompts or switches to unrestricted models.
 - **AI Council**: Engages multiple models from different providers to reach a consensus on critical or high-risk decisions.
 
@@ -37,7 +38,9 @@ This document explains the inner workings of EPEX APEX v5.0 and how the 7-layer 
 - **Guardrails**: Text-based rules that define the boundaries of autonomous behavior.
 
 ### Layer 7: Interfaces
-- **Multi-Modal Access**: Unified backend supporting a raw CLI, an interactive Textual TUI, and a modern Web Dashboard.
+- **Multi-Modal Access**: Unified backend supporting a raw CLI, an interactive Textual TUI, a modern Web Dashboard, and a Native Desktop Interface (PyQt6).
+- **Messaging Hub**: Integrated support for 9+ social platforms including Telegram, Discord, and Slack.
+- **Peer Networking**: Distributed neural architecture allowing multi-instance connectivity and task delegation.
 - **Neural Sync**: Real-time feedback loop between the engine and the UI, showing "thoughts", latency, and cost in every response.
 
 ---

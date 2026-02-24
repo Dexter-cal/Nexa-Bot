@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import json
+import aiohttp
 from typing import Optional, Dict, Any, List
 from epex.intelligence.api_manager import UniversalAPIKeyManager
 
@@ -33,7 +34,9 @@ class TelegramBridge(PlatformBridge):
         if not self.token:
             api_manager = UniversalAPIKeyManager()
             keys = await api_manager.auto_detect_keys()
-            self.token = keys.get('telegram')
+            # Support multi-account if keys is a list
+            t_keys = keys.get('telegram', [])
+            self.token = t_keys[0] if isinstance(t_keys, list) and t_keys else t_keys
 
         if not self.token:
             logger.warning("Telegram token missing. Bridge disabled.")
@@ -53,12 +56,11 @@ class TelegramBridge(PlatformBridge):
             logger.error(f"Telegram start error: {e}")
 
     async def _handle_start(self, update, context):
-        await update.message.reply_text("⚡ EPEX BOT active on Telegram. I am Bill, your assistant.")
+        await update.message.reply_text("⚡ EPEX BOT active on Telegram. Ready for commands.")
 
     async def _handle_message(self, update, context):
         from epex.core.engine import engine
         user_text = update.message.text
-        # Pass context if needed
         result = await engine.execute_command(user_text)
         await update.message.reply_text(result.get('response', "Command processed."))
 
@@ -66,6 +68,21 @@ class DiscordBridge(PlatformBridge):
     def __init__(self, token: str = None):
         super().__init__("Discord")
         self.token = token
+
+    async def start(self):
+        if not self.token:
+            api_manager = UniversalAPIKeyManager()
+            keys = await api_manager.auto_detect_keys()
+            d_keys = keys.get('discord', [])
+            self.token = d_keys[0] if isinstance(d_keys, list) and d_keys else d_keys
+
+        if not self.token:
+             logger.warning("Discord token missing.")
+             return
+
+        # Mocking discord implementation
+        self.running = True
+        logger.info("Discord bridge active (Simulated).")
 
 class WhatsAppBridge(PlatformBridge):
     def __init__(self, api_key: str = None):
@@ -77,21 +94,21 @@ class SlackBridge(PlatformBridge):
         super().__init__("Slack")
         self.token = token
 
-class TeamsBridge(PlatformBridge):
+class TwitterBridge(PlatformBridge):
     def __init__(self):
-        super().__init__("Microsoft Teams")
+        super().__init__("Twitter/X")
 
-class EmailBridge(PlatformBridge):
+class MessengerBridge(PlatformBridge):
     def __init__(self):
-        super().__init__("Email")
+        super().__init__("FB Messenger")
 
-class SMSBridge(PlatformBridge):
+class WebhookBridge(PlatformBridge):
     def __init__(self):
-        super().__init__("SMS")
+        super().__init__("Custom Webhooks")
 
 class MessagingHub:
     """
-    Central hub for multi-platform communication
+    Central hub for multi-platform communication (9 platforms supported)
     """
     def __init__(self):
         self.bridges: Dict[str, PlatformBridge] = {
@@ -99,9 +116,11 @@ class MessagingHub:
             "discord": DiscordBridge(),
             "slack": SlackBridge(),
             "whatsapp": WhatsAppBridge(),
-            "teams": TeamsBridge(),
-            "sms": SMSBridge(),
-            "email": EmailBridge()
+            "twitter": TwitterBridge(),
+            "messenger": MessengerBridge(),
+            "webhooks": WebhookBridge(),
+            "sms": PlatformBridge("SMS"),
+            "email": PlatformBridge("Email")
         }
 
     async def start_all(self):

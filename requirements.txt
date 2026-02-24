@@ -36,3 +36,5 @@ uvicorn
 jinja2
 python-multipart
 websockets
+PyQt6
+packaging
