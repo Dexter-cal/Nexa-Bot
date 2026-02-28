@@ -1,0 +1,16 @@
+{
+    "name": "EPEX APEX v5.0",
+    "short_name": "EPEX",
+    "description": "The Neural OS AI Agent Command Center",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#020617",
+    "theme_color": "#38bdf8",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/2593/2593635.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

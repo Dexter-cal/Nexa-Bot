@@ -95,6 +95,13 @@ class TaskManager:
 
         # 0. Handle simple direct questions/commands
         lower_desc = task.description.lower()
+
+        # Lifecycle / Productivity tools direct mapping
+        if "briefing" in lower_desc:
+             tool = registry.get("prod.daily_briefing")
+             res = await tool.execute()
+             return {"success": True, "response": res.output}
+
         if any(q in lower_desc for q in ["who created you", "who is your creator", "who made you"]):
              return await self.llm_router.execute(task.description)
 

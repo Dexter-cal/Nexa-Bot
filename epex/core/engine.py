@@ -233,7 +233,7 @@ class EpexEngine:
                     tool = registry.get("voice.listen")
                     res = await tool.execute(duration=30) # Default capture duration
                     if res.success:
-                        attachment_context += f"\n[AUDIO ATTACHMENT: {path}]\nTranscript: {res.output['text']}\n"
+                        attachment_context += f"\n[AUDIO ATTACHMENT: {path}]\nTranscript: {res.output}\n"
                 elif ext in ['.jpg', '.jpeg', '.png', '.webp']:
                     from epex.tools.registry import registry
                     tool = registry.get("vision.analyze_attachment")

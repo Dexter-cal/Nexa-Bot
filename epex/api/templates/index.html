@@ -4,21 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EPEX BOT | Intelligence System</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#38bdf8">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --bg-dark: #020617;
-            --bg-card: #0f172a;
-            --accent: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.3);
+            --bg-dark: #050a18;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.4);
+            --neon-purple: #bc13fe;
+            --neon-green: #39ff14;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
+            background: radial-gradient(circle at top right, #0a1128, #050a18);
             color: #f1f5f9;
             overflow: hidden;
         }
@@ -37,9 +41,11 @@
         }
 
         .chat-bubble-ai {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.9) 100%);
+            backdrop-filter: blur(8px);
             border-bottom-left-radius: 2px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar-item:hover {
@@ -48,9 +54,10 @@
         }
 
         .sidebar-item.active {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(0, 242, 255, 0.1);
             color: var(--accent);
             border-right: 2px solid var(--accent);
+            text-shadow: 0 0 8px var(--accent-glow);
         }
 
         /* Drag and Drop Styling */
@@ -78,6 +85,11 @@
             box-shadow: 0 0 15px var(--accent-glow);
         }
 
+        .neon-border {
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow), inset 0 0 5px var(--accent-glow);
+        }
+
         .tab-content { transition: opacity 0.2s ease-in-out; }
         .hidden { display: none; }
     </style>
@@ -102,6 +114,10 @@
                 <i class="fas fa-comment-dots w-5"></i>
                 <span class="text-sm font-medium">Neural Chat</span>
             </a>
+            <a href="#" onclick="switchTab('kanban')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-columns w-5"></i>
+                <span class="text-sm font-medium">Task Kanban</span>
+            </a>
             <a href="#" onclick="switchTab('mirror')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
                 <i class="fas fa-magic w-5"></i>
                 <span class="text-sm font-medium">Mirror-World</span>
@@ -113,6 +129,10 @@
             <a href="#" onclick="switchTab('logs')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
                 <i class="fas fa-terminal w-5"></i>
                 <span class="text-sm font-medium">System Console</span>
+            </a>
+            <a href="#" onclick="switchTab('workflows')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-list-check w-5"></i>
+                <span class="text-sm font-medium">Workflows</span>
             </a>
             <a href="#" onclick="switchTab('instances')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
                 <i class="fas fa-network-wired w-5"></i>
@@ -213,6 +233,41 @@
 
         <!-- Dynamic Content -->
         <div class="flex-1 relative">
+
+            <!-- Kanban Tab -->
+            <div id="tab-kanban" class="tab-content hidden absolute inset-0 overflow-y-auto p-8">
+                <div class="max-w-6xl mx-auto h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold">Neural Kanban</h2>
+                            <p class="text-slate-400 text-sm">Real-time visualization of agent task states.</p>
+                        </div>
+                        <div class="flex space-x-4">
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-sky-500 mr-1"></i> Pending</span>
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-yellow-500 mr-1"></i> In-Progress</span>
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-green-500 mr-1"></i> Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden">
+                        <!-- Pending -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-sky-500">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Pending Tasks</h3>
+                            <div id="kanban-pending" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                        <!-- In-Progress -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-yellow-500 bg-yellow-500/5">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Active Execution</h3>
+                            <div id="kanban-active" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                        <!-- Completed -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-green-500">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Success Feed</h3>
+                            <div id="kanban-done" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Chat Tab -->
             <div id="tab-chat" class="tab-content absolute inset-0 flex flex-col lg:flex-row">
@@ -505,6 +560,42 @@
                 </div>
             </div>
 
+            <!-- Workflows Tab -->
+            <div id="tab-workflows" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center justify-between mb-12">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                                <i class="fas fa-list-check text-indigo-500 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Workflow Manager</h2>
+                                <p class="text-slate-400 text-sm">Automate repetitive tasks by recording and replaying workflows.</p>
+                            </div>
+                        </div>
+                        <button onclick="startRecording()" class="px-5 py-2.5 bg-red-500 hover:bg-red-400 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-circle mr-2 animate-pulse"></i> RECORD WORKFLOW
+                        </button>
+                    </div>
+
+                    <div id="workflows-list" class="grid grid-cols-1 gap-4">
+                        <!-- Sample Workflow -->
+                        <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-play text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Daily System Audit</h4>
+                                    <p class="text-xs text-slate-500">Recorded: 2024-02-23 • 12 steps</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg text-xs font-bold transition-all">PLAY</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Toolbox Tab -->
             <div id="tab-tools" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
                 <div class="max-w-6xl mx-auto">
@@ -726,10 +817,10 @@
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1))));
+            const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'kanban' ? 'Task Kanban' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1)))));
             if (clickedItem) clickedItem.classList.add('active');
 
-            const titles = { chat: 'Neural Chat Interface', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture', memory: 'Neural Memory' };
+            const titles = { chat: 'Neural Chat Interface', kanban: 'Neural Kanban', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture', memory: 'Neural Memory', workflows: 'Workflow Manager' };
             document.getElementById('tab-title').innerText = titles[tabId];
 
             if (tabId === 'settings') loadSettings();
@@ -1042,6 +1133,43 @@
             } catch (err) {}
         }
 
+        async function loadKanban() {
+            try {
+                const response = await fetch('/api/v1/tasks');
+                const tasks = await response.json();
+
+                const pending = document.getElementById('kanban-pending');
+                const active = document.getElementById('kanban-active');
+                const done = document.getElementById('kanban-done');
+
+                pending.innerHTML = ''; active.innerHTML = ''; done.innerHTML = '';
+
+                tasks.forEach(t => {
+                    const card = `
+                        <div class="p-4 bg-slate-900/80 rounded-2xl border border-white/5 shadow-xl hover:border-sky-500/30 transition-all cursor-pointer group">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[9px] font-bold text-slate-500">#${t.id.slice(0,8)}</span>
+                                <i class="fas fa-ellipsis-v text-[9px] text-slate-700"></i>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-200 line-clamp-2">${t.description}</h4>
+                            <div class="mt-4 flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="w-5 h-5 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
+                                        <i class="fas fa-user-robot text-[8px] text-sky-400"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[8px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-sky-400 transition-all">Details</span>
+                            </div>
+                        </div>
+                    `;
+
+                    if (t.status === 'completed') done.innerHTML += card;
+                    else if (t.status === 'running') active.innerHTML += card;
+                    else pending.innerHTML += card;
+                });
+            } catch (err) {}
+        }
+
         document.getElementById('simulate-btn').onclick = async () => {
             const task = document.getElementById('simulate-input').value;
             if (!task) return;
@@ -1316,17 +1444,24 @@
             `).join('') || '<div class="text-center py-10 text-slate-600 text-xs italic">No commands found.</div>';
         }
 
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js');
+        }
+
         // Initialize
         initPalette();
         setInterval(updateMetrics, 5000);
         setInterval(loadLogs, 2000);
         setInterval(loadAlerts, 5000);
         setInterval(loadThoughts, 3000);
+        setInterval(loadKanban, 4000);
 
         updateMetrics();
         loadLogs();
         loadAlerts();
         loadTools();
+        loadKanban();
 
         // Keyboard support
         commandInput.addEventListener('keydown', (e) => {

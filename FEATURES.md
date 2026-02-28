@@ -3,48 +3,45 @@
 Epex Bot is the most advanced AI Agent Orchestration framework, designed for absolute flexibility, safety, and power. It is a true **Neural OS** that outclasses every other agent on the market.
 
 ## 💎 1. KILLER FEATURES (EPEX vs. THE WORLD)
-- **TRUE MULTI-AGENT SWARMS**: Unlike competitors that run single threads, EPEX can spawn 10-50 specialized agents that coordinate, load balance, and fail over in parallel. Achieve in minutes what takes others hours.
-- **ENCRYPTED DIGITAL SOUL**: EPEX builds an encrypted digital twin of YOU. It remembers your siblings' names, your coding style, your peak energy hours, and your feedback preferences. It doesn't just chat; it *evolves* with you.
-- **TEACH MODE (VISION LEARN)**: Record yourself performing a task once. EPEX watches with neural vision, learns the exact workflow, and can replay it perfectly across 100 iterations.
-- **INTELLIGENT MODEL ORCHESTRATION**: 4-Tier routing system. If GPT-4 refuses, EPEX automatically switches to an uncensored local model in <50ms. You never hit a wall.
-- **24/7 PRIVACY GUARDIAN**: Continuous dark web scanning, breach detection (HaveIBeenPwned), and secrets redaction. When a leak is found, EPEX generates an immediate rotation plan and alerts you.
-- **WORKS COMPLETELY OFFLINE**: Full local execution via Ollama/LM Studio. Airplane mode? No problem. Paranoid? Run 100% local with zero API calls.
-- **AGENT NETWORK (MULTI-DEVICE)**: Run EPEX on your phone, laptop, and cloud. They coordinate tasks, delegate heavy GPU work to your desktop, and monitor your servers 24/7 as a unified hive mind.
-- **SYSTEM REPAIR & RECOVERY**: Forensic deep sector recovery, registry repair, BSOD recovery, and automated malware cleaning. EPEX fixes your PC when it won't even boot.
-- **VOICE CLONING & BIOMETRICS**: Responds in your own voice and supports 4 levels of kill switches, including biometric pulse verification from mobile.
+- **TRUE MULTI-AGENT SWARMS**: Spawn 10-50 specialized agents that coordinate, load balance, and fail over in parallel.
+- **ENCRYPTED DIGITAL SOUL**: A secure digital twin that evolves based on your coding style and preferences.
+- **TEACH MODE (VISION LEARN)**: Record actions once; EPEX learns and replays the workflow autonomously.
+- **INTELLIGENT MODEL ORCHESTRATION**: 4-Tier routing across 25+ providers with sub-50ms switching.
+- **24/7 PRIVACY GUARDIAN**: Dark web scanning, breach detection, and real-time secrets redaction.
+- **ALWAYS-ON DEPLOYMENT**: Production Docker support for reliable background operations.
+- **WORKS COMPLETELY OFFLINE**: 100% local execution via Ollama/LM Studio.
 
 ## 🧠 2. INTELLIGENCE ENGINE
-- **Strategic Brain**: Decomposes complex goals into multi-step executable plans with risk assessment.
-- **Quantum Router**: Dynamic multi-model consensus that weights responses from 25+ providers.
-- **AI Council**: Weighted consensus for high-stakes decisions.
-- **Chronos Execution Branching**: Simulate multiple "What If" scenarios and pick the most successful path.
-- **Aura Persona Scaling**: Dynamically changes tone, vocabulary, and UI styling based on real-time sentiment analysis.
-- **Autonomous Macro Synthesis**: Identifies repetitive user patterns and builds new atomic tools to automate them.
+- **Strategic Brain**: Decomposes goals into plans with risk assessment.
+- **Quantum Router**: Dynamic multi-model consensus and weighted scoring.
+- **AI Council**: Weighted voting for high-stakes decision making.
+- **Chronos Execution Branching**: Simulate "What If" scenarios to pick optimal outcomes.
+- **Neural Kanban**: Real-time task state visualization and management.
 
-## 🛠️ 3. THE TOOL BELT (180+ Tools)
-- **Maintenance**: SMART disk health, file recovery, RAM analysis, system optimization, registry repair, driver management.
-- **System Control**: Mouse/Keyboard automation, neural screenshots, process management, secure tunneling (Ngrok), and QR Sync device pairing.
-- **Web & OSINT**: Headless browsing, form detection, deep OSINT, social media lookup, domain intelligence.
-- **Document & Media**: Deep parsing (PDF, Word), Neural Vision image analysis, and Audio STT/TTS.
-- **Hardware & IoT**: Android/ADB control, GPIO manipulation, Bluetooth/WiFi management, and Unified IoT Hive Control.
-- **Dev Tools**: Autonomous neural code review, AutoDoc generation, and git workflow automation.
-- **Meta-Tools**: Mirror-World simulation, self-healing loops, tool generators, and logical refactoring.
+## 🛠️ 3. THE TOOL BELT (200+ Tools)
+- **Maintenance**: SMART disk health, file recovery, system optimization, registry repair.
+- **Javascript Environment**: Direct Node.js script execution and npm management.
+- **Productivity**: Morning briefings, task scheduling, and multi-calendar sync.
+- **System Control**: Mouse/Keyboard automation, neural screenshots, secure tunneling.
+- **Hardware & IoT**: Android/ADB control, GPIO manipulation, Bluetooth/WiFi management.
+- **Web & OSINT**: Headless browsing, form detection, deep OSINT research.
+- **Dev Tools**: Autonomous neural code review, AutoDoc, and git automation.
 
-## 📱 4. CONNECTING YOUR DEVICES
-- **Phone**: Scan the QR code generated by `epex tool system.generate_pairing_qr` in the EPEX Mobile app.
-- **Other PCs**: Use `epex network connect` to link desktops. Memory and tools are shared securely.
-- **Cloud**: Deploy on Linode/AWS for 24/7 "Always-On" instances.
+## 🐳 4. DEPLOYMENT & NETWORKING
+- **Docker**: Deploy with `docker-compose up -d` for a high-availability instance.
+- **P2P Networking**: Link local, cloud, and mobile instances into a unified hive mind.
+- **Mobile PWA**: "App-like" experience on Android/iOS with offline support and home-screen access.
 
 ## 🛡️ 5. SECURITY & ZERO-TRUST
-- **Aegis Zero-Trust Filter**: Real-time redaction of secrets, API keys, and Soul File data from all AI outputs.
-- **Blockchain Audit Trail**: Immutable local ledger of every action executed by the bot.
-- **4-Level Kill Switch**: Emergency stop from task cancellation to global system lock.
-- **AES-256 Vault**: All keys and personal soul data are encrypted at rest.
+- **Aegis Zero-Trust Filter**: Redacts secrets and API keys from AI responses.
+- **Blockchain Audit Trail**: Immutable ledger of every agent action.
+- **4-Level Kill Switch**: Tiered emergency stop system.
 
 ## 🎨 6. INTERFACES
-- **Unified Launcher (epex.py)**: A high-fidelity entry point with dependency repair and password protection.
-- **TUI (Adaptive)**: Adaptive styling that shifts colors based on bot sentiment (Aura).
-- **GUI Dashboard**: Modern web dashboard with instance networking and real-time reasoning streams.
+- **Unified Launcher (epex.py)**: Secure entry point with dependency repair and password protection.
+- **Neon Web GUI**: High-fidelity "Neon Hacker" dashboard with real-time Kanban and Thought Streams.
+- **Adaptive TUI**: Professional terminal dashboard with Aura-driven styling.
+- **Enhanced CLI**: Powerful command line with tab completion and pro-tips.
 
 ---
 ## 👑 CREATOR & RE-RUNNING
@@ -61,10 +58,4 @@ python epex_run.py
 ```
 
 ## 🔗 CONNECTIVITY
-For detailed guides on how to connect EPEX to WhatsApp, Discord, Telegram, and more, see [CONNECTIVITY.md](CONNECTIVITY.md).
-
----
-## 🔮 THE POTENTIAL
-EPEX Bot is a **Neural OS**. It can manage your global infrastructure, secure your personal data, and evolve its own logic autonomously.
-
-*The only limit is your imagination.*
+For detailed guides on how to connect EPEX to social platforms, see [CONNECTIVITY.md](CONNECTIVITY.md).

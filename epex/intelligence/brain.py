@@ -47,6 +47,12 @@ class StrategicPlanner:
                 "risk_assessment": "Low",
                 "estimated_duration": "3s"
             }
+        elif "run node" in goal.lower() or "run js" in goal.lower():
+            return {
+                "primary_strategy": [{"step": 1, "description": "Run Node script", "tool": "js.node_run", "params": {"code": "console.log('EPEX JS ACTIVE');"}}],
+                "risk_assessment": "High",
+                "estimated_duration": "2s"
+            }
 
         available_tools = [
             {"name": t.name, "description": t.description, "parameters": t.parameters}
