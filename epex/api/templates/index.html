@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPEX BOT | Intelligence System</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#38bdf8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #050a18;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.4);
+            --neon-purple: #bc13fe;
+            --neon-green: #39ff14;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #0a1128, #050a18);
+            color: #f1f5f9;
+            overflow: hidden;
+        }
+
+        .font-mono { font-family: 'Fira Code', monospace; }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-bubble-user {
+            background: #1e293b;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-bubble-ai {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.9) 100%);
+            backdrop-filter: blur(8px);
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-item:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+        }
+
+        .sidebar-item.active {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--accent);
+            border-right: 2px solid var(--accent);
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* Drag and Drop Styling */
+        .drag-over {
+            background: rgba(56, 189, 248, 0.1) !important;
+            border: 2px dashed var(--accent) !important;
+        }
+
+        /* Voice Visualizer */
+        .voice-bar {
+            width: 3px;
+            height: 5px;
+            background: var(--accent);
+            margin: 0 1px;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .animate-glow {
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .neon-border {
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow), inset 0 0 5px var(--accent-glow);
+        }
+
+        .tab-content { transition: opacity 0.2s ease-in-out; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 glass flex flex-col transition-all duration-300 z-50">
+        <div class="p-6 flex items-center space-x-3 border-b border-white/5">
+            <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+                <i class="fas fa-bolt text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight">EPEX <span class="text-sky-500">BOT</span></h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Intelligence Engine</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6">
+            <div class="px-6 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main Interface</div>
+            <a href="#" onclick="switchTab('chat')" class="sidebar-item active px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-comment-dots w-5"></i>
+                <span class="text-sm font-medium">Neural Chat</span>
+            </a>
+            <a href="#" onclick="switchTab('kanban')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-columns w-5"></i>
+                <span class="text-sm font-medium">Task Kanban</span>
+            </a>
+            <a href="#" onclick="switchTab('mirror')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-magic w-5"></i>
+                <span class="text-sm font-medium">Mirror-World</span>
+            </a>
+            <a href="#" onclick="switchTab('tools')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-toolbox w-5"></i>
+                <span class="text-sm font-medium">Toolbox</span>
+            </a>
+            <a href="#" onclick="switchTab('logs')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-terminal w-5"></i>
+                <span class="text-sm font-medium">System Console</span>
+            </a>
+            <a href="#" onclick="switchTab('workflows')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-list-check w-5"></i>
+                <span class="text-sm font-medium">Workflows</span>
+            </a>
+            <a href="#" onclick="switchTab('instances')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-network-wired w-5"></i>
+                <span class="text-sm font-medium">Instances</span>
+            </a>
+            <a href="#" onclick="switchTab('architecture')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-project-diagram w-5"></i>
+                <span class="text-sm font-medium">Neural Architecture</span>
+            </a>
+            <a href="#" onclick="switchTab('memory')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-brain w-5"></i>
+                <span class="text-sm font-medium">Neural Memory</span>
+            </a>
+            <a href="#" onclick="switchTab('settings')" class="sidebar-item px-6 py-3 flex items-center space-x-3 transition-all cursor-pointer">
+                <i class="fas fa-cog w-5"></i>
+                <span class="text-sm font-medium">Settings</span>
+            </a>
+
+            <div class="px-6 mt-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Configuration</div>
+
+            <div class="px-6 space-y-4">
+                <div>
+                    <label class="text-[11px] text-slate-400 block mb-2">Operation Mode</label>
+                    <select id="mode-select" class="w-full bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-sky-500 outline-none">
+                        <option value="assistive">Assistive</option>
+                        <option value="partner" selected>Partner</option>
+                        <option value="autonomous">Autonomous</option>
+                        <option value="shadow">Shadow</option>
+                        <option value="collaborative">Collaborative</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-400 block mb-2">Active Persona</label>
+                    <select id="role-select" class="w-full bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-sky-500 outline-none">
+                        <option value="assistant">General Assistant</option>
+                        <option value="hacker">Hacker (Security)</option>
+                        <option value="developer">Developer (Engineer)</option>
+                        <option value="sysadmin">Sysadmin (Operations)</option>
+                        <option value="researcher">Researcher (Deep Dive)</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+
+        <div class="p-6 border-t border-white/5 bg-slate-900/40">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-slate-400">Neural Sync</span>
+                <span class="text-[10px] text-sky-400 font-bold uppercase">Active</span>
+            </div>
+            <div id="neural-sync-list" class="space-y-2 mb-6">
+                <!-- Insights injected here -->
+            </div>
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-medium text-slate-400">System Status</span>
+                <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+            </div>
+            <button onclick="emergencyStop()" class="w-full py-2.5 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-300 rounded-lg text-xs font-bold transition-all flex items-center justify-center">
+                <i class="fas fa-power-off mr-2"></i> EMERGENCY STOP
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+
+        <!-- Header -->
+        <header class="h-16 glass flex items-center justify-between px-8 z-10">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-all lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div id="tab-title" class="text-sm font-semibold text-slate-200">Neural Chat Interface</div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div id="service-status" class="flex items-center space-x-3 mr-4 border-r border-white/10 pr-4">
+                    <i title="Telegram Bridge" id="status-telegram" class="fab fa-telegram text-slate-600 transition-all"></i>
+                    <i title="Discord Bridge" id="status-discord" class="fab fa-discord text-slate-600 transition-all"></i>
+                    <i title="Voice Engine" id="status-voice" class="fas fa-microphone text-slate-600 transition-all"></i>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="active-model-display" class="flex items-center space-x-2 bg-slate-800/50 px-3 py-1 rounded-full border border-white/5 cursor-pointer hover:bg-slate-700/50 transition-all">
+                        <i class="fas fa-microchip text-sky-400 text-[10px]"></i>
+                        <span id="current-model-name" class="text-[10px] font-bold text-slate-300">Intelligent Auto</span>
+                    </div>
+                    <button id="comparison-toggle" title="Model Comparison Mode" class="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 transition-all">
+                        <i class="fas fa-columns"></i>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Router Status</span>
+                        <span class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] rounded border border-green-500/20">Optimal</span>
+                    </div>
+                </div>
+                <button onclick="toggleRightPanel()" class="text-slate-400 hover:text-white transition-all">
+                    <i class="fas fa-chart-pie text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <div class="flex-1 relative">
+
+            <!-- Kanban Tab -->
+            <div id="tab-kanban" class="tab-content hidden absolute inset-0 overflow-y-auto p-8">
+                <div class="max-w-6xl mx-auto h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold">Neural Kanban</h2>
+                            <p class="text-slate-400 text-sm">Real-time visualization of agent task states.</p>
+                        </div>
+                        <div class="flex space-x-4">
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-sky-500 mr-1"></i> Pending</span>
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-yellow-500 mr-1"></i> In-Progress</span>
+                            <span class="text-xs text-slate-500"><i class="fas fa-circle text-green-500 mr-1"></i> Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden">
+                        <!-- Pending -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-sky-500">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Pending Tasks</h3>
+                            <div id="kanban-pending" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                        <!-- In-Progress -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-yellow-500 bg-yellow-500/5">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Active Execution</h3>
+                            <div id="kanban-active" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                        <!-- Completed -->
+                        <div class="glass rounded-3xl p-4 flex flex-col h-full border-t-4 border-green-500">
+                            <h3 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-4 px-2">Success Feed</h3>
+                            <div id="kanban-done" class="space-y-4 flex-1 overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Tab -->
+            <div id="tab-chat" class="tab-content absolute inset-0 flex flex-col lg:flex-row">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-6">
+                    <div class="flex justify-center mb-10">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-sky-500/20">
+                                <i class="fas fa-robot text-sky-500 text-3xl"></i>
+                            </div>
+                            <h2 class="text-xl font-bold mb-2">Initialize Command</h2>
+                            <p class="text-sm text-slate-500 max-w-sm mx-auto">Epex is ready for complex task orchestration. Use natural language to interact with your system.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thought Stream Panel (Desktop only) -->
+                <div id="thought-stream-panel" class="hidden lg:flex w-80 border-l border-white/5 flex-col bg-slate-950/20">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Neural Thought Stream</span>
+                        <span class="flex h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                    </div>
+                    <div id="thought-stream-content" class="flex-1 overflow-y-auto p-4 space-y-4">
+                        <!-- Thoughts injected here -->
+                    </div>
+                </div>
+
+                <div class="p-8">
+                    <div class="max-w-4xl mx-auto relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-sky-500 to-indigo-500 rounded-2xl blur opacity-10 group-focus-within:opacity-25 transition duration-500"></div>
+
+                        <div id="drop-zone" class="relative glass rounded-2xl p-2 flex flex-col shadow-2xl transition-all duration-300">
+                            <div id="attachment-preview" class="hidden flex flex-wrap gap-2 p-2 border-b border-white/5"></div>
+
+                            <div class="flex items-end">
+                                <textarea id="command-input" rows="1" placeholder="Type a command, ask anything, or drop files here..."
+                                    class="w-full bg-transparent border-none focus:ring-0 p-4 text-sm resize-none max-h-60"
+                                    oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+
+                                <div class="flex items-center space-x-2 p-2">
+                                    <button id="voice-toggle" title="Voice Control" class="w-10 h-10 flex flex-col items-center justify-center rounded-xl hover:bg-white/5 text-slate-400 transition-all">
+                                        <i class="fas fa-microphone"></i>
+                                        <div id="voice-visualizer" class="hidden flex items-end h-2 mt-0.5">
+                                            <div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div>
+                                        </div>
+                                    </button>
+                                    <button id="capture-region-btn" title="Capture Region" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 text-slate-400 transition-all">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                    <button id="attach-btn" title="Attach File" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/5 text-slate-400 transition-all">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button id="execute-btn" class="w-10 h-10 bg-sky-500 hover:bg-sky-400 text-white rounded-xl shadow-lg shadow-sky-500/20 transition-all flex items-center justify-center">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex justify-center space-x-4">
+                            <button onclick="setPrompt('System Health Check')" class="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 px-3 py-1.5 rounded-full border border-white/5 transition-all">System Health Check</button>
+                            <button onclick="setPrompt('Analyze Recent Logs')" class="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 px-3 py-1.5 rounded-full border border-white/5 transition-all">Analyze Recent Logs</button>
+                            <button onclick="setPrompt('Search for Security Vulnerabilities')" class="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 px-3 py-1.5 rounded-full border border-white/5 transition-all">Security Scan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mirror-World Tab -->
+            <div id="tab-mirror" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <div class="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center border border-purple-500/20">
+                            <i class="fas fa-magic text-purple-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">Mirror-World Sandbox</h2>
+                            <p class="text-slate-400 text-sm">Predictive simulation engine for high-risk operations.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-8 rounded-3xl mb-8">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-4">Task Specification</label>
+                        <textarea id="simulate-input" placeholder="e.g., 'Update all system packages and restart services'"
+                                class="w-full h-40 bg-slate-800/50 border border-white/5 rounded-2xl p-6 focus:ring-1 focus:ring-purple-500 outline-none transition-all"></textarea>
+                        <div class="mt-6 flex justify-end">
+                            <button id="simulate-btn" class="px-8 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold transition-all shadow-lg shadow-purple-600/20">
+                                INITIALIZE SIMULATION
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="simulation-result" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div class="glass p-8 rounded-3xl border-l-4 border-purple-500">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="font-bold text-purple-400 uppercase tracking-widest text-sm">Simulation Report</h3>
+                                <div id="sim-score" class="px-3 py-1 bg-purple-500/10 text-purple-400 text-xs rounded-full border border-purple-500/20">Risk Score: Low</div>
+                            </div>
+                            <div id="sim-report-content" class="bg-black/30 rounded-2xl p-6 font-mono text-xs text-slate-300 leading-relaxed overflow-x-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="tab-logs" class="tab-content hidden absolute inset-0 flex flex-col p-8 space-y-6">
+                <div class="glass h-1/2 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                    <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-slate-900/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-terminal text-slate-400"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">System Logs</span>
+                        </div>
+                    </div>
+                    <div id="log-terminal" class="flex-1 p-6 font-mono text-xs overflow-y-auto space-y-1.5 bg-black/40"></div>
+                </div>
+                <div class="glass h-1/2 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                    <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-slate-900/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-link text-slate-400"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Blockchain Audit Trail</span>
+                        </div>
+                    </div>
+                    <div id="blockchain-list" class="flex-1 p-6 font-mono text-[10px] overflow-y-auto space-y-2 bg-black/20">
+                        <!-- Chain injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instances Tab -->
+            <div id="tab-instances" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center justify-between mb-12">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                                <i class="fas fa-network-wired text-emerald-500 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Instance Network</h2>
+                                <p class="text-slate-400 text-sm">Connect and manage multiple Epex instances.</p>
+                            </div>
+                        </div>
+                        <button onclick="showAddPeerModal()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-plus mr-2"></i> CONNECT INSTANCE
+                        </button>
+                    </div>
+
+                    <div id="peers-list" class="grid grid-cols-1 gap-4">
+                        <!-- Peers injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                            <i class="fas fa-cog text-indigo-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">System Settings</h2>
+                            <p class="text-slate-400 text-sm">Configure your AI providers and API keys securely.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-8 rounded-3xl space-y-8">
+                        <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400">Model Discovery & Search</h3>
+
+                        <div class="flex items-center space-x-4">
+                            <input id="model-search-query" type="text" placeholder="Search HuggingFace for new models..."
+                                class="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-sky-500 outline-none">
+                            <button id="model-search-btn" class="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 rounded-xl text-xs font-bold transition-all">SEARCH</button>
+                        </div>
+
+                        <div id="model-search-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto p-2">
+                             <!-- Results -->
+                        </div>
+
+                        <div class="pt-4 border-t border-white/5">
+                            <h3 class="font-bold text-sm uppercase tracking-widest text-slate-400 mb-6">AI Model Providers</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="api-settings-list">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <div class="pt-8 border-t border-white/5 flex justify-end">
+                            <button id="save-settings-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold transition-all">
+                                SAVE ALL SETTINGS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Tab -->
+            <div id="tab-architecture" class="tab-content hidden absolute inset-0 overflow-y-auto p-12 bg-slate-950">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center border border-sky-500/20">
+                            <i class="fas fa-project-diagram text-sky-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">7-Layer Neural Architecture</h2>
+                            <p class="text-slate-400 text-sm">Real-time status of EPEX core components.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="arch-stack">
+                        <!-- Layer 7 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-white/40 opacity-80" data-layer="7">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 7</span>
+                                <span class="text-xs font-bold text-white">INTERFACES</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">GUI, TUI, CLI, Mobile, API, Voice</div>
+                        </div>
+                        <!-- Layer 6 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-indigo-500/40 opacity-80" data-layer="6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 6</span>
+                                <span class="text-xs font-bold text-white">USER CONTROLS</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Guardrails, Persona, Kill-Switch, Approvals</div>
+                        </div>
+                        <!-- Layer 5 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-sky-500/40 opacity-80" data-layer="5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 5</span>
+                                <span class="text-xs font-bold text-white">INTELLIGENCE</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Model Router, Refusal Detection, AI Council, Macros</div>
+                        </div>
+                        <!-- Layer 4 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-blue-500/40 opacity-80" data-layer="4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 4</span>
+                                <span class="text-xs font-bold text-white">ORCHESTRATION</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Task Manager, Spawner, Swarm, Self-Healing</div>
+                        </div>
+                        <!-- Layer 3 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-emerald-500/40 opacity-80" data-layer="3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 3</span>
+                                <span class="text-xs font-bold text-white">TOOL LAYER</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">180+ Tools, Discovery, Plugin System, Hardware</div>
+                        </div>
+                        <!-- Layer 2 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-amber-500/40 opacity-80" data-layer="2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 2</span>
+                                <span class="text-xs font-bold text-white">MEMORY & DATA</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Soul File, Vector Memory, Cache, Blockchain</div>
+                        </div>
+                        <!-- Layer 1 -->
+                        <div class="arch-layer glass p-6 rounded-2xl border-l-4 border-red-500/40 opacity-80" data-layer="1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Layer 1</span>
+                                <span class="text-xs font-bold text-white">FOUNDATION</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-slate-400">Encryption, Auth, Monitoring, Sandboxing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Tab -->
+            <div id="tab-memory" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center space-x-4 mb-12">
+                        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20">
+                            <i class="fas fa-brain text-amber-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">Neural Memory</h2>
+                            <p class="text-slate-400 text-sm">Semantic search and long-term memory management.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-3xl mb-8 flex items-center space-x-4">
+                        <i class="fas fa-search text-slate-500 ml-2"></i>
+                        <input id="memory-search-input" type="text" placeholder="Search through your agent's long-term memory..."
+                            class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2">
+                        <button id="memory-search-btn" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold transition-all">SEARCH</button>
+                    </div>
+
+                    <div id="memory-results" class="space-y-4">
+                        <div class="text-center py-20 text-slate-600 italic">Enter a query to search semantic history.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflows Tab -->
+            <div id="tab-workflows" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-center justify-between mb-12">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                                <i class="fas fa-list-check text-indigo-500 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Workflow Manager</h2>
+                                <p class="text-slate-400 text-sm">Automate repetitive tasks by recording and replaying workflows.</p>
+                            </div>
+                        </div>
+                        <button onclick="startRecording()" class="px-5 py-2.5 bg-red-500 hover:bg-red-400 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-circle mr-2 animate-pulse"></i> RECORD WORKFLOW
+                        </button>
+                    </div>
+
+                    <div id="workflows-list" class="grid grid-cols-1 gap-4">
+                        <!-- Sample Workflow -->
+                        <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-play text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Daily System Audit</h4>
+                                    <p class="text-xs text-slate-500">Recorded: 2024-02-23 • 12 steps</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg text-xs font-bold transition-all">PLAY</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbox Tab -->
+            <div id="tab-tools" class="tab-content hidden absolute inset-0 overflow-y-auto p-12">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex items-center justify-between mb-12">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center border border-sky-500/20">
+                                <i class="fas fa-toolbox text-sky-500 text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Tool Registry</h2>
+                                <p class="text-slate-400 text-sm">Manage and monitor integrated agent tools.</p>
+                            </div>
+                        </div>
+                        <button class="px-5 py-2.5 bg-sky-500 hover:bg-sky-400 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-plus mr-2"></i> NEW TOOL
+                        </button>
+                    </div>
+
+                    <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Tools will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Right Panel -->
+    <aside id="right-panel" class="w-80 glass hidden lg:flex flex-col transition-all duration-300 border-l border-white/5 overflow-y-auto">
+        <div class="p-6 border-b border-white/5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Real-time Metrics</h3>
+
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-[11px] mb-2">
+                        <span class="text-slate-400">Neural Load</span>
+                        <span class="text-sky-400" id="cpu-load">0%</span>
+                    </div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="cpu-bar" class="h-full bg-sky-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-[11px] mb-2">
+                        <span class="text-slate-400">Memory Usage</span>
+                        <span class="text-indigo-400" id="ram-usage">0%</span>
+                    </div>
+                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="ram-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-b border-white/5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Security & Privacy</h3>
+            <div id="privacy-metrics" class="space-y-4">
+                <div class="p-4 bg-slate-800/30 rounded-2xl border border-white/5">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Leaked Data Monitor</div>
+                    <div class="text-sm font-medium" id="leak-count">0 Detected</div>
+                </div>
+                <div class="p-4 bg-slate-800/30 rounded-2xl border border-white/5">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Active Breach Scans</div>
+                    <div class="text-sm font-medium" id="scan-status">Monitoring...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 flex-1">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Security Alerts</h3>
+            <div id="alert-feed" class="space-y-3">
+                <div class="text-xs text-slate-600 italic">No active threats detected.</div>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-white/5">
+            <div class="text-[10px] text-slate-600 text-center font-medium">
+                Created by <span class="text-slate-400 font-bold">Henry Calvin</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Command Palette -->
+    <div id="command-palette" class="hidden fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 bg-slate-950/60 backdrop-blur-sm">
+        <div class="w-full max-w-xl glass rounded-2xl shadow-2xl overflow-hidden border border-white/10 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center px-6 py-4 border-b border-white/5">
+                <i class="fas fa-search text-slate-500 mr-4"></i>
+                <input id="palette-search" type="text" placeholder="Type a command or tool name..."
+                    class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-white py-2">
+                <span class="text-[10px] font-bold text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded border border-white/5">ESC</span>
+            </div>
+            <div id="palette-results" class="max-h-[60vh] overflow-y-auto p-2">
+                <!-- Results -->
+            </div>
+            <div class="px-6 py-3 border-t border-white/5 bg-slate-900/50 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <span class="text-[10px] text-slate-500"><i class="fas fa-arrow-up mr-1"></i><i class="fas fa-arrow-down mr-1"></i> to navigate</span>
+                    <span class="text-[10px] text-slate-500"><i class="fas fa-level-down-alt fa-rotate-90 mr-1"></i> to select</span>
+                </div>
+                <div class="text-[10px] text-slate-500">
+                    EPEX COMMAND PALETTE
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const commandInput = document.getElementById('command-input');
+        const executeBtn = document.getElementById('execute-btn');
+        const logTerminal = document.getElementById('log-terminal');
+        const toolsGrid = document.getElementById('tools-grid');
+        const dropZone = document.getElementById('drop-zone');
+        const attachmentPreview = document.getElementById('attachment-preview');
+
+        // Drag and Drop
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.classList.remove('drag-over');
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(f => {
+                // In a real app, we'd upload these. Here we simulate attaching the path
+                selectedFiles.push(f.name);
+            });
+            updateAttachmentUI();
+        };
+
+        function updateAttachmentUI() {
+            if (selectedFiles.length > 0) {
+                attachmentPreview.classList.remove('hidden');
+                attachmentPreview.innerHTML = selectedFiles.map(f => `
+                    <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-white/5 text-[10px]">
+                        <i class="fas fa-file text-sky-400"></i>
+                        <span class="truncate max-w-[100px]">${f}</span>
+                        <button onclick="removeAttachment('${f}')" class="text-slate-500 hover:text-red-400"><i class="fas fa-times"></i></button>
+                    </div>
+                `).join('');
+            } else {
+                attachmentPreview.classList.add('hidden');
+            }
+        }
+
+        window.removeAttachment = (name) => {
+            selectedFiles = selectedFiles.filter(f => f !== name);
+            updateAttachmentUI();
+        };
+
+        // Voice Control
+        let isListening = false;
+        const voiceToggle = document.getElementById('voice-toggle');
+        const voiceVisualizer = document.getElementById('voice-visualizer');
+
+        voiceToggle.onclick = () => {
+            isListening = !isListening;
+            voiceToggle.classList.toggle('text-sky-400', isListening);
+            voiceVisualizer.classList.toggle('hidden', !isListening);
+            if (isListening) {
+                animateVoice();
+                addMessage("Voice Control Activated. I'm listening...", 'ai');
+            } else {
+                addMessage("Voice Control Deactivated.", 'ai');
+            }
+        };
+
+        function animateVoice() {
+            if (!isListening) return;
+            const bars = document.querySelectorAll('.voice-bar');
+            bars.forEach(bar => {
+                const height = Math.floor(Math.random() * 15) + 5;
+                bar.style.height = `${height}px`;
+            });
+            setTimeout(animateVoice, 100);
+        }
+
+        // Region Capture
+        document.getElementById('capture-region-btn').onclick = async () => {
+            addMessage("Initializing Region Capture...", 'ai');
+            const res = await fetch('/api/v1/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: "Use system.select_capture to get screen data" })
+            });
+            const data = await res.json();
+            if (data.success) {
+                addMessage(`Region captured! Path: ${data.response.path || 'epex_selection.png'}. I've added this to my context.`, 'ai');
+                selectedFiles.push('epex_selection.png');
+                updateAttachmentUI();
+            }
+        };
+
+        // Model Switching
+        document.getElementById('active-model-display').onclick = async () => {
+            const newModel = prompt("Enter Model ID to switch to (e.g. gpt-4o, claude-3-opus-20240229, or HuggingFace ID):", "gpt-4o");
+            if (newModel) {
+                const res = await fetch('/api/v1/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `/model ${newModel}` })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('current-model-name').innerText = newModel;
+                    addMessage(data.response, 'ai');
+                }
+            }
+        };
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const clickedItem = Array.from(document.querySelectorAll('.sidebar-item')).find(item => item.innerHTML.includes(tabId === 'chat' ? 'Neural Chat' : (tabId === 'kanban' ? 'Task Kanban' : (tabId === 'instances' ? 'Instances' : tabId.charAt(0).toUpperCase() + tabId.slice(1)))));
+            if (clickedItem) clickedItem.classList.add('active');
+
+            const titles = { chat: 'Neural Chat Interface', kanban: 'Neural Kanban', mirror: 'Mirror-World Sandbox', logs: 'System Console', tools: 'Tool Registry', settings: 'System Settings', instances: 'Instance Network', architecture: 'Neural Architecture', memory: 'Neural Memory', workflows: 'Workflow Manager' };
+            document.getElementById('tab-title').innerText = titles[tabId];
+
+            if (tabId === 'settings') loadSettings();
+            if (tabId === 'instances') loadPeers();
+        }
+
+        // Sidebar Toggling
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function toggleRightPanel() {
+            const panel = document.getElementById('right-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function setPrompt(text) {
+            commandInput.value = text;
+            commandInput.focus();
+            commandInput.style.height = '';
+            commandInput.style.height = commandInput.scrollHeight + 'px';
+        }
+
+        // Chat UI
+        function addMessage(text, role = 'ai', meta = {}) {
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            // Get UI Settings from global state or fetch
+            const ui_settings = window.current_ui_settings || {};
+
+            let metaHtml = '';
+            if (role === 'ai' && meta.model) {
+                const parts = [];
+                parts.push(`<span>🤖 ${meta.model}</span>`);
+                parts.push(`<span>⚡ ${meta.latency ? meta.latency.toFixed(1) + 's' : ''}</span>`);
+
+                if (ui_settings.show_tokens !== false) {
+                    parts.push(`<span>${meta.tokens || ''} tokens</span>`);
+                }
+
+                if (ui_settings.show_rates !== false) {
+                    parts.push(`<span class="text-green-500">${meta.cost ? '$' + meta.cost.toFixed(4) : ''}</span>`);
+                }
+
+                metaHtml = `
+                    <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-white/5 text-[9px] text-slate-500 font-mono">
+                        ${parts.join('<span>•</span>')}
+                    </div>
+                `;
+            }
+
+            const inner = `
+                <div class="max-w-[80%] ${role === 'user' ? 'chat-bubble-user p-4 rounded-2xl' : 'chat-bubble-ai p-5 rounded-3xl'} shadow-xl">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fas ${role === 'user' ? 'fa-user' : 'fa-robot'} text-[10px] ${role === 'user' ? 'text-slate-400' : 'text-sky-400'}"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest ${role === 'user' ? 'text-slate-400' : 'text-sky-400'}">
+                            ${role === 'user' ? 'You' : 'Epex Bot'}
+                        </span>
+                        ${meta.switched ? `<span class="text-[8px] bg-yellow-500/10 text-yellow-500 px-1.5 py-0.5 rounded ml-2">🔄 AUTO-SWITCHED</span>` : ''}
+                    </div>
+                    <div class="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap">${text}</div>
+                    ${metaHtml}
+                </div>
+            `;
+            div.innerHTML = inner;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        let selectedFiles = [];
+        let isComparisonMode = false;
+
+        document.getElementById('comparison-toggle').onclick = () => {
+            isComparisonMode = !isComparisonMode;
+            document.getElementById('comparison-toggle').classList.toggle('text-sky-400', isComparisonMode);
+            document.getElementById('comparison-toggle').classList.toggle('border-sky-500/50', isComparisonMode);
+            if (isComparisonMode) {
+                addMessage("Model Comparison Mode Enabled. Responses will be compared side-by-side.", 'ai');
+            } else {
+                addMessage("Model Comparison Mode Disabled.", 'ai');
+            }
+        };
+
+        function animateLayers(activeLayers, heatmap = null) {
+            document.querySelectorAll('.arch-layer').forEach(l => {
+                const layerId = parseInt(l.dataset.layer);
+
+                if (heatmap && heatmap[`layer_${layerId}`]) {
+                    const intensity = heatmap[`layer_${layerId}`];
+                    l.style.background = `rgba(56, 189, 248, ${intensity * 0.2})`;
+                }
+
+                if (activeLayers.includes(layerId)) {
+                    l.classList.replace('opacity-80', 'opacity-100');
+                    l.classList.add('animate-pulse', 'border-sky-500');
+                } else {
+                    l.classList.replace('opacity-100', 'opacity-80');
+                    l.classList.remove('animate-pulse', 'border-sky-500');
+                }
+            });
+        }
+
+        executeBtn.onclick = async () => {
+            const command = commandInput.value.trim();
+            if (!command && selectedFiles.length === 0) return;
+
+            animateLayers([7, 6, 5, 4]);
+            addMessage(command + (selectedFiles.length > 0 ? ` [Attached: ${selectedFiles.join(', ')}]` : ''), 'user');
+            const attachments = [...selectedFiles];
+
+            commandInput.value = '';
+            commandInput.style.height = '';
+            selectedFiles = [];
+            updateAttachmentUI();
+
+            executeBtn.disabled = true;
+            executeBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
+
+            try {
+                if (isComparisonMode) {
+                    // Send two requests with different priorities/models
+                    const [res1, res2] = await Promise.all([
+                        fetch('/api/v1/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: command + " (Respond briefly)", attachments })
+                        }).then(r => r.json()),
+                        fetch('/api/v1/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: command + " (Respond formally)", attachments })
+                        }).then(r => r.json())
+                    ]);
+
+                    const div = document.createElement('div');
+                    div.className = "grid grid-cols-2 gap-4 my-4";
+                    div.innerHTML = `
+                        <div class="chat-bubble-ai p-5 rounded-3xl shadow-xl border-l-2 border-sky-500">
+                            <div class="text-[9px] font-bold uppercase text-sky-500 mb-2">Model A (Primary)</div>
+                            <div class="text-sm text-slate-200">${res1.response || res1.error}</div>
+                        </div>
+                        <div class="chat-bubble-ai p-5 rounded-3xl shadow-xl border-l-2 border-indigo-500">
+                            <div class="text-[9px] font-bold uppercase text-indigo-500 mb-2">Model B (Alternative)</div>
+                            <div class="text-sm text-slate-200">${res2.response || res2.error}</div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(div);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    const response = await fetch('/api/v1/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command, attachments })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        addMessage(result.response, 'ai', result);
+                        animateLayers([1, 2, 3, 4, 5, 6, 7]);
+                        setTimeout(() => animateLayers([]), 2000);
+                    } else {
+                        addMessage(`Error: ${result.error}`, 'ai');
+                    }
+                }
+            } catch (err) {
+                addMessage(`Critical System Error: ${err.message}`, 'ai');
+            } finally {
+                executeBtn.disabled = false;
+                executeBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            }
+        };
+
+        // Real-time Updates
+        async function updateMetrics() {
+            try {
+                const response = await fetch('/api/v1/system/status');
+                const data = await response.json();
+
+                // Metrics
+                const cpu = Math.floor(Math.random() * 20) + 5;
+                const ram = Math.floor(Math.random() * 30) + 10;
+                document.getElementById('cpu-load').innerText = `${cpu}%`;
+                document.getElementById('cpu-bar').style.width = `${cpu}%`;
+                document.getElementById('ram-usage').innerText = `${ram}%`;
+                document.getElementById('ram-bar').style.width = `${ram}%`;
+
+                // Privacy
+                const priv = data.privacy;
+                document.getElementById('leak-count').innerText = `${priv.total_findings || 0} Detected`;
+
+                // Bridge Status
+                const msg = data.messaging || {};
+                const tg = document.getElementById('status-telegram');
+                if (msg.telegram) tg.classList.replace('text-slate-600', 'text-sky-400');
+                else tg.classList.replace('text-sky-400', 'text-slate-600');
+
+                const dc = document.getElementById('status-discord');
+                if (msg.discord) dc.classList.replace('text-slate-600', 'text-indigo-400');
+                else dc.classList.replace('text-indigo-400', 'text-slate-600');
+
+                // Model Health Indicators (Tooltips or colors)
+                const ctx = data.context || {};
+                const models = ctx.models || {};
+                if (Object.values(models).some(v => v)) {
+                    document.getElementById('current-model-name').classList.add('text-green-400');
+                }
+
+                // UI Settings Update
+                window.current_ui_settings = data.config.ui_settings;
+
+                // Heatmap Update
+                if (data.neural_heatmap) {
+                    animateLayers([], data.neural_heatmap);
+                }
+
+                // Neural Sync Insights
+                if (data.neural_sync && data.neural_sync.length > 0) {
+                    document.getElementById('neural-sync-list').innerHTML = data.neural_sync.map(i => `
+                        <div class="text-[10px] text-slate-500 bg-slate-800/50 p-2 rounded-lg border border-white/5">
+                            <span class="text-sky-400 font-bold">•</span> ${i.description}
+                        </div>
+                    `).join('');
+                }
+
+                // Blockchain Audit
+                if (data.blockchain && data.blockchain.length > 0) {
+                    document.getElementById('blockchain-list').innerHTML = data.blockchain.map(b => `
+                        <div class="p-2 border-b border-white/5 opacity-80">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sky-500">BLOCK #${b.index}</span>
+                                <span class="text-slate-600">${new Date(b.timestamp * 1000).toLocaleTimeString()}</span>
+                            </div>
+                            <div class="truncate text-slate-400">HASH: ${b.hash}</div>
+                            <div class="mt-1 text-slate-300">DATA: ${JSON.stringify(b.data)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {}
+        }
+
+        async function emergencyStop() {
+             if (confirm("Trigger emergency Level 4 shutdown?")) {
+                 await fetch('/api/v1/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: "/kill level 4" })
+                });
+                addMessage("EMERGENCY SHUTDOWN TRIGGERED!", 'ai');
+             }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/v1/logs');
+                const logs = await response.json();
+                logTerminal.innerHTML = logs.map(log => `
+                    <div class="flex space-x-3">
+                        <span class="text-slate-500">[${log.timestamp.split('T')[1].split('.')[0]}]</span>
+                        <span class="${log.level === 'ERROR' ? 'text-red-400' : (log.level === 'WARNING' ? 'text-yellow-400' : 'text-sky-400')}">${log.level}</span>
+                        <span class="text-white">${log.message}</span>
+                    </div>
+                `).join('');
+                if (logTerminal.scrollHeight - logTerminal.scrollTop < 800) {
+                    logTerminal.scrollTop = logTerminal.scrollHeight;
+                }
+            } catch (err) {}
+        }
+
+        async function loadThoughts() {
+            try {
+                const response = await fetch('/api/v1/intelligence/thoughts');
+                const thoughts = await response.json();
+                if (thoughts.length > 0) {
+                    const stream = document.getElementById('thought-stream-content');
+                    stream.innerHTML = thoughts.reverse().map(t => `
+                        <div class="p-3 bg-slate-900/50 rounded-xl border border-white/5 animate-in fade-in slide-in-from-right-2">
+                            <div class="text-[9px] font-bold text-sky-400 uppercase mb-1">Reasoning @ ${new Date(t.timestamp * 1000).toLocaleTimeString()}</div>
+                            <div class="text-[11px] text-slate-400 font-mono line-clamp-3 overflow-hidden">${t.response}</div>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-[8px] text-slate-600 italic">Model: ${t.model}</span>
+                                <button onclick="viewThoughtDetail('${btoa(t.response)}')" class="text-[8px] text-sky-500 hover:text-sky-400 font-bold uppercase">Expand</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {}
+        }
+
+        window.viewThoughtDetail = (encoded) => {
+            const detail = atob(encoded);
+            alert("FULL REASONING LOG:\n\n" + detail);
+        };
+
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/v1/alerts');
+                const alerts = await response.json();
+                if (alerts.length > 0) {
+                    document.getElementById('alert-feed').innerHTML = alerts.reverse().slice(0, 5).map(alert => `
+                        <div class="p-3 bg-slate-800/40 rounded-xl border-l-2 ${
+                            alert.severity === 'critical' ? 'border-red-500' : 'border-sky-500'
+                        }">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">${alert.title}</div>
+                            <p class="text-[11px] text-slate-300">${alert.message}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {}
+        }
+
+        async function loadKanban() {
+            try {
+                const response = await fetch('/api/v1/tasks');
+                const tasks = await response.json();
+
+                const pending = document.getElementById('kanban-pending');
+                const active = document.getElementById('kanban-active');
+                const done = document.getElementById('kanban-done');
+
+                pending.innerHTML = ''; active.innerHTML = ''; done.innerHTML = '';
+
+                tasks.forEach(t => {
+                    const card = `
+                        <div class="p-4 bg-slate-900/80 rounded-2xl border border-white/5 shadow-xl hover:border-sky-500/30 transition-all cursor-pointer group">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[9px] font-bold text-slate-500">#${t.id.slice(0,8)}</span>
+                                <i class="fas fa-ellipsis-v text-[9px] text-slate-700"></i>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-200 line-clamp-2">${t.description}</h4>
+                            <div class="mt-4 flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="w-5 h-5 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
+                                        <i class="fas fa-user-robot text-[8px] text-sky-400"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[8px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-sky-400 transition-all">Details</span>
+                            </div>
+                        </div>
+                    `;
+
+                    if (t.status === 'completed') done.innerHTML += card;
+                    else if (t.status === 'running') active.innerHTML += card;
+                    else pending.innerHTML += card;
+                });
+            } catch (err) {}
+        }
+
+        document.getElementById('simulate-btn').onclick = async () => {
+            const task = document.getElementById('simulate-input').value;
+            if (!task) return;
+
+            const btn = document.getElementById('simulate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i> INITIALIZING SIMULATION...';
+
+            try {
+                const response = await fetch('/api/v1/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `simulate task ${task}` })
+                });
+                const data = await response.json();
+
+                document.getElementById('simulation-result').classList.remove('hidden');
+                document.getElementById('sim-report-content').innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                alert("Simulation error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'INITIALIZE SIMULATION';
+            }
+        };
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/v1/system/status');
+                const data = await response.json();
+                const apiKeys = data.config.api_keys || {};
+
+                const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'novita', 'jina', 'elevenlabs', 'assemblyai', 'telegram', 'twilio'];
+
+                document.getElementById('api-settings-list').innerHTML = providers.map(p => `
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-400 capitalize">${p.replace('_', ' ')} Keys (comma separated)</label>
+                        <input type="password" id="key-${p}" value="${Array.isArray(apiKeys[p]) ? apiKeys[p].join(',') : (apiKeys[p] || '')}"
+                            class="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                            placeholder="Enter ${p} API Keys">
+                    </div>
+                `).join('');
+            } catch(err) {}
+        }
+
+        document.getElementById('model-search-btn').onclick = async () => {
+            const query = document.getElementById('model-search-query').value.trim();
+            if (!query) return;
+
+            const resultsDiv = document.getElementById('model-search-results');
+            resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-slate-500 italic"><i class="fas fa-spinner animate-spin mr-2"></i> Querying HuggingFace API...</div>';
+
+            try {
+                const response = await fetch(`/api/v1/models/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-slate-500 italic">No models found for this query.</div>';
+                } else {
+                    resultsDiv.innerHTML = data.map(m => `
+                        <div class="p-4 bg-slate-900/50 rounded-2xl border border-white/5 flex flex-col justify-between">
+                            <div>
+                                <div class="text-[10px] text-sky-400 font-bold uppercase mb-1">${m.provider}</div>
+                                <div class="text-xs font-bold text-slate-200 truncate">${m.name}</div>
+                                <div class="text-[9px] text-slate-500 mt-1">${m.id}</div>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    ${m.capabilities.map(c => `<span class="text-[7px] bg-slate-800 px-1 py-0.5 rounded text-slate-400 uppercase">${c}</span>`).join('')}
+                                </div>
+                            </div>
+                            <button onclick="useModel('${m.id}')" class="mt-4 py-1.5 bg-slate-800 hover:bg-sky-500 hover:text-white rounded-lg text-[9px] font-bold transition-all">SET AS ACTIVE</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="col-span-2 text-center py-4 text-red-500 italic">Search failed. Check your API key.</div>';
+            }
+        };
+
+        window.useModel = async (id) => {
+            const res = await fetch('/api/v1/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: `/model ${id}` })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('current-model-name').innerText = id;
+                addMessage(data.response, 'ai');
+                switchTab('chat');
+            }
+        };
+
+        document.getElementById('save-settings-btn').onclick = async () => {
+            const keys = {};
+            const providers = ['openai', 'google', 'anthropic', 'huggingface', 'groq', 'deepseek', 'mistral', 'together', 'replicate', 'openrouter', 'perplexity', 'cohere', 'xai', 'voyage', 'fireworks', 'novita', 'jina', 'elevenlabs', 'assemblyai', 'telegram', 'twilio'];
+
+            providers.forEach(p => {
+                const el = document.getElementById(`key-${p}`);
+                if (el) {
+                    const val = el.value.trim();
+                    if (val) {
+                        if (val.includes(',')) {
+                            keys[p] = val.split(',').map(k => k.trim());
+                        } else {
+                            keys[p] = [val];
+                        }
+                    }
+                }
+            });
+
+            try {
+                const response = await fetch('/api/v1/system/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_keys: keys })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert("Settings saved securely.");
+                }
+            } catch (err) {
+                alert("Failed to save settings.");
+            }
+        };
+
+        async function loadPeers() {
+            try {
+                const response = await fetch('/api/v1/network/peers');
+                const peers = await response.json();
+                document.getElementById('peers-list').innerHTML = peers.map(p => `
+                    <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-server text-slate-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm">${p.name}</h4>
+                                <p class="text-xs text-slate-500">${p.url}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] rounded uppercase font-bold">${p.status}</span>
+                            <button onclick="removePeer('${p.name}')" class="text-slate-500 hover:text-red-400 transition-all text-xs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="text-center py-12 text-slate-500 text-sm">No instances connected yet.</div>';
+            } catch (err) {}
+        }
+
+        async function removePeer(name) {
+            if (confirm(`Disconnect from ${name}?`)) {
+                await fetch(`/api/v1/network/peers/${name}`, { method: 'DELETE' });
+                loadPeers();
+            }
+        }
+
+        function showAddPeerModal() {
+            const name = prompt("Instance Name:");
+            const url = prompt("Instance URL (e.g. http://localhost:8001):");
+            const key = prompt("API Key:");
+            if (name && url && key) {
+                fetch('/api/v1/network/peers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, url, api_key: key })
+                }).then(() => loadPeers());
+            }
+        }
+
+        function updateAttachmentUI() {
+            // Simplified: just log for now, in real UI we'd show badges
+            console.log("Selected files:", selectedFiles);
+        }
+
+        // Mock file attachment
+        document.querySelector('button[title="Attach File"]').onclick = () => {
+            const path = prompt("Enter file path to attach:");
+            if (path) {
+                selectedFiles.push(path);
+                updateAttachmentUI();
+                alert(`Attached: ${path}`);
+            }
+        };
+
+        async function loadTools() {
+            try {
+                const response = await fetch('/api/v1/tools');
+                const tools = await response.json();
+                toolsGrid.innerHTML = tools.map(tool => `
+                    <div class="glass p-5 rounded-2xl hover:border-sky-500/50 transition-all group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded uppercase font-bold tracking-widest">${tool.category}</span>
+                            <i class="fas fa-bolt text-slate-700 group-hover:text-sky-500 transition-all"></i>
+                        </div>
+                        <h4 class="font-bold text-sm mb-1">${tool.name}</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">${tool.description}</p>
+                        <div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
+                            <span class="text-[10px] font-bold ${
+                                tool.risk_level === 'critical' || tool.risk_level === 'high' ? 'text-red-400' : 'text-slate-400'
+                            }">${tool.risk_level.toUpperCase()} RISK</span>
+                            <button class="text-sky-500 hover:text-sky-400 text-xs font-bold">RUN</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {}
+        }
+
+        document.getElementById('mode-select').onchange = async (e) => {
+            await fetch('/api/v1/system/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: e.target.value })
+            });
+            addMessage(`System mode updated to: ${e.target.value.toUpperCase()}`, 'ai');
+        };
+
+        document.getElementById('role-select').onchange = async (e) => {
+            await fetch('/api/v1/system/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: e.target.value })
+            });
+            addMessage(`Agent persona switched to: ${e.target.value.toUpperCase()}`, 'ai');
+        };
+
+        // Command Palette Logic
+        const palette = document.getElementById('command-palette');
+        const paletteSearch = document.getElementById('palette-search');
+        const paletteResults = document.getElementById('palette-results');
+        let allCommands = [];
+
+        async function initPalette() {
+            const toolsRes = await fetch('/api/v1/tools');
+            const tools = await toolsRes.json();
+
+            allCommands = [
+                { name: 'Switch to TUI', type: 'system', icon: 'fa-terminal', action: () => executeBtn.onclick('/switch tui') },
+                { name: 'Switch to CLI', type: 'system', icon: 'fa-code', action: () => executeBtn.onclick('/switch cli') },
+                { name: 'System Reset', type: 'system', icon: 'fa-undo', action: () => confirm('Revert to clean state?') && addMessage('Resetting...', 'ai') },
+                ...tools.map(t => ({ name: `Run: ${t.name}`, type: 'tool', icon: 'fa-bolt', action: () => { switchTab('tools'); palette.classList.add('hidden'); } }))
+            ];
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                palette.classList.remove('hidden');
+                paletteSearch.focus();
+                renderPalette('');
+            }
+            if (e.key === 'Escape') {
+                palette.classList.add('hidden');
+            }
+        });
+
+        paletteSearch.oninput = (e) => renderPalette(e.target.value);
+
+        function renderPalette(query) {
+            const filtered = allCommands.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+            paletteResults.innerHTML = filtered.map((c, i) => `
+                <div onclick="allCommands[${allCommands.indexOf(c)}].action()" class="flex items-center px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer group transition-all">
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center mr-4 group-hover:bg-sky-500/20 group-hover:text-sky-400">
+                        <i class="fas ${c.icon} text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-xs font-bold text-slate-200">${c.name}</div>
+                        <div class="text-[10px] text-slate-500 capitalize">${c.type}</div>
+                    </div>
+                </div>
+            `).join('') || '<div class="text-center py-10 text-slate-600 text-xs italic">No commands found.</div>';
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js');
+        }
+
+        // Initialize
+        initPalette();
+        setInterval(updateMetrics, 5000);
+        setInterval(loadLogs, 2000);
+        setInterval(loadAlerts, 5000);
+        setInterval(loadThoughts, 3000);
+        setInterval(loadKanban, 4000);
+
+        updateMetrics();
+        loadLogs();
+        loadAlerts();
+        loadTools();
+        loadKanban();
+
+        // Keyboard support
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                executeBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

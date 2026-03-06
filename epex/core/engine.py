@@ -1,0 +1,373 @@
+import asyncio
+import logging
+import os
+from typing import List
+from epex.core.task_manager import TaskManager
+from epex.intelligence.router import EnhancedLLMRouter
+from epex.core.security import SecurityGuardian
+from epex.privacy.guardian import PrivacyGuardian
+from epex.core.innovation import InnovationModule
+from epex.interfaces.messaging import MessagingHub
+from epex.memory.soul import SoulFile
+from epex.memory.vector import VectorMemory, TimeCapsule
+from epex.core.neural_sync import NeuralSync
+from epex.interfaces.voice import VoiceCommandBridge
+from epex.core.system_context import SystemContext
+
+logger = logging.getLogger(__name__)
+
+class EpexEngine:
+    """Main Epex Bot engine"""
+
+    def __init__(self):
+        self.running = False
+        self.task_manager = None
+        self.llm_router = None
+        self.privacy_guardian = PrivacyGuardian()
+        self.soul = SoulFile()
+        self.memory = VectorMemory()
+        self.time_capsule = TimeCapsule(self.memory)
+        self.neural_sync = NeuralSync()
+        self.innovation = InnovationModule()
+        self.messaging_hub = MessagingHub()
+        self.voice_bridge = VoiceCommandBridge(engine=self)
+        self.system_context = SystemContext(engine=self)
+        self.background_tasks = []
+        logger.info("Epex Bot engine initialized")
+
+    async def setup(self):
+        """Run the setup wizard"""
+        from epex.interfaces.tui import TUISetupWizard
+        wizard = TUISetupWizard()
+        await wizard.run()
+
+    async def start(self):
+        """Start Epex Bot"""
+        if self.running:
+            return
+        logger.info("Starting Epex Bot...")
+        self.running = True
+
+        # 1. Initialize DB
+        from epex.core.database import init_db
+        await init_db()
+
+        # 2. Load Tools
+        from epex.tools.registry import registry
+        if os.getenv("EPEX_SAFE_MODE") == "true":
+            logger.warning("SAFE MODE: Loading minimal toolset...")
+            # Load only critical tools
+            from epex.tools.system import SystemInfoTool
+            from epex.tools.file import FileReadTool
+            registry.register(SystemInfoTool())
+            registry.register(FileReadTool())
+        else:
+            await registry.load_default_tools()
+
+        # 3. Initialize components
+        self.llm_router = EnhancedLLMRouter()
+        self.security_guardian = SecurityGuardian({}, neural_sync=self.neural_sync)
+        self.llm_router.aegis = self.security_guardian.aegis
+        self.task_manager = TaskManager(self.llm_router, self.security_guardian, soul=self.soul)
+
+        # 4. Start Privacy monitoring
+        await self.privacy_guardian.start_monitoring()
+
+        # 5. Start Neural Sync
+        await self.neural_sync.start()
+
+        # 6. Start Messaging interfaces
+        await self.messaging_hub.start_all()
+
+        # Check for Return Reports on startup
+        from epex.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+        if config.get('return_reports'):
+            logger.info("Found pending Return Reports. Notification sent.")
+            await self.messaging_hub.broadcast(f"Welcome back, {config.get('user_name', 'User')}! I have completed background tasks for you. Ask for a 'return report' to see what I did.")
+
+        # 6. Start Task processing loop
+        self.background_tasks.append(asyncio.create_task(self._task_processing_loop()))
+
+        # Start Memory Synthesis loop (every 24 hours)
+        self.background_tasks.append(asyncio.create_task(self._memory_synthesis_loop()))
+
+        # 7. Initialize Innovation features
+        logger.info("Innovation Module ready.")
+
+        # 8. Refresh System Context
+        asyncio.create_task(self.system_context.refresh())
+
+        # 9. Dynamic Model Refresh
+        self.background_tasks.append(asyncio.create_task(self._model_refresh_loop()))
+
+        logger.info("Epex Bot started successfully!")
+
+    async def _model_refresh_loop(self):
+        """Periodically refresh model list from HuggingFace and other providers"""
+        while self.running:
+            try:
+                from epex.intelligence.api_manager import UniversalAPIKeyManager
+                manager = UniversalAPIKeyManager()
+                config = await manager.vault.load_config()
+
+                hf_key = config.get('api_keys', {}).get('huggingface')
+                if hf_key:
+                    if isinstance(hf_key, list): hf_key = hf_key[0]
+                    logger.info("Auto-refreshing model list from HuggingFace...")
+                    models = await manager.discover_huggingface_models(hf_key)
+                    if models:
+                        config['discovered_models']['huggingface'] = models
+                        await manager.vault.store_config(config)
+                        # Update router's registry if active
+                        if self.llm_router:
+                             await self.llm_router._load_discovered_models()
+
+                await asyncio.sleep(43200) # Every 12 hours
+            except Exception as e:
+                logger.error(f"Model refresh loop error: {e}")
+                await asyncio.sleep(3600)
+
+    async def _memory_synthesis_loop(self):
+        """Periodically synthesize experiences"""
+        while self.running:
+            try:
+                from epex.tools.registry import registry
+                tool = registry.get("memory.synthesize_experiences")
+                if tool:
+                    await tool.execute(days_back=3)
+                await asyncio.sleep(86400) # Once a day
+            except Exception as e:
+                logger.error(f"Memory synthesis loop error: {e}")
+                await asyncio.sleep(3600)
+
+    async def _task_processing_loop(self):
+        """Continuous task processing loop"""
+        while self.running:
+            try:
+                await self.task_manager.process_queue()
+                await asyncio.sleep(1) # Prevent busy waiting
+            except Exception as e:
+                logger.error(f"Error in task processing loop: {e}")
+                await asyncio.sleep(5)
+
+    async def stop(self, level: int = 0):
+        """Stop Epex Bot with optional level"""
+        logger.info(f"Stopping Epex Bot (Level {level})...")
+        self.voice_bridge.stop()
+
+        if level == 1:
+            # Level 1: Stop current task only
+            # In a real app, we'd need a way to identify and cancel specific tasks
+            logger.info("Level 1 Kill: Stopping current task.")
+            return
+
+        if level == 2:
+            # Level 2: Pause all active agents
+            logger.info("Level 2 Kill: Pausing all active agents.")
+            if self.task_manager:
+                from epex.core.agent import AgentStatus
+                for agent in self.task_manager.spawner.spawned_agents.values():
+                    agent.status = AgentStatus.PAUSED
+            return
+
+        self.running = False
+
+        if level >= 3:
+            # Full system lock or emergency shutdown
+            logger.warning("EMERGENCY SHUTDOWN IN PROGRESS")
+
+        # Stop background tasks
+        for task in self.background_tasks:
+            task.cancel()
+
+        if self.background_tasks:
+            await asyncio.gather(*self.background_tasks, return_exceptions=True)
+            self.background_tasks = []
+
+        if self.task_manager:
+            await self.task_manager.cleanup()
+
+        # Stop privacy guardian
+        await self.privacy_guardian.stop()
+
+        # Stop neural sync
+        await self.neural_sync.stop()
+
+        # Stop messaging interfaces
+        await self.messaging_hub.stop_all()
+
+        logger.info("Epex Bot stopped")
+
+    async def execute_command(self, command: str, attachments: List[str] = None):
+        """Execute a command and wait for result with global error boundary"""
+        try:
+            return await self._execute_command_internal(command, attachments)
+        except Exception as e:
+            logger.error(f"Global Error Boundary caught: {e}")
+            return {
+                "success": False,
+                "error": f"Internal System Error: {str(e)}",
+                "recovery_suggestion": "Try restarting the EPEX engine or checking your API connectivity."
+            }
+
+    async def _execute_command_internal(self, command: str, attachments: List[str] = None):
+        """Execute a command and wait for result"""
+        if not self.task_manager:
+            await self.start()
+
+        # Handle attachments if any
+        attachment_context = ""
+        if attachments:
+            for path in attachments:
+                ext = os.path.splitext(path)[1].lower()
+                if ext in ['.pdf', '.docx', '.txt', '.py', '.md']:
+                    from epex.tools.registry import registry
+                    tool = registry.get("document.parse")
+                    res = await tool.execute(path)
+                    if res.success:
+                        attachment_context += f"\n[DOCUMENT ATTACHMENT: {path}]\n{res.output['content']}\n"
+                elif ext in ['.wav', '.mp3', '.ogg', '.m4a']:
+                    from epex.tools.registry import registry
+                    tool = registry.get("voice.listen")
+                    res = await tool.execute(duration=30) # Default capture duration
+                    if res.success:
+                        attachment_context += f"\n[AUDIO ATTACHMENT: {path}]\nTranscript: {res.output}\n"
+                elif ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                    from epex.tools.registry import registry
+                    tool = registry.get("vision.analyze_attachment")
+                    res = await tool.execute(path)
+                    if res.success:
+                        attachment_context += f"\n[IMAGE ANALYSIS: {path}]\n{res.output['analysis']}\n"
+
+        if attachment_context:
+            command = f"Context from attachments: {attachment_context}\n\nTask: {command}"
+
+        # Model Management Commands
+        if command.lower().startswith("/model "):
+            model_id = command.split("/model ", 1)[1].strip()
+            if self.llm_router:
+                self.llm_router.active_model_override = model_id
+                return {"success": True, "response": f"Successfully switched active model to: {model_id}"}
+
+        if command.lower() == "/model reset":
+            if self.llm_router:
+                self.llm_router.active_model_override = None
+                return {"success": True, "response": "Active model reset to intelligent auto-selection."}
+
+        if command.lower().startswith("/model popular"):
+            provider = command.split()[-1] if len(command.split()) > 2 else "huggingface"
+            from epex.tools.registry import registry
+            tool = registry.get("intelligence.model_popular")
+            res = await tool.execute(provider=provider)
+            return {"success": True, "response": f"Trending models for {provider}:\n" + str(res.output)}
+
+        if command.lower().startswith("/model compare"):
+            parts = command.split()
+            if len(parts) >= 4:
+                from epex.tools.registry import registry
+                tool = registry.get("intelligence.model_compare")
+                res = await tool.execute(model_a=parts[2], model_b=parts[3])
+                return {"success": True, "response": f"Comparison:\n" + str(res.output)}
+
+        # AI-Driven Interface Switching
+        if "switch to gui" in command.lower() or "open the dashboard" in command.lower():
+            return {"success": True, "response": "Switching to GUI interface...", "control_signal": "switch_gui"}
+        if "switch to tui" in command.lower():
+            return {"success": True, "response": "Switching to TUI interface...", "control_signal": "switch_tui"}
+        if "switch to cli" in command.lower() or "use raw chat" in command.lower():
+            return {"success": True, "response": "Switching to CLI interface...", "control_signal": "switch_cli"}
+
+        # Load personalization
+        # Or better from SecureConfigStorage
+        from epex.foundation.storage import SecureConfigStorage
+        storage = SecureConfigStorage()
+        config = await storage.load_config()
+
+        user_name = config.get('user_name', 'User')
+        epex_name = config.get('epex_name', 'Epex')
+
+        # Custom Greeting logic
+        if command.lower().strip() in ["hi", "hello", "hey"]:
+            greeting = f"hi {user_name}, how is your day? would you like me to help you with something?"
+            if user_name == "Max": # Specific requirement check
+                 greeting = f"hi sir, how is your day? would you like me to help you with something?"
+            return {"success": True, "response": greeting}
+
+        if "my name is" in command.lower():
+            new_name = command.lower().split("my name is")[-1].strip().capitalize()
+            config['user_name'] = new_name
+            await storage.store_config(config)
+            return {"success": True, "response": f"hi {new_name}, how can I help you today?"}
+
+        if "create a tool" in command.lower() or "build a tool" in command.lower():
+            command = f"Generate a spec and build a tool for: {command}"
+
+        # Self-Aware Diagnostics
+        diagnostic_keywords = ["is active", "is connected", "system status", "models online", "check connectivity"]
+        if any(k in command.lower() for k in diagnostic_keywords):
+            await self.system_context.refresh()
+            summary = self.system_context.get_summary()
+            return {"success": True, "response": f"Self-Diagnostic Check:\n{summary}"}
+
+        if "ghost mode" in command.lower() or "run in background" in command.lower():
+            task = await self.task_manager.create_task_from_command(command.replace("ghost mode", "").replace("run in background", "").strip())
+            self.task_manager.shadow_tasks.append(task.id)
+            return {"success": True, "response": f"Ghost Mode Activated. I will continue working on '{task.description}' in the background. See you when you return!"}
+
+        if "return report" in command.lower() or "what did i miss" in command.lower():
+            reports = config.get('return_reports', [])
+            if not reports:
+                return {"success": True, "response": "You haven't missed anything! No background tasks have completed since your last check."}
+
+            report_text = "# 📋 EPEX RETURN REPORT\n\nWhile you were away, I completed the following tasks:\n\n"
+            for r in reports:
+                report_text += f"### 🔹 {r['task_description']}\n- **Summary**: {r['summary']}\n- **Time**: {r['timestamp']}\n\n"
+
+            # Clear reports after showing
+            config['return_reports'] = []
+            await storage.store_config(config)
+            return {"success": True, "response": report_text}
+
+        # Network Delegation
+        if command.lower().startswith("ask ") or command.lower().startswith("delegate "):
+            parts = command.split()
+            peer_name = parts[1]
+            remote_cmd = " ".join(parts[2:])
+            from epex.core.network_node import network_node
+            await network_node.load_peers()
+            try:
+                res = await network_node.delegate_task(peer_name, remote_cmd)
+                return {"success": True, "response": f"🤖 {peer_name} says:\n{res.get('response', 'Task initiated.')}"}
+            except Exception as e:
+                return {"success": False, "error": f"Failed to communicate with {peer_name}: {e}"}
+
+        # Log to long-term memory
+        await self.memory.add(f"User ({user_name}) command: {command}")
+
+        task = await self.task_manager.create_task_from_command(command)
+
+        # Wait for task completion (polling for simplicity, or use Event)
+        from epex.core.database import AsyncSessionLocal
+        from epex.models.core import Task
+        from sqlalchemy import select
+
+        max_wait = 60 # seconds
+        start_time = asyncio.get_event_loop().time()
+
+        while asyncio.get_event_loop().time() - start_time < max_wait:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(select(Task).where(Task.id == task.id))
+                updated_task = result.scalars().first()
+                if updated_task.status in ['completed', 'failed']:
+                    # Learn from interaction
+                    if updated_task.status == 'completed':
+                        self.soul.learn_from_interaction(command, str(updated_task.result), True)
+                    return updated_task.result
+            await asyncio.sleep(0.5)
+
+        return {"success": False, "error": "Task timed out"}
+
+# Global engine instance for convenience
+engine = EpexEngine()

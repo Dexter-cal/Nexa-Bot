@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  epex:
+    build: .
+    container_name: epex-bot
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - epex_config:/root/.epex
+      - ./logs:/app/logs
+    environment:
+      - EPEX_MODE=autonomous
+      - DISPLAY=:0
+    restart: unless-stopped
+
+volumes:
+  epex_config:

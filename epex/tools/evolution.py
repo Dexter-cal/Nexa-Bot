@@ -1,0 +1,79 @@
+import logging
+import os
+import json
+from typing import Dict, Any, List
+from epex.tools.base import Tool, ToolResult
+from epex.intelligence.router import EnhancedLLMRouter
+
+logger = logging.getLogger(__name__)
+
+class SelfEvolutionTool(Tool):
+    name = "meta.self_evolve"
+    description = "Analyze a specific Epex component and propose/apply an upgrade to its logic."
+    category = "meta"
+    risk_level = "critical"
+    parameters = {
+        "component_path": {"type": "string", "required": True, "description": "Path to the component to evolve"},
+        "objective": {"type": "string", "required": True, "description": "What improvement to achieve (e.g. 'add error handling', 'optimize speed')"}
+    }
+
+    async def execute(self, component_path: str, objective: str, **kwargs) -> ToolResult:
+        if not os.path.exists(component_path):
+            return ToolResult(success=False, error=f"Component not found: {component_path}")
+
+        logger.info(f"🧬 Self-Evolution: Analyzing {component_path} to achieve: {objective}")
+
+        with open(component_path, 'r') as f:
+            current_code = f.read()
+
+        router = EnhancedLLMRouter()
+        prompt = f"""
+        Objective: {objective}
+        Component: {component_path}
+
+        Current Code:
+        ```python
+        {current_code}
+        ```
+
+        Rewrite the complete file to achieve the objective while maintaining full compatibility.
+        Return ONLY the Python code in a code block.
+        """
+
+        response = await router.execute(prompt, priority='quality')
+        new_code_raw = response['response']
+
+        # Extract code
+        if '```python' in new_code_raw:
+            new_code = new_code_raw.split('```python')[1].split('```')[0].strip()
+        elif '```' in new_code_raw:
+            new_code = new_code_raw.split('```')[1].split('```')[0].strip()
+        else:
+            new_code = new_code_raw.strip()
+
+        # Apply using meta.update_self (via registry to find the tool)
+        from epex.tools.registry import registry
+        updater = registry.get("meta.update_self")
+        if not updater:
+             return ToolResult(success=False, error="meta.update_self tool not found")
+
+        res = await updater.execute(component_path=component_path, new_code=new_code)
+
+        return ToolResult(success=res.success, output=f"Evolution complete: {res.output}", error=res.error)
+
+class LogicRefactorTool(Tool):
+    name = "meta.logic_refactor"
+    description = "Autonomous tool to analyze Python code for performance bottlenecks and refactor it."
+    category = "meta"
+    risk_level = "critical"
+    parameters = {
+        "code": {"type": "string", "required": True},
+        "style": {"type": "string", "required": False, "default": "performance"}
+    }
+
+    async def execute(self, code: str, style: str = "performance", **kwargs) -> ToolResult:
+        logger.info(f"🧬 Logic Refactor: Optimizing code for {style}...")
+        router = EnhancedLLMRouter()
+        prompt = f"Refactor this code for {style}:\n\n{code}\n\nReturn only the refactored code in a block."
+        res = await router.execute(prompt, priority='quality')
+        return ToolResult(success=True, output=res['response'])
