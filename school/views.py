@@ -7,6 +7,7 @@ from .serializers import (SchoolClassSerializer, TeacherSerializer, StudentSeria
                           FeeStructureSerializer, MarkSerializer, AttendanceSerializer,
                           TimetableSerializer, UserSerializer)
 from django.shortcuts import render
+from django.contrib.auth.models import User
 
 def index(request):
     return render(request, 'school/index.html')
@@ -39,6 +40,21 @@ class TimetableViewSet(viewsets.ModelViewSet):
     queryset = Timetable.objects.all()
     serializer_class = TimetableSerializer
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        role = request.data.get('role', 'admin')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+
+        user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name)
+        UserProfile.objects.create(user=user, role=role, avatar=(first_name[:2] if first_name else username[:2]).upper())
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
 class AuthViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
 
@@ -49,8 +65,10 @@ class AuthViewSet(viewsets.ViewSet):
         user = authenticate(username=username, password=password)
         if user:
             login(request, user)
-            # Ensure profile exists for demo
-            UserProfile.objects.get_or_create(user=user, defaults={'role': 'admin', 'avatar': 'AD'})
+            role = 'admin'
+            if user.is_superuser:
+                role = 'superadmin'
+            UserProfile.objects.update_or_create(user=user, defaults={'role': role, 'avatar': (user.first_name[:2] if user.first_name else user.username[:2]).upper()})
             return Response({'status': 'logged in', 'user': UserSerializer(user).data})
         return Response({'status': 'unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 

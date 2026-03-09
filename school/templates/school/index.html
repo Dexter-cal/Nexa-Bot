@@ -138,6 +138,9 @@ img{max-width:100%}
 #app{display:none;flex-direction:column;min-height:100vh}
 #app.show{display:flex}
 
+/* ═══════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════ */
 .app-topbar {
   height:var(--tb);background:var(--m);
   display:flex;align-items:center;padding:0 20px;
@@ -162,6 +165,11 @@ img{max-width:100%}
 .breadcrumb-bar{font-size:13px;color:rgba(255,255,255,0.6)}
 .breadcrumb-bar strong{color:#fff;font-weight:600}
 .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.tb-chip{
+  padding:5px 14px;border-radius:20px;
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-size:11px;font-weight:600;white-space:nowrap;
+}
 .tb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px 4px 4px;border-radius:10px;transition:var(--trans)}
 .tb-user:hover{background:rgba(255,255,255,0.1)}
 .tb-user-ava{width:32px;height:32px;border-radius:9px;background:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:var(--md);flex-shrink:0}
@@ -173,8 +181,12 @@ img{max-width:100%}
   transition:var(--trans);position:relative;flex-shrink:0;
 }
 
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
 .layout{display:flex;flex:1;position:relative;overflow:hidden}
 
+/* SIDEBAR */
 .sidebar{
   width:var(--sb);min-width:var(--sb);background:var(--md);
   height:calc(100vh - var(--tb));position:sticky;top:var(--tb);
@@ -202,7 +214,7 @@ img{max-width:100%}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;height:calc(100vh - var(--tb))}
 
 /* ═══════════════════════════════════════════
-   PAGE COMPONENTS
+   COMPONENTS
 ═══════════════════════════════════════════ */
 .page{padding:24px;flex:1;max-width:1600px;width:100%;margin:0 auto}
 .page-hero{margin-bottom:24px}
@@ -211,6 +223,7 @@ img{max-width:100%}
 .stats{display:grid;gap:14px;margin-bottom:22px}
 .stats-4{grid-template-columns:repeat(4,1fr)}
 .stat-card{background:var(--white);border-radius:var(--rad);padding:18px 20px;border:1px solid var(--e);position:relative;overflow:hidden;transition:var(--trans)}
+.stat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
 .stat-num{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:var(--1a);line-height:1}
 .stat-label{font-size:11px;color:var(--99);margin-top:5px;font-weight:500}
 .stat-accent{position:absolute;bottom:0;left:0;width:100%;height:3px}
@@ -220,6 +233,7 @@ img{max-width:100%}
 .card-head{padding:16px 20px;border-bottom:1px solid var(--f0);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .card-title{font-size:14px;font-weight:700;color:var(--1a)}
 .card-body{padding:18px 20px}
+.card-body.no-pad{padding:0}
 
 .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:var(--trans);white-space:nowrap}
 .btn-primary{background:var(--m);color:#fff;}
@@ -270,7 +284,7 @@ img{max-width:100%}
 </head>
 <body>
 
-<!-- ═══════════ SPLASH SCREEN ═══════════ -->
+<!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo-ring"><div class="splash-logo-inner"><img src="{% static 'school/assets/logo.jpg' %}" class="school-logo-img"></div></div>
   <div class="splash-name">Bitende Junior School</div>
@@ -278,7 +292,7 @@ img{max-width:100%}
   <div class="splash-loader"><div class="splash-loader-bar"></div></div>
 </div>
 
-<!-- ═══════════ LOGIN SCREEN ═══════════ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo-area">
@@ -293,11 +307,11 @@ img{max-width:100%}
   </div>
 </div>
 
-<!-- ═══════════ APP SHELL ═══════════ -->
+<!-- APP -->
 <div id="app">
   <header class="app-topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="app-topbar-logo"><div class="crest"><img src="{% static 'school/assets/logo.jpg' %}" class="school-logo-img"></div><div class="school-name">BJS</div></div>
+    <div class="app-topbar-logo"><div class="crest"><img src="{% static 'school/assets/logo.jpg' %}" class="school-logo-img"></div><div class="school-name">BJS Management</div></div>
     <div class="topbar-center"><div class="breadcrumb-bar" id="topbar-breadcrumb">Dashboard</div></div>
     <div class="topbar-right">
       <div class="tb-chip">Term 2 · 2025</div>
@@ -320,9 +334,32 @@ img{max-width:100%}
     <div class="modal-body">
       <div class="field"><label>Level</label><input class="field-input" id="c-level" placeholder="e.g. P.1"></div>
       <div class="field"><label>Sections (comma separated)</label><input class="field-input" id="c-sections" placeholder="e.g. A, B"></div>
-      <div class="field"><label>Annual Fee (UGX)</label><input class="field-input" id="c-fee" type="number"></div>
+      <div class="field"><label>Fee</label><input class="field-input" id="c-fee" type="number"></div>
     </div>
     <div class="modal-foot"><button class="btn btn-primary" onclick="saveClass()">Save</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Create New User Account</div><button onclick="closeModal('modal-user')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Username</label><input class="field-input" id="u-username"></div>
+      <div class="field"><label>Password</label><input class="field-input" id="u-password" type="password"></div>
+      <div class="field"><label>Role</label>
+        <select class="field-select" id="u-role">
+          <option value="admin">Admin</option>
+          <option value="bursar">Bursar</option>
+          <option value="reception">Reception</option>
+          <option value="teacher">Teacher</option>
+          <option value="parent">Parent</option>
+          <option value="student">Student</option>
+        </select>
+      </div>
+      <div class="field"><label>First Name</label><input class="field-input" id="u-fname"></div>
+      <div class="field"><label>Last Name</label><input class="field-input" id="u-lname"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="saveUser()">Create Account</button></div>
   </div>
 </div>
 
@@ -357,12 +394,17 @@ let currentUser = null;
 const NAV = {
     superadmin: [
         { section: 'Overview' }, { label: 'Dashboard', icon: '⊞', page: 'dashboard' },
-        { section: 'Administration' }, { label: 'Classes', icon: '🏫', page: 'classes' }, { label: 'Teachers', icon: '👨‍🏫', page: 'teachers' }, { label: 'Students', icon: '👧', page: 'students' }
+        { section: 'Administration' }, { label: 'User Accounts', icon: '👤', page: 'users' }, { label: 'Classes', icon: '🏫', page: 'classes' }, { label: 'Teachers', icon: '👨‍🏫', page: 'teachers' }, { label: 'Students', icon: '👧', page: 'students' }
     ],
     admin: [
         { section: 'Overview' }, { label: 'Dashboard', icon: '⊞', page: 'dashboard' },
         { section: 'Students' }, { label: 'All Students', icon: '👧', page: 'students' }
-    ]
+    ],
+    bursar: [{ section: 'Overview' }, { label: 'Finance Dashboard', icon: '⊞', page: 'dashboard' }],
+    teacher: [{ section: 'Overview' }, { label: 'My Dashboard', icon: '⊞', page: 'dashboard' }],
+    parent: [{ section: 'Home' }, { label: 'Child Dashboard', icon: '⊞', page: 'dashboard' }],
+    student: [{ section: 'School' }, { label: 'My Dashboard', icon: '⊞', page: 'dashboard' }],
+    reception: [{ section: 'Overview' }, { label: 'Dashboard', icon: '⊞', page: 'dashboard' }]
 };
 
 window.onload = async () => {
@@ -396,7 +438,7 @@ function enterApp() {
     document.getElementById('login-screen').classList.remove('show');
     document.getElementById('app').classList.add('show');
     document.getElementById('splash').style.display = 'none';
-    document.getElementById('topbar-name').textContent = currentUser.username;
+    document.getElementById('topbar-name').textContent = currentUser.first_name || currentUser.username;
     document.getElementById('topbar-ava').textContent = (currentUser.profile && currentUser.profile.avatar) || 'AD';
     buildSidebar();
     loadPage('dashboard');
@@ -422,7 +464,7 @@ async function loadPage(page, el, label) {
         const [students, teachers, classes] = await Promise.all([API.fetch('/students/'), API.fetch('/teachers/'), API.fetch('/classes/')]);
         main.innerHTML = `
             <div class="page">
-                <div class="page-hero"><div class="page-title">Good morning, ${currentUser.username} 👋</div></div>
+                <div class="page-hero"><div class="page-title">Good morning, ${currentUser.first_name || currentUser.username} 👋</div></div>
                 <div class="stats stats-4">
                     <div class="stat-card"><div class="stat-num">${students.length}</div><div class="stat-label">Students</div><div class="stat-accent red"></div></div>
                     <div class="stat-card"><div class="stat-num">${teachers.length}</div><div class="stat-label">Teachers</div><div class="stat-accent gold"></div></div>
@@ -437,6 +479,14 @@ async function loadPage(page, el, label) {
             <div class="page">
                 <div class="page-hero"><div class="page-title">Class Management</div><button class="btn btn-primary" onclick="openModal('modal-class')">+ Add Class Level</button></div>
                 <div class="card"><div class="card-body no-pad"><table class="tbl"><thead><tr><th>Level</th><th>Sections</th><th>Annual Fee</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+            </div>`;
+    } else if (page === 'users') {
+        const users = await API.fetch('/users/');
+        let rows = users.map(u => `<tr><td>${u.username}</td><td>${u.first_name} ${u.last_name}</td><td><span class="badge">${u.profile ? u.profile.role : 'N/A'}</span></td></tr>`).join('');
+        main.innerHTML = `
+            <div class="page">
+                <div class="page-hero"><div class="page-title">User Accounts</div><button class="btn btn-primary" onclick="openModal('modal-user')">+ Create New Account</button></div>
+                <div class="card"><div class="card-body no-pad"><table class="tbl"><thead><tr><th>Username</th><th>Name</th><th>Role</th></tr></thead><tbody>${rows}</tbody></table></div></div>
             </div>`;
     } else if (page === 'students') {
         const students = await API.fetch('/students/');
@@ -458,17 +508,21 @@ async function saveClass() {
     loadPage('classes');
 }
 
+async function saveUser() {
+    const username = document.getElementById('u-username').value;
+    const password = document.getElementById('u-password').value;
+    const role = document.getElementById('u-role').value;
+    const first_name = document.getElementById('u-fname').value;
+    const last_name = document.getElementById('u-lname').value;
+    await API.fetch('/users/', { method: 'POST', body: JSON.stringify({ username, password, role, first_name, last_name }) });
+    closeModal('modal-user');
+    loadPage('users');
+}
+
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('sb-overlay').classList.toggle('show'); }
 function fmt(n) { return Number(n).toLocaleString(); }
-function showFlash(msg) {
-    const f = document.createElement('div');
-    f.className = 'flash-success';
-    f.textContent = '✓ ' + msg;
-    document.body.appendChild(f);
-    setTimeout(() => f.remove(), 3000);
-}
 </script>
 </body>
 </html>
