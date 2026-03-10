@@ -2,12 +2,13 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import authenticate, login, logout
-from .models import SchoolClass, Teacher, Student, FeeStructure, Mark, Attendance, Timetable, UserProfile
+from .models import SchoolClass, Teacher, Student, FeeStructure, Mark, Attendance, Timetable, UserProfile, SchoolSettings
 from .serializers import (SchoolClassSerializer, TeacherSerializer, StudentSerializer,
                           FeeStructureSerializer, MarkSerializer, AttendanceSerializer,
-                          TimetableSerializer, UserSerializer)
+                          TimetableSerializer, UserSerializer, SchoolSettingsSerializer)
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 def index(request):
     return render(request, 'school/index.html')
@@ -40,6 +41,20 @@ class TimetableViewSet(viewsets.ModelViewSet):
     queryset = Timetable.objects.all()
     serializer_class = TimetableSerializer
 
+class SchoolSettingsViewSet(viewsets.ModelViewSet):
+    queryset = SchoolSettings.objects.all()
+    serializer_class = SchoolSettingsSerializer
+
+    @action(detail=False, methods=['get', 'post'])
+    def current(self, request):
+        settings, created = SchoolSettings.objects.get_or_create(id=1)
+        if request.method == 'POST':
+            serializer = self.get_serializer(settings, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(self.get_serializer(settings).data)
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -50,9 +65,10 @@ class UserViewSet(viewsets.ModelViewSet):
         password = request.data.get('password')
         first_name = request.data.get('first_name', '')
         last_name = request.data.get('last_name', '')
+        phone_number = request.data.get('phone_number', '')
 
         user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name)
-        UserProfile.objects.create(user=user, role=role, avatar=(first_name[:2] if first_name else username[:2]).upper())
+        UserProfile.objects.create(user=user, role=role, phone_number=phone_number, avatar=(first_name[:2] if first_name else username[:2]).upper())
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 class AuthViewSet(viewsets.ViewSet):
@@ -60,16 +76,23 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def login(self, request):
-        username = request.data.get('username')
+        identifier = request.data.get('username') # Multi-identifier field
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
+
+        # Support login by username, email, or phone
+        user = User.objects.filter(
+            Q(username=identifier) | Q(email=identifier) | Q(profile__phone_number=identifier)
+        ).first()
+
         if user:
-            login(request, user)
-            role = 'admin'
-            if user.is_superuser:
-                role = 'superadmin'
-            UserProfile.objects.update_or_create(user=user, defaults={'role': role, 'avatar': (user.first_name[:2] if user.first_name else user.username[:2]).upper()})
-            return Response({'status': 'logged in', 'user': UserSerializer(user).data})
+            user = authenticate(username=user.username, password=password)
+            if user:
+                login(request, user)
+                # Ensure profile exists
+                role = 'superadmin' if user.is_superuser else 'admin'
+                UserProfile.objects.get_or_create(user=user, defaults={'role': role, 'avatar': (user.first_name[:2] if user.first_name else user.username[:2]).upper()})
+                return Response({'status': 'logged in', 'user': UserSerializer(user).data})
+
         return Response({'status': 'unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
     @action(detail=False, methods=['post'])

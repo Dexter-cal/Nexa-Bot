@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from .models import SchoolClass, Teacher, Student, FeeStructure, Mark, Attendance, Timetable, UserProfile
+from .models import SchoolClass, Teacher, Student, FeeStructure, Mark, Attendance, Timetable, UserProfile, SchoolSettings
 from django.contrib.auth.models import User
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['role', 'avatar']
+        fields = ['role', 'avatar', 'phone_number', 'must_change_password', 'is_locked']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
@@ -46,4 +46,9 @@ class AttendanceSerializer(serializers.ModelSerializer):
 class TimetableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timetable
+        fields = '__all__'
+
+class SchoolSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SchoolSettings
         fields = '__all__'
